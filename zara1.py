@@ -60,3 +60,22 @@ if not data_container.empty:
 
     # Display the bar chart using Streamlit's bar_chart function
     st.bar_chart(name_counts)
+
+    # Download button for the table
+    st.sidebar.header("Download Data")
+    if st.sidebar.button("Download Table"):
+        st.sidebar.download_button(
+            label="Download CSV",
+            data=data_container.to_csv(index=False),
+            file_name="user_data_table.csv",
+            mime="text/csv"
+        )
+
+    # Download button for the chart
+    if st.sidebar.button("Download Chart"):
+        st.sidebar.download_button(
+            label="Download PNG",
+            data=st.pyplot(),
+            file_name="name_distribution_chart.png",
+            key="name_distribution_chart"
+        )
