@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
 
 # Function to load data from file
 def load_data():
@@ -59,5 +58,5 @@ if not data_container.empty:
     # Calculate the sum of occurrences for each name
     name_counts = data_container['Name'].value_counts()
 
-    # Plot the bar chart
+    # Display the bar chart using Streamlit's bar_chart function
     st.bar_chart(name_counts)
