@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
 
 # Function to load data from file
 def load_data():
@@ -45,14 +44,14 @@ if submit_button:
     name = ""
     age = 0
 
-# Display a table using Pandas in the sidebar
+# Display an interactive table using Pandas in the sidebar
 # Format the 'Age' column as integers
 st.sidebar.table(data_container.style.format({"Age": "{:.0f}"}))
 
 # Main section for Data Dashboard
 st.header("Data Dashboard")
 
-# Display an interactive bar chart for Name distribution using Plotly Express
+# Display an interactive bar chart for Name distribution using Pandas
 if not data_container.empty:
     st.header("Name Distribution")
 
@@ -60,6 +59,6 @@ if not data_container.empty:
     name_counts = data_container['Name'].value_counts().reset_index()
     name_counts.columns = ['Name', 'Count']
 
-    # Plot the bar chart using Plotly Express
-    fig = px.bar(name_counts, x='Name', y='Count', title='Name Distribution')
-    st.plotly_chart(fig)
+    # Display the bar chart using Pandas' plot function
+    st.bar_chart(name_counts.set_index('Name'))
+
