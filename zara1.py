@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
 
 # Function to load data from file
 def load_data():
@@ -50,9 +49,6 @@ with col2:
     st.header("Data Dashboard")
     st.dataframe(data_container)
 
-    # Display a bar chart using Matplotlib
+    # Display a bar chart using Pandas (plotly backend)
     if not data_container.empty:
-        fig, ax = plt.subplots()
-        data_container.plot(kind='bar', x='Name', y='Age', ax=ax)
-        ax.set_ylabel('Age')
-        st.pyplot(fig)
+        st.bar_chart(data_container.set_index('Name'))
