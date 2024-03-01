@@ -23,10 +23,18 @@ col1, col2 = st.columns([2, 3])
 # Data Entry Form on the left
 with col1:
     st.header("Data Entry Form")
+
+    # Use st.text_input and st.number_input directly
     name = st.text_input("Enter Name:")
     age = st.number_input("Enter Age:")
+    
     submit_button = st.button("Submit Data")
     clear_button = st.button("Clear")
+
+    # Clear the form
+    if clear_button:
+        name = ""
+        age = 0
 
 # Load existing data
 data_container = load_data()
@@ -36,11 +44,6 @@ if submit_button:
     new_data = {"Name": name, "Age": age}
     data_container = pd.concat([data_container, pd.DataFrame([new_data])], ignore_index=True)
     save_data(data_container)
-
-# Clear the form
-if clear_button:
-    name = ""
-    age = 0
 
 # Dashboard on the right
 with col2:
