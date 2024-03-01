@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
+import plotly.express as px
 
 # Function to load data from file
 def load_data():
@@ -52,12 +52,14 @@ st.sidebar.table(data_container.style.format({"Age": "{:.0f}"}))
 # Main section for Data Dashboard
 st.header("Data Dashboard")
 
-# Display a bar chart for Name distribution
+# Display an interactive bar chart for Name distribution using Plotly Express
 if not data_container.empty:
     st.header("Name Distribution")
 
     # Calculate the sum of occurrences for each name
-    name_counts = data_container['Name'].value_counts()
+    name_counts = data_container['Name'].value_counts().reset_index()
+    name_counts.columns = ['Name', 'Count']
 
-    # Plot the bar chart
-    st.bar_chart(name_counts)
+    # Plot the bar chart using Plotly Express
+    fig = px.bar(name_counts, x='Name', y='Count', title='Name Distribution')
+    st.plotly_chart(fig)
