@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import matplotlib.pyplot as plt
 
 # Function to load data from file
 def load_data():
@@ -21,8 +22,8 @@ st.sidebar.header("Data Entry Form")
 
 # Use st.text_input and st.number_input directly in the sidebar
 name = st.sidebar.text_input("Enter Name:")
-age = st.sidebar.number_input("Enter Age:")
-    
+age = st.sidebar.number_input("Enter Age:", step=1, value=0)
+
 submit_button = st.sidebar.button("Submit Data")
 clear_button = st.sidebar.button("Clear")
 
@@ -36,7 +37,7 @@ data_container = load_data()
 
 # Add submitted data to the container
 if submit_button:
-    new_data = {"Name": name, "Age": age}
+    new_data = {"Name": name, "Age": int(age)}  # Ensure age is treated as a whole number
     data_container = pd.concat([data_container, pd.DataFrame([new_data])], ignore_index=True)
     save_data(data_container)
 
@@ -44,16 +45,19 @@ if submit_button:
     name = ""
     age = 0
 
+# Display a table using Pandas in the sidebar
+# Format the 'Age' column as integers
+st.sidebar.table(data_container.style.format({"Age": "{:.0f}"}))
+
 # Main section for Data Dashboard
 st.header("Data Dashboard")
 
-# Display a table using Pandas in the main section
-st.dataframe(data_container)
-
-# Display an interactive bar chart for Age distribution
+# Display a bar chart for Name distribution
 if not data_container.empty:
-    st.header("Age Distribution")
-    age_counts = data_container['Age'].value_counts()
-    st.bar_chart(age_counts)
+    st.header("Name Distribution")
 
+    # Calculate the sum of occurrences for each name
+    name_counts = data_container['Name'].value_counts()
 
+    # Plot the bar chart
+    st.bar_chart(name_counts)
