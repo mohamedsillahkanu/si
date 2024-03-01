@@ -56,8 +56,4 @@ if not data_container.empty:
     age_counts = data_container['Age'].value_counts()
     st.bar_chart(age_counts)
 
-# Display an interactive pie chart for Name distribution
-if not data_container.empty:
-    st.header("Name Distribution")
-    name_counts = data_container['Name'].value_counts()
-    st.pie_chart(name_counts)
+
