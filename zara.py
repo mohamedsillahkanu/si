@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
+import matplotlib.pyplot as plt
 
 # Function to load data from file
 def load_data():
@@ -47,7 +47,9 @@ with col2:
     st.header("Data Dashboard")
     st.dataframe(data_container)
 
-    # Display an interactive bar chart using Plotly Express
+    # Display a bar chart using Matplotlib
     if not data_container.empty:
-        fig = px.bar(data_container, x='Name', y='Age', labels={'Age': 'Age'}, title='Age Distribution')
-        st.plotly_chart(fig, use_container_width=True)
+        fig, ax = plt.subplots()
+        data_container.plot(kind='bar', x='Name', y='Age', ax=ax)
+        ax.set_ylabel('Age')
+        st.pyplot(fig)
