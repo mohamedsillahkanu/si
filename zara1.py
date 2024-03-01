@@ -16,24 +16,20 @@ def save_data(data):
 # Streamlit App
 st.title("Automatic Dashboard with Streamlit")
 
-# Layout using columns
-col1, col2 = st.columns([2, 3])
+# Sidebar with Data Entry Form
+st.sidebar.header("Data Entry Form")
 
-# Data Entry Form on the left
-with col1:
-    st.header("Data Entry Form")
-
-    # Use st.text_input and st.number_input directly
-    name = st.text_input("Enter Name:")
-    age = st.number_input("Enter Age:")
+# Use st.text_input and st.number_input directly in the sidebar
+name = st.sidebar.text_input("Enter Name:")
+age = st.sidebar.number_input("Enter Age:")
     
-    submit_button = st.button("Submit Data")
-    clear_button = st.button("Clear")
+submit_button = st.sidebar.button("Submit Data")
+clear_button = st.sidebar.button("Clear")
 
-    # Clear the form
-    if clear_button:
-        name = ""
-        age = 0
+# Clear the form
+if clear_button:
+    name = ""
+    age = 0
 
 # Load existing data
 data_container = load_data()
@@ -44,11 +40,24 @@ if submit_button:
     data_container = pd.concat([data_container, pd.DataFrame([new_data])], ignore_index=True)
     save_data(data_container)
 
-# Dashboard on the right
-with col2:
-    st.header("Data Dashboard")
-    st.dataframe(data_container)
+    # Clear the input fields after submitting data
+    name = ""
+    age = 0
 
-    # Display a bar chart using Pandas (plotly backend)
-    if not data_container.empty:
-        st.bar_chart(data_container.set_index('Name'))
+# Main section for Data Dashboard
+st.header("Data Dashboard")
+
+# Display a table using Pandas in the main section
+st.dataframe(data_container)
+
+# Display an interactive bar chart for Age distribution
+if not data_container.empty:
+    st.header("Age Distribution")
+    age_counts = data_container['Age'].value_counts()
+    st.bar_chart(age_counts)
+
+# Display an interactive pie chart for Name distribution
+if not data_container.empty:
+    st.header("Name Distribution")
+    name_counts = data_container['Name'].value_counts()
+    st.pie_chart(name_counts)
