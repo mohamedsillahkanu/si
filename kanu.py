@@ -41,7 +41,7 @@ def data_collection_page():
         retirement_timeline = st.selectbox("Q10. When do you expect to retire?", ["", "In the next 0-5 years", "In the next 6-10 years", "In more than 15 years"], key="retirement_timeline")
 
         submit_button = st.form_submit_button("Submit")
-        clear_button = st.form_clear_button("Clear")  # Add the Clear button
+       
 
         if submit_button:
             # Save data and move to the next page
@@ -64,11 +64,7 @@ def data_collection_page():
             data_container = pd.concat([data_container, pd.DataFrame([submitted_data])], ignore_index=True)
             save_data(data_container)
 
-            # Clear the form after submission
-            st.form_clear()
-
-        if clear_button:  # Check if the clear button is pressed
-            st.form_clear()
+         
 
 # Page 2: Display All Data
 def display_all_data_page():
