@@ -63,8 +63,6 @@ def data_collection_page():
             data_container = pd.concat([data_container, pd.DataFrame([submitted_data])], ignore_index=True)
             save_data(data_container)
 
-            # Clear the form after submission
-            st.form_clear()
 
 # Page 2: Display All Data
 def display_all_data_page():
