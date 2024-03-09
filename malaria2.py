@@ -37,9 +37,6 @@ except FileNotFoundError:
     inventory_df = pd.DataFrame(inventory_data)
     usage_df = pd.DataFrame(usage_data)
 
-# Set Streamlit page configuration
-st.set_page_config(page_title="Drug Inventory Tracking", page_icon=":pill:", layout="wide")
-
 # Streamlit UI
 def main():
     st.title("Drug Inventory and Usage Tracking System")
@@ -80,13 +77,13 @@ def record_drug_usage():
     phu_name = st.selectbox("Select PHU Name", inventory_df['Name of PHU'].unique())
     month = st.selectbox("Select Month", inventory_df['Month'].unique())
     drug_name = st.selectbox("Select Name of Drug", inventory_df['Name of drug'].unique())
-    quantity_used = int(st.number_input("Enter Quantity Used", min_value=1, step=1))
+    quantity_used = st.number_input("Enter Quantity Used", min_value=1, step=1)
 
     # Check if the selected quantity is available in the inventory
     available_quantity = inventory_df.loc[
         (inventory_df['Name of PHU'] == phu_name) &
         (inventory_df['Month'] == month) &
-        (inventory_df['Name of drug'] == drug_name),
+        (inventory_df['Name of drug'] == drug_name), 
         'Number of drug supply'
     ]
 
@@ -95,7 +92,7 @@ def record_drug_usage():
         return inventory_df, usage_df  # Return original DataFrames
 
     name_of_patient = st.text_input("Enter Name of Patient")
-    age = int(st.number_input("Enter Age", min_value=0))
+    age = st.number_input("Enter Age", min_value=0)
     sex = st.radio("Select Sex", ["Male", "Female"])
 
     pregnant = None
@@ -104,7 +101,7 @@ def record_drug_usage():
     if sex == "Female" and age > 13:
         pregnant = st.radio("Are you pregnant?", ["Yes", "No"])
         if pregnant == "Yes":
-            months_pregnant = int(st.number_input("Enter Months Pregnant", min_value=1, step=1))
+            months_pregnant = st.number_input("Enter Months Pregnant", min_value=1, step=1)
 
     if st.button("Submit"):
         date_submitted = datetime.now()
@@ -129,7 +126,7 @@ def record_drug_usage():
         inventory_df.loc[(inventory_df['Name of PHU'] == phu_name) &
                           (inventory_df['Month'] == month) &
                           (inventory_df['Name of drug'] == drug_name),
-                          'Number of drug supply'] -= quantity_used
+                          'Number of drug supply'] == quantity_used
 
         # Save DataFrames to CSV files
         inventory_df.to_csv(inventory_file_path, index=False)
