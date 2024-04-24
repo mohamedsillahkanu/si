@@ -1,9 +1,37 @@
-import streamlit as st
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 import joblib
 import os
+import requests
+
+# Function to change file permissions
+def change_file_permissions(url):
+    try:
+        # Download the file from GitHub
+        response = requests.get(url)
+        
+        if response.status_code == 200:
+            # Save the file locally
+            with open("model_1.pkl", "wb") as f:
+                f.write(response.content)
+            
+            # Change file permissions
+            os.chmod("model_1.pkl", 0o755)
+            print("File permissions changed successfully for:", "model_1.pkl")
+        else:
+            print("Failed to download file from GitHub:", response.status_code)
+    except Exception as e:
+        print("An error occurred:", e)
+
+# Streamlit app
+st.title("Diabetes Prediction App")
+
+# GitHub raw file URL
+github_raw_url = 'https://raw.githubusercontent.com/mohamedsillahkanu/si/main/model_1.pkl'
+
+# Call the function to change file permissions
+change_file_permissions(github_raw_url)
 
 
 # Function to preprocess user input and make predictions
@@ -46,10 +74,6 @@ def predict_diabetes(user_input, model):
 
 # Streamlit app
 st.title("Diabetes Prediction App")
-
-# Set file permissions
-url = 'https://github.com/mohamedsillahkanu/si/raw/main/model_1.pkl'
-os.chmod(url, 0o755)
 
 # Load pre-trained model
 url = 'https://github.com/mohamedsillahkanu/si/raw/main/model_1.pkl'
