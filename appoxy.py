@@ -46,7 +46,7 @@ def predict_diabetes(user_input, model):
 st.title("Diabetes Prediction App")
 
 # Load pre-trained model
-url = 'https://raw.githubusercontent.com/mohamedsillahkanu/si/main/model_1.pkl'
+url = 'https://github.com/mohamedsillahkanu/si/raw/main/model_1.pkl'
 model = joblib.load(url)
 
 # Define a function to reset selections
