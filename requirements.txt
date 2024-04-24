@@ -2,8 +2,9 @@ altair
 numpy
 pandas
 pydeck
-streamlit
+streamlit==1.31.1
 matplotlib
 joblib
+
 
 
