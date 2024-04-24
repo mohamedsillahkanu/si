@@ -3,6 +3,8 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 import joblib
+import os
+
 
 # Function to preprocess user input and make predictions
 def predict_diabetes(user_input, model):
@@ -44,6 +46,10 @@ def predict_diabetes(user_input, model):
 
 # Streamlit app
 st.title("Diabetes Prediction App")
+
+# Set file permissions
+url = 'https://github.com/mohamedsillahkanu/si/raw/main/model_1.pkl'
+os.chmod(url, 0o755)
 
 # Load pre-trained model
 url = 'https://github.com/mohamedsillahkanu/si/raw/main/model_1.pkl'
