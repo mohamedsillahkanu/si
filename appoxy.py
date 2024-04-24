@@ -1,38 +1,9 @@
+import streamlit as st
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 import joblib
-import os
 import requests
-
-# Function to change file permissions
-def change_file_permissions(url):
-    try:
-        # Download the file from GitHub
-        response = requests.get(url)
-        
-        if response.status_code == 200:
-            # Save the file locally
-            with open("model_1.pkl", "wb") as f:
-                f.write(response.content)
-            
-            # Change file permissions
-            os.chmod("model_1.pkl", 0o755)
-            print("File permissions changed successfully for:", "model_1.pkl")
-        else:
-            print("Failed to download file from GitHub:", response.status_code)
-    except Exception as e:
-        print("An error occurred:", e)
-
-# Streamlit app
-st.title("Diabetes Prediction App")
-
-# GitHub raw file URL
-github_raw_url = 'https://raw.githubusercontent.com/mohamedsillahkanu/si/main/model_1.pkl'
-
-# Call the function to change file permissions
-change_file_permissions(github_raw_url)
-
 
 # Function to preprocess user input and make predictions
 def predict_diabetes(user_input, model):
@@ -75,14 +46,17 @@ def predict_diabetes(user_input, model):
 # Streamlit app
 st.title("Diabetes Prediction App")
 
-# Load pre-trained model
-url = 'https://github.com/mohamedsillahkanu/si/raw/main/model_1.pkl'
-model = joblib.load(url)
+# GitHub raw file URL
+github_raw_url = 'https://raw.githubusercontent.com/mohamedsillahkanu/si/main/model_1.pkl'
 
-# Define a function to reset selections
-def reset_selections():
-    for key in user_input:
-        user_input[key] = ""
+# Load pre-trained model
+response = requests.get(github_raw_url)
+if response.status_code == 200:
+    with open("model_1.pkl", "wb") as f:
+        f.write(response.content)
+    model = joblib.load("model_1.pkl")
+else:
+    st.error("Failed to download the model. Please try again later.")
 
 # Collect user input
 user_input = {
@@ -127,4 +101,5 @@ if st.button('Submit'):
 
 # Add a clear button to reset selections
 if st.button('Clear Selections'):
-    reset_selections()
+    for key in user_input:
+        user_input[key] = ""
