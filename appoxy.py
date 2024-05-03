@@ -65,7 +65,7 @@ user_input = {
     'CholCheck': st.selectbox("Do you usually check your cholesterol? Hint:0=No and 1=Yes", ["", 0, 1], key='CholCheck'),
     'BMI': st.text_input("Enter your BMI:", "", key='BMI'),
     'Smoker': st.selectbox("Have you smoke at leat 100 cigarettes (5 packs) in your entire life? Hint:0=No and 1=Yes ", ["", 0, 1], key='Smoker'),
-    'Stroke': st.selectbox("Ever been told you have stroke?" Hint:0=No and 1=Yes", ["", 0, 1], key='Stroke'),
+    'Stroke': st.selectbox("Ever been told you have stroke? Hint:0=No and 1=Yes", ["", 0, 1], key='Stroke'),
     'HeartDiseaseorAttack': st.selectbox("Have you been diagnosed with heart disease or suffered a heart attack? Hint:0=No and 1=Yes", ["", 0, 1], key='HeartDiseaseorAttack'),
     'PhysActivity': st.selectbox("Physical activity in the past 30 days-not including job? Hint:0=No and 1=Yes", ["", 0, 1], key='PhysActivity'),
     'Fruits': st.selectbox("Do you consume fruit more than one times per day? Hint:0=No and 1=Yes", ["", 0, 1], key='Fruits'),
