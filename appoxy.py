@@ -60,7 +60,7 @@ else:
 
 # Collect user input
 user_input = {
-    'HighBP': st.selectbox("Do you have high blood pressure?", ["", 0, 1], key='HighBP'),
+    'HighBP': st.selectbox("Do you have high blood pressure? Hint:0=No and 1=Yes", ["", 0, 1], key='HighBP'),
     'HighChol': st.selectbox("Have you been diagnosed with high cholesterol?", ["", 0, 1], key='HighChol'),
     'CholCheck': st.selectbox("How often do you get your cholesterol checked?", ["", 0, 1], key='CholCheck'),
     'BMI': st.selectbox("Select your BMI:", [""] + list(range(5, 151)), key='BMI'),  # Range from 5 to 150
