@@ -61,26 +61,26 @@ else:
 # Collect user input
 user_input = {
     'HighBP': st.selectbox("Do you have high blood pressure? Hint:0=No and 1=Yes", ["", 0, 1], key='HighBP'),
-    'HighChol': st.selectbox("Have you been diagnosed with high cholesterol?", ["", 0, 1], key='HighChol'),
-    'CholCheck': st.selectbox("How often do you get your cholesterol checked?", ["", 0, 1], key='CholCheck'),
-    'BMI': st.selectbox("Select your BMI:", [""] + list(range(5, 151)), key='BMI'),  # Range from 5 to 150
-    'Smoker': st.selectbox("Are you a smoker?", ["", 0, 1], key='Smoker'),
-    'Stroke': st.selectbox("Have you ever had a stroke?", ["", 0, 1], key='Stroke'),
-    'HeartDiseaseorAttack': st.selectbox("Have you been diagnosed with heart disease or suffered a heart attack?", ["", 0, 1], key='HeartDiseaseorAttack'),
-    'PhysActivity': st.selectbox("How often do you engage in physical activity per week?", ["", 0, 1], key='PhysActivity'),
-    'Fruits': st.selectbox("How many servings of fruits do you consume on a typical day?", ["", 0, 1], key='Fruits'),
-    'Veggies': st.selectbox("How many servings of vegetables do you consume on a typical day?", ["", 0, 1], key='Veggies'),
-    'HvyAlcohol': st.selectbox("How often do you consume heavy alcohol?", ["", 0, 1], key='HvyAlcohol'),
-    'AnyHealthCare': st.selectbox("Have you accessed any form of healthcare in the past year?", ["", 0, 1], key='AnyHealthCare'),
-    'NoDcbcCost': st.selectbox("Have you avoided visiting a doctor because of cost?", ["", 0, 1], key='NoDcbcCost'),
-    'GenHlth': st.selectbox("General Health", ["", 1, 2, 3, 4, 5], key='GenHlth'),
-    'MentHlth': st.selectbox("Rate your mental health:", [""] + list(range(0, 31)), key='MentHlth'),  # Range from 0 to 30
-    'PhysHlth': st.selectbox("Rate your physical health:", [""] + list(range(0, 31)), key='PhysHlth'),  # Range from 0 to 30
-    'DiffWalk': st.selectbox("Do you experience difficulty walking or moving?", ["", 0, 1], key='DiffWalk'),
-    'Sex': st.selectbox("Select your gender:", ["", 0, 1], key='Sex'),
-    'Age': st.selectbox("Select your age:", ["", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], key='Age'),
-    'Education': st.selectbox("Select your highest education level:", ["", 1, 2, 3, 4, 5, 6], key='Education'),
-    'Income': st.selectbox("Select your approximate annual household income:", ["", 1, 2, 3, 4, 5, 6, 7, 8], key='Income')
+    'HighChol': st.selectbox("Have you been diagnosed with high cholesterol? Hint:0=No and 1=Yes", ["", 0, 1], key='HighChol'),
+    'CholCheck': st.selectbox("Do you usually check your cholesterol? Hint:0=No and 1=Yes", ["", 0, 1], key='CholCheck'),
+    'BMI': st.text_input("Enter your BMI:", "", key='BMI'),
+    'Smoker': st.selectbox("Have you smoke at leat 100 cigarettes (5 packs) in your entire life?", ["", 0, 1], key='Smoker'),
+    'Stroke': st.selectbox("Ever been told you have stroke?" Hint:0=No and 1=Yes, ["", 0, 1], key='Stroke'),
+    'HeartDiseaseorAttack': st.selectbox("Have you been diagnosed with heart disease or suffered a heart attack? Hint:0=No and 1=Yes", ["", 0, 1], key='HeartDiseaseorAttack'),
+    'PhysActivity': st.selectbox("Physical activity in the past 30 days-not including job? Hint:0=No and 1=Yes, ["", 0, 1], key='PhysActivity'),
+    'Fruits': st.selectbox("Do you consume fruit more than one times per day? Hint:0=No and 1=Yes", ["", 0, 1], key='Fruits'),
+    'Veggies': st.selectbox("Do you eat vegetables more than 1 time per day? Hint:0=No and 1=Yes", ["", 0, 1], key='Veggies'),
+    'HvyAlcohol': st.selectbox("Do you consume more than 7 drinks of alcohol per week? Hint:0=No and 1=Yes", ["", 0, 1], key='HvyAlcohol'),
+    'AnyHealthCare': st.selectbox("Do you have any kind of health care coverage? Hint:0=No and 1=Yes", ["", 0, 1], key='AnyHealthCare'),
+    'NoDcbcCost': st.selectbox("Have you avoided visiting a doctor because of cost? Hint: 0=No, 1=Yes", ["", 0, 1], key='NoDcbcCost'),
+    'GenHlth': st.selectbox("Would you say in general your health is: Hint: 1=Excellent, 2=Very Good, 3=Good, 4=Fair, 5=Poor", ["", 1, 2, 3, 4, 5], key='GenHlth'),
+    'MentHlth': st.selectbox(" Days of poor mental health scales 1-30 days:", [""] + list(range(0, 31)), key='MentHlth'),  # Range from 0 to 30
+    'PhysHlth': st.selectbox("Physical illness or injury days in past 30 days scale 1-30 days:", [""] + list(range(0, 31)), key='PhysHlth'),  # Range from 0 to 30
+    'DiffWalk': st.selectbox("Do you experience difficulty walking or moving? Hint:0=No and 1=Yes", ["", 0, 1], key='DiffWalk'),
+    'Sex': st.selectbox("Select your gender: Hint O=Female, 1=Male", ["", 0, 1], key='Sex'),
+    'Age': st.selectbox("Select your age group: Hint: 1=18-24, 2=25-29, 3=30-34, 4=35-39, 5=40-44, 6=45-49, 7=50-54, 8=55-59, 9=60-64, 10=65-69, 11=70-74, 12=75-79, 13=80 and older", ["", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], key='Age'),
+    'Education': st.selectbox("Select your highest education level: Hint: 1=Never Attended/only kindergarten, 2=grades 1-8, 3=grades 9-11, 4=grade 12 or GED, 5=college 1-3 years, 6=college 4+", ["", 1, 2, 3, 4, 5, 6], key='Education'),
+    'Income': st.selectbox("Select your approximate annual household income: Hint: 1=<$10k, 2=<$15k, 3=<$20, 4=,$25k, 5=<$35, 6=<50k, 7=<$75k, 8=$75k+", ["", 1, 2, 3, 4, 5, 6, 7, 8], key='Income')
 }
 
 # Add a submit button and validate required fields
