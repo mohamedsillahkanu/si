@@ -80,7 +80,7 @@ user_input = {
     'Sex': st.selectbox("Select your gender: Hint O=Female, 1=Male", ["", 0, 1], key='Sex'),
     'Age': st.selectbox("Select your age group: Hint: 1=18-24, 2=25-29, 3=30-34, 4=35-39, 5=40-44, 6=45-49, 7=50-54, 8=55-59, 9=60-64, 10=65-69, 11=70-74, 12=75-79, 13=80 and older", ["", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], key='Age'),
     'Education': st.selectbox("Select your highest education level: Hint: 1=Never Attended/only kindergarten, 2=grades 1-8, 3=grades 9-11, 4=grade 12 or GED, 5=college 1-3 years, 6=college 4+", ["", 1, 2, 3, 4, 5, 6], key='Education'),
-    'Income': st.selectbox("Select your approximate annual household income: Hint: 1=<$10k, 2=<$15k, 3=<$20, 4=,$25k, 5=<$35, 6=<50k, 7=<$75k, 8=$75k+", ["", 1, 2, 3, 4, 5, 6, 7, 8], key='Income')
+    'Income': st.selectbox("Select your approximate annual household income: Hint: 1=<$10k, 2=<$15k, 3=<$20, 4=$25k, 5=<$35, 6=<50k, 7=<$75k, 8=$75k+", ["", 1, 2, 3, 4, 5, 6, 7, 8], key='Income')
 }
 
 # Add a submit button and validate required fields
