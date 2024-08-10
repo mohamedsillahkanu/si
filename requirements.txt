@@ -6,6 +6,7 @@ streamlit==1.31.1
 matplotlib
 joblib
 scikit-learn
+geopandas
 
 
 
