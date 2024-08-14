@@ -26,7 +26,7 @@
   - [Appendix 1: WHO Incidence Adjustment Methodology](#appendix-1-who-incidence-adjustment-methodology)
   - [Appendix 2: Seasonality Per Chiefdom](#appendix-2-seasonality-per-chiefdom)
 
-## List of Figures
+### List of Figures
 - [Figure 1. SNT team members](#figure-1-snt-team-members)
 - [Figure 2. Inconsistencies checking](#figure-2-inconsistencies-checking)
 - [Figure 3. Strip plot of intervention variables for malaria in Sierra Leone (2015-2023)](#figure-3-strip-plot-of-intervention-variables-for-malaria-in-sierra-leone-2015-2023)
