@@ -1,7 +1,7 @@
 # Epidemiological stratification and subnational targeting (SNT) of malaria control interventions in Sierra Leone
 ![Sierra Leone Map](https://github.com/user-attachments/assets/1ce28ecc-191b-4f2d-bbfc-8944223bc993)
 
-### Table of Contents
+## Table of Contents
 - [Summary](#summary)
 - [Acknowledgments](#acknowledgments)
 - [List of Figures](#list-of-figures)
@@ -26,6 +26,61 @@
 - [Appendices](#appendices)
   - [Appendix 1: WHO Incidence Adjustment Methodology](#appendix-1-who-incidence-adjustment-methodology)
   - [Appendix 2: Seasonality Per Chiefdom](#appendix-2-seasonality-per-chiefdom)
+
+## List of Figures
+- [Figure 1. SNT team members](#figure-1-snt-team-members)
+- [Figure 2. Inconsistencies checking](#figure-2-inconsistencies-checking)
+- [Figure 3. Strip plot of intervention variables for malaria in Sierra Leone (2015-2023)](#figure-3-strip-plot-of-intervention-variables-for-malaria-in-sierra-leone-2015-2023)
+- [Figure 4. Stacked bar charts for the number of outliers for test positivity per month in Sierra Leone (2015-2023)](#figure-4-stacked-bar-charts-for-the-number-of-outliers-for-test-positivity-per-month-in-sierra-leone-2015-2023)
+- [Figure 5. Overall reporting status among DHIS2 HFs in Sierra Leone (2015-2023)](#figure-5-overall-reporting-status-among-dhis2-hfs-in-sierra-leone-2015-2023)
+- [Figure 6. Reporting rate of confirmed cases among DHIS2 HFs in Sierra Leone (2015-2023)](#figure-6-reporting-rate-of-confirmed-cases-among-dhis2-hfs-in-sierra-leone-2015-2023)
+- [Figure 7. Crude incidence of malaria (cases per 1000 inhabitants)](#figure-7-crude-incidence-of-malaria-cases-per-1000-inhabitants)
+- [Figure 8. Malaria incidence adjusted for testing](#figure-8-malaria-incidence-adjusted-for-testing)
+- [Figure 9. Malaria incidence adjusted for testing and reporting rate](#figure-9-malaria-incidence-adjusted-for-testing-and-reporting-rate)
+- [Figure 10. Malaria incidence adjusted for testing, reporting and care seeking rate](#figure-10-malaria-incidence-adjusted-for-testing-reporting-and-care-seeking-rate)
+- [Figure 11. Summary of crude and adjusted incidence values according to WHO methodology](#figure-11-summary-of-crude-and-adjusted-incidence-values-according-to-who-methodology)
+- [Figure 12. Care-seeking rate in Sierra Leone](#figure-12-care-seeking-rate-in-sierra-leone)
+- [Figure 13. Prevalence of Plasmodium falciparum (SLMIS 2021)](#figure-13-prevalence-of-plasmodium-falciparum-slmis-2021)
+- [Figure 14. Under-five mortality rate, all causes from SLDHS 2019](#figure-14-under-five-mortality-rate-all-causes-from-sldhs-2019)
+- [Figure 15. Median Incidence 2019-2023 adjusted for testing and reporting rates](#figure-15-median-incidence-2019-2023-adjusted-for-testing-and-reporting-rates)
+- [Figure 16. Final maps for risk estimation](#figure-16-final-maps-for-risk-estimation)
+- [Figure 17. Map for access to care decision-making](#figure-17-map-for-access-to-care-decision-making)
+- [Figure 18. CHW density](#figure-18-chw-density)
+- [Figure 19. CHW and access](#figure-19-chw-and-access)
+- [Figure 20. Care-seeking behavior](#figure-20-care-seeking-behavior)
+- [Figure 21. Health facilities density per population](#figure-21-health-facilities-density-per-population)
+- [Figure 22. Testing rate (DHS 2019)](#figure-22-testing-rate-dhs-2019)
+- [Figure 23. Testing rates for uncomplicated malaria in health facilities](#figure-23-testing-rates-for-uncomplicated-malaria-in-health-facilities)
+- [Figure 24. Treatment rates for uncomplicated malaria in health facilities](#figure-24-treatment-rates-for-uncomplicated-malaria-in-health-facilities)
+- [Figure 25. Presumed cases](#figure-25-presumed-cases)
+- [Figure 26. CHWs malaria testing rates](#figure-26-chws-malaria-testing-rates)
+- [Figure 27. CHW malaria treatment rates](#figure-27-chw-malaria-treatment-rates)
+- [Figure 28. Hospital malaria mortality ratios](#figure-28-hospital-malaria-mortality-ratios)
+- [Figure 29. RDT stockouts per year](#figure-29-rdt-stockouts-per-year)
+- [Figure 30. Antimalarial stock outs](#figure-30-antimalarial-stock-outs)
+- [Figure 31. ACT stock-outs](#figure-31-act-stock-outs)
+- [Figure 32. Coverage of ITN distribution through antenatal care visits](#figure-32-coverage-of-itn-distribution-through-antenatal-care-visits)
+- [Figure 33. Coverage of mass ITN distribution](#figure-33-coverage-of-mass-itn-distribution)
+- [Figure 34. Targeting of school-based ITN distribution (SBD)](#figure-34-targeting-of-school-based-itn-distribution-sbd)
+- [Figure 35. Household ITN access (map)](#figure-35-household-itn-access-map)
+- [Figure 36. Household ITN access (plot)](#figure-36-household-itn-access-plot)
+- [Figure 37. Population ITN use](#figure-37-population-itn-use)
+- [Figure 38. Pregnant women ITN use](#figure-38-pregnant-women-itn-use)
+- [Figure 39. Population-level ITN use](#figure-39-population-level-itn-use)
+- [Figure 40. Net durability](#figure-40-net-durability)
+- [Figure 41. IRS implementation and coverage](#figure-41-irs-implementation-and-coverage)
+- [Figure 42. IPTp operational coverage out of ANC1](#figure-42-iptp-operational-coverage-out-of-anc1)
+- [Figure 43. IPTp effective coverage (DHS 2019)](#figure-43-iptp-effective-coverage-dhs-2019)
+- [Figure 44. IPTi (PMC) Coverage out of target population](#figure-44-ipti-pmc-coverage-out-of-target-population)
+- [Figure 45. Chiefdoms where malaria vaccination is conducted](#figure-45-chiefdoms-where-malaria-vaccination-is-conducted)
+- [Figure 46. Location of entomological surveillance sites](#figure-46-location-of-entomological-surveillance-sites)
+- [Figure 47. Rainfall vs cases (all ages and u5) for seasonality analysis](#figure-47-rainfall-vs-cases-all-ages-and-u5-for-seasonality-analysis)
+- [Figure 48. Profiling seasonality for SMC targeting](#figure-48-profiling-seasonality-for-smc-targeting)
+- [Figure 49. Seasonality map based on rainfall vs case peaks](#figure-49-seasonality-map-based-on-rainfall-vs-case-peaks)
+- [Figure 50. Rainfall peak detection (example of BO)](#figure-50-rainfall-peak-detection-example-of-bo)
+- [Figure 51. The onset of end and peak of the rainy season](#figure-51-the-onset-of-end-and-peak-of-the-rainy-season)
+- [Figure 52. Seasonality for implementation purposes using cases](#figure-52-seasonality-for-implementation-purposes-using-cases)
+
 - Code Repository: python version
   - [Indoor Residual Spray](#indoor-residual-spray)
 ### Summary
@@ -64,8 +119,8 @@ Dr Beatriz Galatas (galatasb@who.int)
 
  <img width="479" alt="Partners" src="https://github.com/user-attachments/assets/c6630349-669f-4521-9862-23c3fca751a6">
  
- 
-                            **Figure 1. SNT team members.**
+ **Figure 1. SNT team members**
+
 
 
 
