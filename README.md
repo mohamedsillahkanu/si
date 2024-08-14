@@ -171,7 +171,6 @@ plt.show()
 ### Full code
 
 ```
-# Import all the necessary libraries.
 import pandas as pd
 import geopandas as gpd
 import matplotlib.pyplot as plt
