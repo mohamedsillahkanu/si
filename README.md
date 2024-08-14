@@ -118,6 +118,7 @@ Dr Beatriz Galatas (galatasb@who.int)
 
  <img width="479" alt="Partners" src="https://github.com/user-attachments/assets/c6630349-669f-4521-9862-23c3fca751a6">
  
+ 
  #### Figure 1. SNT team members
  
 
