@@ -244,8 +244,13 @@ plt.savefig('itn3.png', bbox_inches='tight')
 plt.show()
 
 ```
+[Download data used for generating the map below](https://worldhealthorg.sharepoint.com/:x:/r/sites/GMPSUR/Shared%20Documents/Country_Analytical_Support/Countries/SLE/WHO_SLE/2024_SNT/Analysis_Mohamed/Final%20Databases%20for%20modelers/intervention_data_stockout.xlsx?d=wd124fdd8e0c24ed6a177f34c5f5c630e&csf=1&web=1&e=3uztZ4)
 
 ![IRS IMAGE](https://github.com/user-attachments/assets/fb500ea3-05a0-46d1-b002-9b032cd2633d)
+
+
+
+
 
 
 
