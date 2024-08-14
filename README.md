@@ -3,9 +3,31 @@
 
 ### Table of Contents
 - [Summary](#summary)
-- [Acknowledgement](#acknowledgement)
-
-
+- [Acknowledgments](#acknowledgments)
+- [List of Figures](#list-of-figures)
+- [Introduction](#introduction)
+- [Epidemiological Stratification](#epidemiological-stratification)
+  - [Quality Assessment of Data Elements Used for Stratification](#quality-assessment-of-data-elements-used-for-stratification)
+  - [Reporting Rate](#reporting-rate)
+  - [Incidence of Malaria](#incidence-of-malaria)
+  - [Prevalence of Plasmodium Falciparum](#prevalence-of-plasmodium-falciparum)
+  - [All-Cause Mortality in Children Under Five](#all-cause-mortality-in-children-under-five)
+  - [Median Malaria Incidence Between 2019-2023](#median-malaria-incidence-between-2019-2023)
+  - [Final Malaria Epidemiological Stratification Map](#final-malaria-epidemiological-stratification-map)
+- [Stratification of Malaria Transmission Determinants](#stratification-of-malaria-transmission-determinants)
+  - [Case Management](#case-management)
+  - [Vector Control](#vector-control)
+  - [Malaria Vaccine Plans for 2024](#malaria-vaccine-plans-for-2024)
+  - [Entomology](#entomology)
+  - [Malaria Seasonality](#malaria-seasonality)
+- [Next Steps](#next-steps)
+- [Conclusion](#conclusion)
+- [References](#references)
+- [Appendices](#appendices)
+  - [Appendix 1: WHO Incidence Adjustment Methodology](#appendix-1-who-incidence-adjustment-methodology)
+  - [Appendix 2: Seasonality Per Chiefdom](#appendix-2-seasonality-per-chiefdom)
+- Code Repository: python version
+  - [Indoor Residual Spray](#indoor-residual-spray)
 ### Summary
 ---
 Malaria continues to pose a significant public health challenge in Sierra Leone, with its burden varying across time and geographical regions. Given the constraints on human and financial resources, a strategic approach based on disease transmission intensity is essential. This stratification allows for targeted interventions tailored to the epidemiological profile of each chiefdom, taking into account insecticide resistance patterns, parasite sensitivity to treatments, and vector biology. The ultimate goal is to maximize cost-effectiveness in malaria control efforts.
@@ -30,8 +52,9 @@ Mr Mohamed Sillah Kanu (sillahmohamedkanu@gmail.com)
 Dr Omoniwa Omowunmi Fiona (omoniwao@who.int)
 Dr Beatriz Galatas (galatasb@who.int)
 
+### Indoor Residual Spray
 
-### Step by Step explanation of the code
+#### Step by Step explanation of the code
 
 ```python
 import pandas as pd
