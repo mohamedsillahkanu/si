@@ -170,6 +170,8 @@ plt.show()
 
 ### Full code
 
+```
+# Import all the necessary libraries.
 import pandas as pd
 import geopandas as gpd
 import matplotlib.pyplot as plt
@@ -241,6 +243,8 @@ fig.legend(handles=handles, title='2024 IRS coverage (%) at chiefdom-level in SL
 plt.tight_layout()
 plt.savefig('itn3.png', bbox_inches='tight')
 plt.show()
+
+```
 
 
 
