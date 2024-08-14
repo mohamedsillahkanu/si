@@ -1,4 +1,4 @@
-# Welcome to streamlit
+# Sub-national tailoring of malaria in Sierra Leone
 
 This is the app you get when you run `streamlit hello`, extracted as its own app.
 
