@@ -143,7 +143,7 @@ Dr Beatriz Galatas (galatasb@who.int)
 
 
 
-### Indoor Residual Spray
+### Indoor Residual Spray 1
 
 #### Step by Step explanation of the code
 
