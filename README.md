@@ -3,8 +3,7 @@
 
 ## Table of Contents
 - [Summary](#summary)
-- [Acknowledgments](#acknowledgments)
-- [List of Figures](#list-of-figures)
+- [Acknowledgement](#acknowledgement)
 - [Introduction](#introduction)
 - [Epidemiological Stratification](#epidemiological-stratification)
   - [Quality Assessment of Data Elements Used for Stratification](#quality-assessment-of-data-elements-used-for-stratification)
@@ -119,7 +118,7 @@ Dr Beatriz Galatas (galatasb@who.int)
 
  <img width="479" alt="Partners" src="https://github.com/user-attachments/assets/c6630349-669f-4521-9862-23c3fca751a6">
  
- **Figure 1. SNT team members**
+ ### Figure 1. SNT team members
 
 
 
