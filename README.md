@@ -245,6 +245,9 @@ plt.show()
 
 ```
 
+![IRS IMAGE](https://github.com/user-attachments/assets/fb500ea3-05a0-46d1-b002-9b032cd2633d)
+
+
 
 
 
