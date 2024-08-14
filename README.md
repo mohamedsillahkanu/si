@@ -52,6 +52,38 @@ Mr Mohamed Sillah Kanu (sillahmohamedkanu@gmail.com)
 Dr Omoniwa Omowunmi Fiona (omoniwao@who.int)
 Dr Beatriz Galatas (galatasb@who.int)
 
+
+| Name                        | Position                                     |
+|-----------------------------|----------------------------------------------|
+| Dr Abdul Mac Falama         | Programme Manager                            |
+| Musa Sillah-Kanu            | Surveillance, Monitoring and Evaluation Lead |  
+| Dr Omoniwa Omowunmi Fiona   | WHO Country Office                           |
+| Mr Mohamed Sillah Kanu      | Local Consultant                             |
+| Dr Beatriz Galatas          | WHO Global Malaria Program                   |
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ### Indoor Residual Spray
 
 #### Step by Step explanation of the code
