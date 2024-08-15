@@ -412,6 +412,19 @@ Nationally, there were little variations between children living in rural or urb
 ### PHUs and Hospital density per population
 The distribution of hospitals across districts in Sierra Leone varies significantly. Only four districts - Western Urban, Rural, Bonthe, and Bombali - have more than one hospital per 100,000 population. Five districts fall into the category of having 0.6 to 1 hospital per 100,000 population, while six districts have a lower ratio of 0.1 to 0.5 hospitals per 100,000 population. Notably, the district of Falaba, with a population of 251,608, does not have any hospital at all, highlighting significant disparities in healthcare infrastructure across the country (Figure 21).
 
+![Untitled presentation (24)](https://github.com/user-attachments/assets/f7d77dde-c31e-4bab-8c80-1e964e86bad2)
+
+#### Figure 21. Health facilities density per population
+
+### Uncomplicated case management – Testing rates
+
+The proportion of children with fever who underwent testing during the Sierra Leone Demographic and Health Survey 2019 (SLDHS2019) is depicted in the figure below (Figure 22).
+
+
+
+
+
+
 
 
 
