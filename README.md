@@ -126,6 +126,9 @@ Dr Beatriz Galatas (galatasb@who.int)
 
 
  <img width="479" alt="Partners" src="https://github.com/user-attachments/assets/c6630349-669f-4521-9862-23c3fca751a6"> 
+
+ ![image_53](https://github.com/user-attachments/assets/6c85166d-0f48-4721-ba1c-df2615e5be5e)
+
  
  
   
@@ -149,6 +152,9 @@ To detect the presence of inconsistencies in the data, nested data elements were
 
 
 ![one to one scatter plot](https://github.com/user-attachments/assets/a683cfa8-d1be-4939-8fc4-c74820699abd)
+
+![image_8](https://github.com/user-attachments/assets/466137df-a471-4d03-ad31-5cc15888ce89)
+
 
 
 ### Figure 2. Inconsistencies checking
@@ -206,6 +212,9 @@ To calculate the malaria reporting rate, health facility level routine data were
 
 
 ![completenes2](https://github.com/user-attachments/assets/30024607-b6ca-4e07-89f5-431d0c42efed)    
+
+![image_90](https://github.com/user-attachments/assets/74be5190-fed5-4534-9c03-17315eecc5ed)
+
 
 ### Figure 5. Overall reporting status among DHIS2 HFs in Sierra Leone (2015-2023)
 
@@ -325,6 +334,10 @@ The results shown in Figure 12, aggregated by administrative region (adm1), are 
 
 
 ![Untitled presentation (8)](https://github.com/user-attachments/assets/c7a60bcb-6ac5-4ad8-9f56-0c2cbe4a0ec3)
+
+
+![image_85](https://github.com/user-attachments/assets/33609d4d-7f3e-4503-b077-cea4b48a9fb1)
+
 
 #### Figure 12. Care-seeking rate in Sierra Leone
 
