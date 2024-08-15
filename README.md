@@ -443,6 +443,37 @@ It is recommended that this information be reviewed regularly to identify chiefd
 High treatment rates and presumptive treatment (indicated by green chiefdoms) are more commonly observed in children under 5 years old. Presumptive treatment (shown in dark green) became more prevalent in 2022 and 2023. However, a substantial number of chiefdoms still show treatment rates below 95% among confirmed patients. To address these issues, it is crucial to routinely review this information. This review should aim to identify chiefdoms with consistently poor performance in malaria case management, prompting investigations and appropriate responses where necessary (Figure 24).
 
 
+![Untitled presentation (29)](https://github.com/user-attachments/assets/2b8eb7d0-e0ab-4da3-a6d0-3bca54b58015)
+
+#### Figure 24. Treatment rates for uncomplicated malaria in health facilities
+
+### Uncomplicated malaria case management at HFs – Presumed cases
+Across time, higher numbers of presumed cases are consistently observed in the same chiefdoms, irrespective of population density (Figure 25).
+The maps reveal consistent population patterns across Sierra Leone from 2020 to 2023, with fluctuations in presumed malaria cases, persistent high burdens in certain chiefdoms, and clear geographical disparities in malaria case distribution, even in areas with similar population densities. 
+To reduce the malaria burden, it is recommended that, interventions be targeted in high-case chiefdoms, strengthen malaria surveillance, focus on community-based health efforts, allocate resources based on population density and burden, and maintain year-round monitoring to respond to possible increases in malaria case incidences.
+
+![Untitled presentation (30)](https://github.com/user-attachments/assets/7c418bea-d878-44e4-bc45-36c02d7e0d1a)
+
+#### Figure 25. Presumed cases
+
+#### Uncomplicated malaria case management among CHWs – Testing rates
+
+Data from CHWs gradually improved over the years but in 2023, there were several chiefdoms with <75% testing rates (Figure 26)
+According to the NMCP Program, the CHW policy was revised in 2021 to capture educational level, gender, and easy- and hard-to-reach areas. This followed the revision of the data collection and reporting tools, and CHWs started using the revised tools effectively in 2023. The low testing rate is largely due to errors in the indicator definition on the numerator and denominator of the testing by CHWs.
+According to the revised policy, only hard-to-reach CHWs are allowed to suspect and test using RDTs to confirm malaria before treatment. Ease-to-reach CHWs only suspect fever cases for malaria and refer. They are not allowed to test, confirm, or treat malaria cases, but their suspected fever cases are part of the denominator, which affects the testing rate at the community level. 
+
+NMCP has identified this error and is working with DPPI to review the data collection and reporting tools. However, gaps remain in some northern and eastern regions, with notable regional variability in the testing rates.
+
+![Untitled presentation (31)](https://github.com/user-attachments/assets/e9698c69-1c61-4cdb-9315-d99706c84b43)
+
+
+
+
+
+
+
+
+
 
 
 
