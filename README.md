@@ -316,8 +316,15 @@ A key observation is the persistence of high-incidence areas in the southern and
 The results shown in Figure 12, aggregated by administrative region (adm1), are derived from the latest DHS survey conducted in 2019 in Sierra Leone. They reveal significant heterogeneity in care-seeking rates across provinces and variations in the sectors utilized for care. The data indicate that public sector utilization is relatively high in certain regions, while private sector care-seeking remains low across most areas. These findings underscore the need to enhance case management at the community health worker (CHW) level and consider these disparities when planning prevention and management interventions at the community level (**Figure 12**).
 
 
-![Untitled presentation (1)](https://github.com/user-attachments/assets/d5439c08-227f-4213-a1ed-820a91bf237c)
+![Untitled presentation (6)](https://github.com/user-attachments/assets/0718876a-c77a-41c9-924a-f48464370172)
 
+
+
+![Untitled presentation (7)](https://github.com/user-attachments/assets/5ea37a64-0f67-49c2-aa40-bf4dea694b33)
+
+
+
+![Untitled presentation (8)](https://github.com/user-attachments/assets/c7a60bcb-6ac5-4ad8-9f56-0c2cbe4a0ec3)
 
 #### Figure 12. Care-seeking rate in Sierra Leone
 
@@ -325,13 +332,90 @@ The results shown in Figure 12, aggregated by administrative region (adm1), are 
 ### Prevalence of Plasmodium falciparum 
 The SLMIS study conducted in 2021 determined the prevalence of Plasmodium falciparum by microscopy and RDT in children. Findings suggested significant regional variations (Figure 13). The northern and eastern provinces exhibit consistently higher malaria prevalence rates across both age groups and diagnostic methods, while the southern and western provinces tend to have lower prevalence rates. Notably, there is a discrepancy in prevalence rates detected by Rapid Diagnostic Tests (RDTs) versus microscopy, with RDTs generally indicating higher rates of detection. District-level prevalence shows that RDT-detected malaria rates in children aged 6-59 months are equal to or higher than those in children aged 5-9 years across all districts. Conversely, microscopy-detected malaria prevalence in children aged 6-59 months is lower than in those aged 5-9 years in all districts (Figure 13).  
 
+![Untitled presentation (12)](https://github.com/user-attachments/assets/f0abc089-26ce-4c79-a284-8d048af04936)
 
 
-![Untitled presentation (5)](https://github.com/user-attachments/assets/f9ba41c0-308f-4483-a950-7e17d63953c7)
+![Untitled presentation (13)](https://github.com/user-attachments/assets/4a6bc759-e3d0-4a5d-859b-367b050650ab)
+
+#### Figure 13. Prevalence of Plasmodium falciparum (SLMIS 2021)
+
+---
+
+### All-cause mortality in children under five 
+District-level estimates of all-cause u5 mortality rates were obtained from the SLDHS 2019 (Figure 14). 
+
+In the absence of reliable community-level malaria mortality but when malaria is a key contributor to child mortality, the spatial distribution of AU5MR can be used as a proxy of the distribution of malaria mortality to guide decisions (Figure 14). In Sierra Leone, the under-five mortality rates vary by district, with the highest rates in Port Loko, Kenema, Moyamba, and Western Rural; moderate rates in Kambia, Bo, and Karene; and the lowest rates in Bonthe and Falaba. Districts with high under-five mortality rates should be targeted with enhanced healthcare and social support, strengthening health systems, monitoring data, addressing social determinants, and engaging communities in preventive practices.
+
+
+![Untitled presentation (14)](https://github.com/user-attachments/assets/b0a1ceb8-fead-4ec2-8c2c-b89f0bd0f953)
+
+#### Figure 14. Under-five mortality rate, all causes from SLDHS 2019
+
+### Median malaria incidence between 2019-2023
+To synthesize the incidence data observed over the past five years, we calculated the median values of both crude and adjusted incidences for the 2019-2023 period (Figure 15). The median incidence over these five years, adjusted for testing and reporting rates, was identified as the most appropriate metric to represent malaria transmission patterns in the community and to guide decision-making (Figure 15).
+
+![Untitled presentation (15)](https://github.com/user-attachments/assets/f95c27dc-747d-4048-8691-eefaf28c3136)
+
+#### Figure 15. Median Incidence 2019-2023 adjusted for testing and reporting rates 
+
+---
+
+### Final malaria epidemiological stratification map 
+
+In order to obtain a final map that best represents the current epidemiology of malaria in Sierra Leone, the median value of incidence adjusted for reporting and testing (the second level of adjustment according to WHO methodology) between 2019-2023 was chosen (Figure 16).
+
+
+![Untitled presentation (16)](https://github.com/user-attachments/assets/f7e85688-a1f8-4606-aef1-e308349c8f35)
+
+#### Figure 16. final maps for risk estimation 
+
+---
+The use of the median incidence value leverages the richness of the available time series data (60 months of data for each chiefdom) to produce a central trend value per chiefdom that is not sensitive to extreme values. Moreover, taking five years of data allows us to cover the years before and after COVID-19. This approach best represents the annual incidence in each geographical unit. This comprehensive approach ensures a more accurate representation of malaria risk, informing targeted interventions and resource allocation to areas with the highest need (Figure 16).
+
+### Case management 
+Access to care
+The distribution of health facilities in Sierra Leone, their 5km radius coverage areas, and population density are illustrated in four maps presented in Figure 17. This visual analysis is crucial for understanding healthcare accessibility across the country.
+
+
+![Untitled presentation (18)](https://github.com/user-attachments/assets/a0524c6e-e186-4acd-a3c3-cd8931592e8a)
+![Untitled presentation (19)](https://github.com/user-attachments/assets/d7c0c7b7-6827-41f9-a85f-6284a666f955)
+
+#### Figure 17. Map for access to care decision-making
+---
+There are noticeable gaps in the 5km coverage areas, especially in the northern and eastern regions of the country. The western region, appears to have better coverage, while rural and more remote areas in the northern and eastern seem underserved (Figure 17).
+
+
+### CHW density
+
+A map illustrating CHW density in relation to healthcare access would be helpful for better targeting community case management expansion (Figure 18).
+
+![Untitled presentation (20)](https://github.com/user-attachments/assets/45a2265b-d281-4321-bf45-bcd115beeba7)
+#### Figure 18. CHW density
+
+---
+### CHW and access
+Two key metrics are illustrated in the map presented in Figure 19: (1) the proportion of the population residing beyond a 5km radius from the nearest health facility, and (2) the number of Community Health Workers (CHWs) per 1,000 people within this underserved population.
 
 
 
-![Untitled presentation (5)](https://github.com/user-attachments/assets/f9ba41c0-308f-4483-a950-7e17d63953c7)
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
 
 
 
