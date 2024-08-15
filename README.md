@@ -151,6 +151,25 @@ To detect the presence of inconsistencies in the data, nested data elements were
 
 ### Figure 2. Inconsistencies checking
 
+### Some key observations:
+test vs allout (top left): This graph compares the number of malaria tests performed (test) with the total number of outpatients (allout). Ideally, all points should fall below the diagonal line, as the number of tests should not exceed the total number of outpatients. However, we observed many points above the line, indicating instances where more malaria tests were reported than total outpatients. This suggests potential over-reporting of malaria tests or under-reporting of outpatient visits.
+conf vs test (top right): This graph compares the number of confirmed malaria cases (conf) with the number of tests performed (test). All points should fall below the diagonal line, as confirmed cases cannot exceed the number of tests. 
+
+The graph shows good consistency, with most points below the line, indicating that this relationship is generally well-maintained in the data.
+maltreat vs conf (bottom left): This graph compares the number of malaria treatments given (maltreat) with the number of confirmed cases (conf). Ideally, these numbers should be close, with points near the diagonal line. However, we see many points below the line, suggesting that in some instances, fewer treatments were given than there were confirmed cases. This could indicate issues with treatment availability or reporting inconsistencies.
+maldth vs maladm (bottom right): This graph compares malaria deaths (maldth) with malaria admissions (maladm). All points should fall below the diagonal line, as deaths cannot exceed admissions. The graph shows good consistency in this regard, with all visible points below the line. However, the clustering of points near zero suggests that either malaria mortality is very low or there might be under-reporting of malaria deaths.
+
+These graphs highlight several data quality issues: i) Inconsistencies between malaria tests and outpatient numbers, ii) Generally good consistency between confirmed cases and tests, iii) Potential under-treatment or under-reporting of treatments for confirmed cases, iv) Consistent relationship between malaria deaths and admissions, but possible under-reporting of deaths (Figure 2).
+These findings underscore the need for improved data quality assurance measures, regular monitoring of reported data, and capacity building for health workers in accurate data collection and reporting. Further investigation is needed to understand the root causes of these inconsistencies, which could include issues with data entry, misunderstanding of reporting requirements, stockout of registers and reporting tools, or systemic problems in the health information system.
+
+### Outliers
+To visualize and analyze outliers across variables and years from 2015 to 2023, strip plots were constructed for both routine epidemiological data (Figure 3) and intervention data (Figure 3) related to malaria in Sierra Leone.
+
+This visualization (Figure 3) allows for a comparison of different malaria interventions over time in Sierra Leone, highlighting variations, potential trends, and unusual data points that may warrant further investigation.
+
+
+
+
 
 
 
