@@ -329,6 +329,8 @@ The SLMIS study conducted in 2021 determined the prevalence of Plasmodium falcip
 
 ![Untitled presentation (5)](https://github.com/user-attachments/assets/f9ba41c0-308f-4483-a950-7e17d63953c7)
 
+
+
 ![Untitled presentation (5)](https://github.com/user-attachments/assets/f9ba41c0-308f-4483-a950-7e17d63953c7)
 
 
