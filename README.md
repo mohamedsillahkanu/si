@@ -169,7 +169,7 @@ This visualization (Figure 3) allows for a comparison of different malaria inter
 
 
 
-<img width="479" alt="image" src="https://github.com/user-attachments/assets/2c43f498-fdf4-49b5-b99c-a97c4a4e99f2">
+![Stripplot plot2](https://github.com/user-attachments/assets/85d15331-c3e2-42b7-a0a2-b9d59385eef6)
 
 
 ### Figure 3. Strip plot of intervention variables for malaria in Sierra Leone (2015-2023)
