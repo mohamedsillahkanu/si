@@ -149,6 +149,11 @@ To detect the presence of inconsistencies in the data, nested data elements were
 
 
 
+<img width="563" alt="scatter plot" src="https://github.com/user-attachments/assets/06c3e3cd-a52d-444f-947e-d52a3c552c59">
+
+
+
+
 
 
 
