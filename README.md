@@ -147,7 +147,9 @@ The variables of interest for epidemiological stratification are listed in the S
 #### Inconsistencies
 To detect the presence of inconsistencies in the data, nested data elements were used. Figure 2 illustrates comparisons between different malaria-related indicators.
 
-<img width="563" alt="scatter plot" src="https://github.com/user-attachments/assets/06c3e3cd-a52d-444f-947e-d52a3c552c59">
+
+![one to one scatter plot](https://github.com/user-attachments/assets/a683cfa8-d1be-4939-8fc4-c74820699abd)
+
 
 ### Figure 2. Inconsistencies checking
 
