@@ -145,24 +145,14 @@ Sierra Leone has made steady progress in malaria control over the past decade, w
 The variables of interest for epidemiological stratification are listed in the SNT data collection template available to all on the WHO Sharepoint. This template summarizes in an excel file, the routine and intervention data collected between 2015 and 2023, disaggregated by month and by chiefdom.
 
 #### Inconsistencies
-To detect the presence of inconsistencies in the data, nested data elements were used. 
-
-
+To detect the presence of inconsistencies in the data, nested data elements were used. Figure 2 illustrates comparisons between different malaria-related indicators.
 
 <img width="563" alt="scatter plot" src="https://github.com/user-attachments/assets/06c3e3cd-a52d-444f-947e-d52a3c552c59">
 
+### Figure 2 illustrates comparisons between different malaria-related indicators. 
 
 
 
-
-
-
-
-
-
-
-
-#### Figure 2 illustrates comparisons between different malaria-related indicators.
 
 
  
