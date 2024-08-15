@@ -202,6 +202,88 @@ This visualization provides a comprehensive view of test positivity trends over 
 ### Reporting rate 
 To calculate the malaria reporting rate, health facility level routine data were obtained from Sierra Leone's national DHIS2 system for the period 2015 to 2023 (Figure 5).
 
+<img width="218" alt="image" src="https://github.com/user-attachments/assets/bf640426-e831-4864-a0d3-90dc298e6d00">
+
+
+![completenes2](https://github.com/user-attachments/assets/30024607-b6ca-4e07-89f5-431d0c42efed)    
+
+### Figure 5. Overall reporting status among DHIS2 HFs in Sierra Leone (2015-2023)
+
+
+The graph above (Figure 5) presents a comprehensive visualization of health facility reporting patterns across districts in Sierra Leone from 2015 to 2023. This graph tracks the monthly reporting of key malaria indicators including all-cause outpatients, tested, confirmed, or treated malaria cases. The color-coded representation provides insights into reporting consistency: green indicates months with reports, yellow shows gaps after previous reporting, and red highlights missing data without prior reporting. This visualization was instrumental in computing monthly reporting rates, which were subsequently used to adjust malaria incidence estimates according to WHO methodology.
+The graph reveals significant variations in reporting patterns across districts. While some districts demonstrate consistent reporting (predominantly green), others show more frequent gaps (more yellow and red), indicating potential challenges in data collection or submission processes.
+This analysis of reporting patterns is crucial for several reasons: It helps identify districts that may require additional support to improve their reporting practices (like Western area urban districts); it provides context for interpreting malaria incidence data, as areas with lower reporting rates may underestimate the true disease burden; it informs the adjustment of incidence rates, ensuring more accurate estimates of malaria burden across Sierra Leone.
+After discussion, it was agreed that only health facilities which had previously reported data (all-cause outpatients, tested, confirmed, or treated) at least once would be considered active and included in the denominator when calculating the reporting rate. 
+Figure 6 illustrates the monthly reporting rate by health facility and district of confirmed cases, which is the main variable used to calculate crude incidence.
+
+
+![RR Confirmed cases](https://github.com/user-attachments/assets/49409b17-2b8e-4f6c-ad62-f9750895343c)
+
+
+### Figure 6. Reporting rate of confirmed cases among DHIS2 HFs in Sierra Leone (2015-2023)
+
+
+The heatmap in **Figure 6** reveals significant variations in confirmed malaria case reporting rates across districts and over time, with most districts showing improved consistency in recent years, though some continue to exhibit periodic gaps or fluctuations in reporting, underscoring the importance of ongoing efforts to strengthen the health information system and ensure comprehensive malaria surveillance across Sierra Leone.
+
+
+### Incidence of malaria 
+To calculate malaria incidence, routine data aggregated by chiefdom were obtained from Sierra Leone's national DHIS2 system for the period from 2015 to 2023. The reporting rate obtained as explained in the previous section was used for incidence adjustment.
+The total number of confirmed malaria cases was calculated by summing confirmed cases at community, health center, and hospital levels. Crude incidence per month (or year) was obtained by dividing the number of confirmed cases by the Chiefdom's population.
+The incidence was adjusted using WHO methodology:[3]
+1. First-level adjustment: Accounting for presumed cases not tested.
+2. Second-level adjustment: Accounting for variable reporting rates across Chiefdoms.
+3. Third-level adjustment: Incorporating care-seeking behavior estimates from community surveys (DHS/MICS) to account for cases outside the public health sector.
+   
+Crude and adjusted incidence rates were categorized based on the maximum value of adjusted annual incidence observed in each chiefdom between 2015 and 2023, using the categories: 0-<50, 50-<100, 100-<250, 250-<450, 450-<700, 700-<1000 and >=1000 per 1000 inhabitants at risk.
+
+### Crude incidence of malaria (cases per 1000 population at risk)
+Crude incidence was obtained by dividing the number of confirmed cases by the population of the chiefdoms. The crude incidence maps for Sierra Leone from 2015 to 2023 reveal a significant and encouraging trend in malaria control efforts across the country. Over this period, there has been a notable decrease in malaria incidence rates, with a marked shift from predominantly high-incidence areas in the earlier years to a more varied landscape with many low to moderate incidence regions by 2023 (Figure 7). 
+
+
+![Incidence map](https://github.com/user-attachments/assets/22f38a48-b3c0-4162-8c28-dc955fb00085)
+
+
+### Figure 7. Crude incidence of malaria (cases per 1000 inhabitants)
+
+The geographical distribution of malaria incidence shows considerable variation across Sierra Leone's chiefdoms. Throughout the years, the southern and eastern regions of the country have consistently exhibited higher incidence rates, while the western and some northern areas have generally maintained lower rates. This pattern suggests that local factors, such as climate, geography, or healthcare access, may play a crucial role in malaria transmission dynamics (Figure 7).
+A pivotal change appears to have occurred between 2019 and 2020, with a substantial reduction in high-incidence areas. This shift could be attributed to intensified malaria control efforts, improvements in healthcare infrastructure, or changes in reporting practices. The more recent years (2021-2023) display a more homogeneous distribution of incidence rates, with many chiefdoms falling into the 50-250 per 1000 range, indicating a general stabilization of malaria incidence at lower levels compared to earlier years.
+Despite the overall positive trend, some chiefdoms, particularly in the south and southeast, continue to show persistently higher incidence rates across all years. These areas likely require targeted interventions and focused resources to bring them in line with the national trend of decreasing incidence.
+The 2023 detailed map provides a clear picture of the current situation, highlighting that while much of the country has achieved relatively low incidence rates, there remain pockets of higher transmission that warrant special attention. 
+In conclusion, the crude incidence data from 2015 to 2023 demonstrates significant progress in reducing malaria incidence across Sierra Leone. However, the persistence of some higher-incidence areas underscores the need for continued efforts and targeted strategies (**Figure 7**).  
+
+### Malaria incidence adjusted according to WHO methodology
+The WHO incidence adjustment method has been used in several scientific publications.[3–5]  It has the advantage of being relatively easy to implement, and of allowing the correction of limitations linked to the health systems of sub-Saharan African countries (reporting, testing, Healthcare seeking rate).
+
+### Malaria incidence adjusted for testing
+To adjust the number of confirmed cases for the absence of testing in presumed-positive patients, the number of presumed cases was multiplied by the test positivity rate, and the resulting figure was added to the number of cases confirmed by microscopy and/or RDT. The previous result was then divided by the population to obtain the incidence adjusted for the testing rate (1st level of incidence adjustment according to WHO methodology) (**Figure 8**). 
+The series of maps and charts depicting the incidence of malaria adjusted for testing rates in Sierra Leone from 2015 to 2023 reveals a complex and evolving landscape of malaria transmission across the country (Figure 8). The series of maps and accompanying bar graphs illustrate a notable transformation in the incidence patterns over time.
+
+
+![incidence adjusted by TPR](https://github.com/user-attachments/assets/9775bb1a-57ca-4f0b-b02a-119cc6e3e992)
+
+
+### Figure 8. Malaria incidence adjusted for testing
+In the earlier years (2015-2019), the maps depict a highly heterogeneous distribution of malaria incidence across Sierra Leone's chiefdoms. Many areas, particularly in the central and eastern regions, showed high incidence rates, represented by orange and red colorations. The corresponding bar graphs for these years demonstrate a relatively even distribution across incidence categories, with significant representation in the higher brackets (**Figure 8**).
+A marked shift becomes apparent from 2020 onwards. The maps for 2020-2023 display a substantial reduction in high-incidence areas, transitioning towards more moderate (yellow and light blue) and low (blue) incidence rates across numerous chiefdoms. This trend is mirrored in the bar graphs, which show a clear shift towards lower incidence categories, with the majority of chiefdoms falling into the 50-250 per 1000 range by 2023.
+The detailed map for 2023 provides a granular view of the current situation. While it confirms the overall trend towards lower incidence rates across much of the country, it also highlights persistent pockets of higher incidence, particularly in the southern region. This nuanced picture underscores the importance of targeted interventions in these remaining high-incidence areas.
+
+### Malaria incidence adjusted for testing and reporting
+The numerator used for the first level of WHO incidence adjustment was divided by the reporting rate. This was done to take into account the variable reporting rates in different chiefdoms, and to obtain a figure close to reality if the reporting rate were 100%. The figure obtained was divided by the population to produce the adjusted incidence for testing and reporting (2nd level of incidence adjustment according to WHO methodology) (**Figure 9**).
+
+
+
+
+
+
+ 
+
+
+
+
+ 
+
+
+
 
 
 
