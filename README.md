@@ -177,6 +177,36 @@ This visualization (Figure 3) allows for a comparison of different malaria inter
 ### Figure 3. Strip plot of intervention variables for malaria in Sierra Leone (2015-2023)
 
 
+#### Some key observations:
+Outliers: There are several notable outliers, particularly for variables like "IPTi3 total", "LLIN_penta3 total", where some data points are significantly higher than the majority.
+Variability: Some variables show more spread in their values across years (e.g., "Vita1 total", " Vita2 total "), while others are more tightly clustered (e.g., "Penta1 total", " Penta3 total ").
+Temporal trends: For some variables, there appear to be changes over time. For example, "anc4 total" seems to have more high-value outliers in later years.
+Missing data: Some variables have fewer data points than others, which could indicate missing data for certain years.
+Consistency: Some interventions (like those at the bottom of the graph) seem to have more consistent values across years, while others (like those in the middle) show more variation.
+
+The outlier checking of routine epidemiological malaria data in Sierra Leone was done (Figure 4). Outlier detection is crucial in this context because: outliers can lead to the misclassification of chiefdoms due to incorrect data. Thus, the detection process was automated for each health facility (HF), identifying records above [Q3 + 1.5*IQR] based on the data distribution for each facility. Due to Community Health Worker (CHW) outreach campaigns in 2023 that affected the data, this year was excluded from outlier detection, and its values were not corrected. Similar, 2023 was also excluded from the distribution used to compute the thresholds for each health facility.
+
+![test_positive](https://github.com/user-attachments/assets/1109169e-b9a6-49a6-a5d4-90a00fa0cb05)
+
+
+### Figure 4. stacked bar charts for the number of outliers for test positivity per month in Sierra Leone (2015-2023)
+
+### Some key observations in figure 4:
+Fluctuations: The graph shows significant fluctuations in test positivity rates over time, with some periods showing higher rates than others.
+Seasonal patterns: There appear to be some recurring patterns, possibly indicating seasonal variations in malaria transmission or testing rates.
+Outliers: While specific outliers are not immediately apparent in this aggregated view, there are several spikes in the data that could represent periods of unusually high-test positivity rates. These could be due to actual increases in malaria cases or potential data anomalies.
+Recent trends: The right side of the graph, representing more recent years, shows some notably high spikes in test positivity rates across multiple categories.
+Potential impact of interventions: Some of the variations observed could be related to malaria control interventions or changes in testing practices over time.
+This visualization provides a comprehensive view of test positivity trends over time, allowing for the identification of patterns, potential outliers, and areas that may require further investigation or data validation.
+
+### Reporting rate 
+To calculate the malaria reporting rate, health facility level routine data were obtained from Sierra Leone's national DHIS2 system for the period 2015 to 2023 (Figure 5).
+
+
+
+
+
+
 
 
 
