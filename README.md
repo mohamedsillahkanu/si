@@ -270,6 +270,60 @@ The detailed map for 2023 provides a granular view of the current situation. Whi
 ### Malaria incidence adjusted for testing and reporting
 The numerator used for the first level of WHO incidence adjustment was divided by the reporting rate. This was done to take into account the variable reporting rates in different chiefdoms, and to obtain a figure close to reality if the reporting rate were 100%. The figure obtained was divided by the population to produce the adjusted incidence for testing and reporting (2nd level of incidence adjustment according to WHO methodology) (**Figure 9**).
 
+![incidence adjusted-active hf](https://github.com/user-attachments/assets/6760a66d-b716-4ffd-b897-68a579a826a9)
+
+#### Figure 9. Malaria incidence adjusted for testing and reporting rate
+
+
+
+
+The visualization in Figure 9 offers a refined perspective on malaria incidence in Sierra Leone from 2015 to 2023, incorporating adjustments for both testing and reporting rates. Examining the chronological progression of maps and their accompanying bar graphs reveals a complex evolution of malaria incidence patterns. The period from 2015 to 2019 is characterized by a heterogeneous distribution of incidence rates across Sierra Leone's chiefdoms. During these initial years, numerous areas, particularly in the central and eastern regions, exhibited elevated incidence rates, visually represented by orange and red hues on the maps. A notable shift in this pattern emerges from 2020 onwards. The maps for the years 2020-2023 illustrate a marked decline in high-incidence areas, with a transition towards more moderate (yellow and light blue) and low (dark blue) incidence rates across a significant number of chiefdoms. This trend is mirrored in the accompanying bar graphs, which depict a clear migration towards lower incidence categories. By 2023, an increasing proportion of chiefdoms fall within the 50-250 per 1000 population range. The detailed map for 2023 provides a granular view of the current malaria situation in Sierra Leone. While it confirms a general trend towards lower incidence rates across much of the country, it also highlights the persistence of higher incidence pockets, particularly in some southern regions.  
+
+ A comparison between the first and second levels of adjustment reveals significant insights into Sierra Leone's malaria landscape. The second-level adjustment, which accounts for both testing and reporting rates, generally indicates higher incidence rates across all years, suggesting a more substantial malaria burden than initially apparent. While both sets of maps demonstrate similar overall trends, the second-level adjustment exposes more areas with higher incidence rates, particularly in earlier years, indicating that underreporting may have obscured the true extent of malaria transmission in certain regions. Although both adjustments show a general decline in incidence over time, the second-level adjustment suggests this decline may be less pronounced than originally thought, with a more evident persistence of higher incidence areas, especially in southern regions. The bar graphs for the second-level adjustment depict a more gradual shift towards lower incidence categories over time, implying a more nuanced progression in malaria control efforts. This refined adjustment, incorporating both testing and reporting rates, offers a more accurate representation of malaria incidence in Sierra Leone, uncovering a higher overall burden and emphasizing the importance of addressing potential underreporting. Such a detailed picture is invaluable for guiding targeted interventions and optimizing resource allocation in the country's ongoing battle against malaria.
+
+### Malaria incidence adjusted for testing, reporting and healthcare use
+**Figure 10** illustrates the results of the third level of incidence adjustment according to WHO methodology, which accounts for care-seeking behavior in Sierra Leone from 2015 to 2023. This adjustment, which considers the use of private healthcare facilities and cases where individuals do not seek formal medical care, reveals a more comprehensive picture of malaria incidence across the country.
+Assumptions:  i)The routine data available for this analysis is reported only by public health facilities, ii) The care seeking rate between 2015 and 2023 is the same as the recorded in the DHS 2019, iii) The care seeking behavior patterns in children is similar to that in adults, iv)The TPR among fevers who seek care in the private sector or who did not seek care is approximately the same as for those who seek care from the public sector.
+
+
+![care seeking active hf](https://github.com/user-attachments/assets/695f3870-24a8-481a-8002-cfe8f1cbc3c9)
+
+#### Figure 10. Malaria incidence adjusted for testing, reporting and care seeking rate
+
+
+
+
+The third level of adjustment provides the most comprehensive view of the malaria situation to date. From 2015 to 2019, the maps show a widespread high incidence of malaria across many chiefdoms, with large areas colored in orange and red. However, a notable shift occurs from 2020 onwards, with a general reduction in high-incidence areas and a transition towards more moderate (yellow) and low (blue) incidence rates across numerous chiefdoms. The bar graphs corroborate this trend, showing a gradual increase in the proportion of chiefdoms falling into lower incidence categories over time. The 2023 map reveals that while many areas now experience lower incidence rates, some pockets of higher incidence persist, particularly in the southern and eastern regions of the country (Figure 10).
+
+This third-level adjustment generally shows higher incidence rates across all years compared to both the first and second levels. The inclusion of care-seeking behavior in the calculation reveals an even greater burden of malaria than previously indicated. The spatial patterns in these maps show more extensive areas of high incidence, especially in the earlier years, suggesting that barriers to care-seeking may have masked the true extent of malaria transmission in certain regions. While all three levels of adjustment demonstrate a general decline in incidence over time, this third level suggests that the decline may be less pronounced than initially thought. The persistence of higher incidence areas is more evident, particularly in the southern and eastern regions. The bar graphs for this third-level adjustment show a more gradual and less dramatic shift towards lower incidence categories over time compared to the previous adjustments. This implies a more complex progression in malaria control efforts, highlighting the challenges in improving care-seeking behavior alongside other interventions.
+
+### Summary of crude and adjusted incidence values according to WHO methodology
+
+The set of maps in **Figure** 11 provides a summary of crude and adjusted incidence according to WHO methodology. These maps reveal progression of malaria incidence estimates in Sierra Leone from 2015 to 2023, showcasing the impact of various adjustment factors on our understanding of the malaria burden.
+
+![combine incidence maps](https://github.com/user-attachments/assets/79bbee2d-1577-4080-a2e9-5178b71612fe)
+
+#### Figure 11. Summary of crude and adjusted incidence values according to WHO methodology
+
+The crude incidence maps in the top row show a relatively optimistic picture, with many areas appearing to have low to moderate incidence rates, particularly in later years. However, as we move down through the subsequent rows of adjusted maps, we see a dramatic shift in the perceived malaria landscape. The second row, adjusted for testing rates, reveals a higher incidence across most chiefdoms. The third row, incorporating both testing and reporting rate adjustments, further intensifies the picture, with more areas showing elevated incidence levels. The final row, which adds care-seeking behavior to the adjustments, presents the most concerning view, with widespread high incidence rates across much of the country, especially in earlier years (Figure 11).
+
+A key observation is the persistence of high-incidence areas in the southern and eastern regions across all adjustment levels, even as other parts of the country show improvement over time. The progression from crude to fully adjusted maps underscore the critical importance of accounting for testing rates, reporting practices, and care-seeking behaviors in accurately assessing the true burden of malaria. It highlights that reliance on unadjusted data may significantly underestimate the scale of the malaria challenge in Sierra Leone. While all map series show some degree of improvement from 2015 to 2023, the adjusted maps indicate that progress may be slower and less extensive than crude data suggest. This comprehensive view is essential for informing effective policy-making, resource allocation, and intervention strategies in the ongoing fight against malaria in Sierra Leone.
+
+
+### Use of healthcare services in the Sierra Leone
+The results shown in Figure 12, aggregated by administrative region (adm1), are derived from the latest DHS survey conducted in 2019 in Sierra Leone. They reveal significant heterogeneity in care-seeking rates across provinces and variations in the sectors utilized for care. The data indicate that public sector utilization is relatively high in certain regions, while private sector care-seeking remains low across most areas. These findings underscore the need to enhance case management at the community health worker (CHW) level and consider these disparities when planning prevention and management interventions at the community level (**Figure 12**).
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
