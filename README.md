@@ -301,9 +301,11 @@ This third-level adjustment generally shows higher incidence rates across all ye
 
 The set of maps in **Figure** 11 provides a summary of crude and adjusted incidence according to WHO methodology. These maps reveal progression of malaria incidence estimates in Sierra Leone from 2015 to 2023, showcasing the impact of various adjustment factors on our understanding of the malaria burden.
 
-![combine incidence maps](https://github.com/user-attachments/assets/79bbee2d-1577-4080-a2e9-5178b71612fe)
+![combine incidence maps](https://github.com/user-attachments/assets/79bbee2d-1577-4080-a2e9-5178b71612fe) 
 
 #### Figure 11. Summary of crude and adjusted incidence values according to WHO methodology
+
+---
 
 The crude incidence maps in the top row show a relatively optimistic picture, with many areas appearing to have low to moderate incidence rates, particularly in later years. However, as we move down through the subsequent rows of adjusted maps, we see a dramatic shift in the perceived malaria landscape. The second row, adjusted for testing rates, reveals a higher incidence across most chiefdoms. The third row, incorporating both testing and reporting rate adjustments, further intensifies the picture, with more areas showing elevated incidence levels. The final row, which adds care-seeking behavior to the adjustments, presents the most concerning view, with widespread high incidence rates across much of the country, especially in earlier years (Figure 11).
 
@@ -312,6 +314,17 @@ A key observation is the persistence of high-incidence areas in the southern and
 
 ### Use of healthcare services in the Sierra Leone
 The results shown in Figure 12, aggregated by administrative region (adm1), are derived from the latest DHS survey conducted in 2019 in Sierra Leone. They reveal significant heterogeneity in care-seeking rates across provinces and variations in the sectors utilized for care. The data indicate that public sector utilization is relatively high in certain regions, while private sector care-seeking remains low across most areas. These findings underscore the need to enhance case management at the community health worker (CHW) level and consider these disparities when planning prevention and management interventions at the community level (**Figure 12**).
+
+
+ ![Care Seeking Rate](https://github.com/user-attachments/assets/8f51c0ba-faa8-4bd5-b3c5-02684c3d191d)
+
+
+ Figure 12. Care-seeking rate in Sierra Leone
+Prevalence of Plasmodium falciparum 
+The SLMIS study conducted in 2021 determined the prevalence of Plasmodium falciparum by microscopy and RDT in children. Findings suggested significant regional variations (Figure 13). The northern and eastern provinces exhibit consistently higher malaria prevalence rates across both age groups and diagnostic methods, while the southern and western provinces tend to have lower prevalence rates. Notably, there is a discrepancy in prevalence rates detected by Rapid Diagnostic Tests (RDTs) versus microscopy, with RDTs generally indicating higher rates of detection. District-level prevalence shows that RDT-detected malaria rates in children aged 6-59 months are equal to or higher than those in children aged 5-9 years across all districts. Conversely, microscopy-detected malaria prevalence in children aged 6-59 months is lower than in those aged 5-9 years in all districts (Figure 13).  
+
+
+
 
 
 
