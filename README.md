@@ -130,6 +130,36 @@ Dr Beatriz Galatas (galatasb@who.int)
  
   
 ### Figure 1. SNT team members
+
+
+### Epidemiological stratification
+
+The data used in this analysis come from the District Health Information System version 2 (DHIS2), the 2019 Sierra Leone Demographic and Health Survey (SLDHS),[2] 2021 Sierra Leone Malaria Indicators Survey (SLMIS 2021) and results of studies carried out by partners in Sierra Leone. All these data were consolidated into a single database available in the WHO SharePoint. Data processing and analysis were carried out using python, Stata and R analysis software, with codes available upon request.
+The first step was to merge the data into a single database and shapefile in python. For this purpose, the names of the geographical units (admin1, admin2 and admin3) contained in DHIS2 were taken as the reference. The names of the geographical units contained in the various data files were modified to match those in DHIS2. Subsequently, variable names were standardized to match the data dictionary used by WHO-GMP for variable names in SNT. The dictionary employed is available in the WHO SharePoint and can be obtained upon request. The resulting data was then merged with the adm3 level Shapefile (chiefdoms/zones). Analyses were carried out at the chiefdom level in accordance with the resolutions of the initial stratification online meeting.
+
+Sierra Leone has made steady progress in malaria control over the past decade, with malaria prevalence among children under five decreasing slightly from 40.1% in 2016 (MIS 2016) to 21.6% in 2021 (SL MIS 2021). However, the country still faces significant challenges, including high transmission rates in certain districts, insecticide resistance, and the need for improved healthcare access in rural areas. This stratification effort aims to address these challenges by tailoring interventions to the specific needs of each chiefdom/district ultimately contributing to Sierra Leone's goal of reducing malaria morbidity and mortality. By adopting a more targeted approach, the country seeks to optimize its resources and enhance the effectiveness of its malaria control strategies, paving the way for further reductions in the disease burden across the country.
+
+### Quality assessment of data elements used for stratification
+
+#### Checking database contents
+The variables of interest for epidemiological stratification are listed in the SNT data collection template available to all on the WHO Sharepoint. This template summarizes in an excel file, the routine and intervention data collected between 2015 and 2023, disaggregated by month and by chiefdom.
+
+#### Inconsistencies
+To detect the presence of inconsistencies in the data, nested data elements were used. 
+
+
+
+
+
+
+
+
+
+
+
+#### Figure 2 illustrates comparisons between different malaria-related indicators.
+
+
  
 
 
