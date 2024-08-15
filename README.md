@@ -396,60 +396,21 @@ A map illustrating CHW density in relation to healthcare access would be helpful
 ### CHW and access
 Two key metrics are illustrated in the map presented in Figure 19: (1) the proportion of the population residing beyond a 5km radius from the nearest health facility, and (2) the number of Community Health Workers (CHWs) per 1,000 people within this underserved population.
 
+![Untitled presentation (21)](https://github.com/user-attachments/assets/1b5fa490-ca1a-4bf1-8aa8-2e2cda56fbb0)
+
+#### Figure 19. CHW and access
+---
+### Care-seeking behavior patterns
+
+Nationally, there were little variations between children living in rural or urban areas, in different wealth quintiles or by mother’s education status (Figure 20).
 
 
+![Untitled presentation (22)](https://github.com/user-attachments/assets/9ec46754-09c2-42cb-95d5-38de8127905f)
 
-
-
-
-
-
-
-
-
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
-
-
-
-
- 
-
-
+#### Figure 20. Care-seeking behavior
+---
+### PHUs and Hospital density per population
+The distribution of hospitals across districts in Sierra Leone varies significantly. Only four districts - Western Urban, Rural, Bonthe, and Bombali - have more than one hospital per 100,000 population. Five districts fall into the category of having 0.6 to 1 hospital per 100,000 population, while six districts have a lower ratio of 0.1 to 0.5 hospitals per 100,000 population. Notably, the district of Falaba, with a population of 251,608, does not have any hospital at all, highlighting significant disparities in healthcare infrastructure across the country (Figure 21).
 
 
 
@@ -486,224 +447,46 @@ Two key metrics are illustrated in the map presented in Figure 19: (1) the propo
 
 
 
-### Indoor Residual Spray 1
 
-#### Step by Step explanation of the code
 
-```python
-import pandas as pd
-import geopandas as gpd
-import matplotlib.pyplot as plt
-from matplotlib.colors import ListedColormap
-import numpy as np
-```
-- **Imports necessary libraries**:
-  - `pandas` is for data manipulation.
-  - `geopandas` is for working with geospatial data.
-  - `matplotlib.pyplot` is for creating plots.
-  - `ListedColormap` is used to create custom color maps.
-  - `numpy` is imported but not used in the code (could be removed).
 
-```python
-shapefile_path = '/content/Chiefdom 2021.shp'
-excel_file_path = '/content/irs_data.xlsx'
-chiefdom_data_file = '/content/Chiefdom_data.xlsx'
-```
-- **Defines file paths** for the shapefile and two Excel files that will be used in the analysis.
 
-```python
-gdf = gpd.read_file(shapefile_path)
-```
-- **Reads the shapefile** into a GeoDataFrame (`gdf`), which contains the geographical boundaries and attributes for chiefdoms.
 
-```python
-df0 = pd.read_excel(excel_file_path)
-df1 = pd.read_excel(chiefdom_data_file)
-```
-- **Reads the Excel files** into two separate DataFrames (`df0` and `df1`).
 
-```python
-df_merged = df0.merge(df1, how='left', on='adm3', validate='1:1')
-```
-- **Merges the two DataFrames (`df0` and `df1`)** on the column `'adm3'` using a left join. The `validate='1:1'` argument ensures that the merge is one-to-one, meaning each row in `df0` should match exactly one row in `df1`.
 
-```python
-gdf_merged = gdf.merge(df_merged, how='left', on=['FIRST_DNAM', 'FIRST_CHIE'], validate='1:1')
-```
-- **Merges the GeoDataFrame (`gdf`) with the merged DataFrame (`df_merged`)** on the columns `'FIRST_DNAM'` and `'FIRST_CHIE'` using a left join. This combines the geographical data with the attributes from the Excel files.
 
-```python
-bins_itn_cov = [75, 85, 95, 100]
-labels_itn_cov = ['75-84', '85-94', '95-100']
-```
-- **Defines bins and labels** for categorizing IRS coverage percentages:
-  - `bins_itn_cov` specifies the cutoff points for the categories.
-  - `labels_itn_cov` assigns labels to each bin.
 
-```python
-colors = ['orange', 'green', 'yellow']
-missing_color = 'gray'
-```
-- **Defines colors** to be used for the categories:
-  - `colors` is a list of colors corresponding to the `labels_itn_cov`.
-  - `missing_color` is the color used for missing data.
 
-```python
-cmap_itn_cov = ListedColormap(colors)
-```
-- **Creates a custom color map (`cmap_itn_cov`)** using the specified colors.
 
-```python
-gdf_merged['category'] = pd.cut(gdf_merged['irs_cov'], bins=[0] + bins_itn_cov, labels=['NA'] + labels_itn_cov, right=False, include_lowest=True)
-```
-- **Categorizes the IRS coverage data (`irs_cov`)**:
-  - `pd.cut` segments the `irs_cov` data into bins and labels them.
-  - Bins are defined with `[0] + bins_itn_cov` and labeled with `['NA'] + labels_itn_cov`.
-  - `right=False` means the bins are left-inclusive.
-  - `include_lowest=True` ensures that the lowest value is included in the first bin.
 
-```python
-fig, ax = plt.subplots(figsize=(6, 6))
-```
-- **Creates a figure and axes object** for plotting, setting the figure size to 6x6 inches.
-
-```python
-gdf_merged['color'] = gdf_merged['category'].map(dict(zip(labels_itn_cov, colors)))
-gdf_merged['color'] = gdf_merged['color'].fillna(missing_color)
-```
-- **Maps categories to colors**:
-  - `gdf_merged['category'].map(...)` assigns colors based on the `category`.
-  - `fillna(missing_color)` fills in missing values with the `missing_color`.
-
-```python
-gdf_merged.plot(color=gdf_merged['color'], ax=ax, legend=False)
-```
-- **Plots the GeoDataFrame (`gdf_merged`)** using the colors assigned to each category.
-
-```python
-ax.set_axis_off()
-```
-- **Turns off the axis** so that no axis lines, ticks, or labels are displayed.
-
-```python
-gdf.boundary.plot(ax=ax, color='black', linewidth=1)
-```
-- **Plots the boundary of the original GeoDataFrame (`gdf`)** on top of the map with black lines and a line width of 1.
-
-```python
-gdf.dissolve(by='FIRST_DNAM').boundary.plot(ax=ax, color='white', linewidth=1)
-```
-- **Dissolves the GeoDataFrame (`gdf`) by `'FIRST_DNAM'`** and plots its boundary with white lines to highlight the chiefdom divisions.
-
-```python
-handles = []
-for label, color in zip(['NA'] + labels_itn_cov, [missing_color] + colors):
-    handles.append(plt.Line2D([0, 1], [0, 0], color=color, linewidth=10, label=label))
-```
-- **Creates custom legend handles**:
-  - For each category (`label`) and corresponding `color`, a `Line2D` object is created to be used in the legend.
-  - `linewidth=10` ensures the legend items are thick enough to be easily visible.
-
-```python
-fig.legend(handles=handles, title='2024 IRS coverage (%) at chiefdom-level in SL', loc='upper center', bbox_to_anchor=(0.5, 1.05), ncol=len(labels_itn_cov)+1, frameon=False)
-```
-- **Creates a custom legend** for the map:
-  - `handles` are used for the legend items.
-  - `title` sets the legend title.
-  - `loc` and `bbox_to_anchor` position the legend.
-  - `ncol` sets the number of columns in the legend.
-  - `frameon=False` removes the border around the legend.
-
-```python
-plt.tight_layout()
-plt.savefig('itn3.png', bbox_inches='tight')
-plt.show()
-```
-- **Finalizes the plot**:
-  - `plt.tight_layout()` adjusts the spacing to fit everything nicely.
-  - `plt.savefig()` saves the plot as a PNG file.
-  - `plt.show()` displays the plot.
  
 
-### Full code
 
-```python
-import pandas as pd
-import geopandas as gpd
-import matplotlib.pyplot as plt
-from matplotlib.colors import ListedColormap
-import numpy as np
 
-# File paths for shapefile and Excel data
-shapefile_path = '/content/Chiefdom 2021.shp'
-excel_file_path = '/content/irs_data.xlsx'
-chiefdom_data_file = '/content/Chiefdom_data.xlsx'
 
-# Read the shapefile into a GeoDataFrame
-gdf = gpd.read_file(shapefile_path)
+ 
 
-# Read the Excel files into DataFrames
-df0 = pd.read_excel(excel_file_path)
-df1 = pd.read_excel(chiefdom_data_file)
 
-# Merge the two DataFrames on the 'adm3' column
-df_merged = df0.merge(df1, how='left', on='adm3', validate='1:1')
 
-# Merge the GeoDataFrame with the merged DataFrame on 'FIRST_DNAM' and 'FIRST_CHIE'
-gdf_merged = gdf.merge(df_merged, how='left', on=['FIRST_DNAM', 'FIRST_CHIE'], validate='1:1')
 
-# Define bins and labels for IRS coverage categories
-bins_itn_cov = [75, 85, 95, 100]
-labels_itn_cov = ['75-84', '85-94', '95-100']
 
-# Define colors for the categories and for missing data
-colors = ['orange', 'green', 'yellow']
-missing_color = 'gray'
 
-# Create a custom colormap using the defined colors
-cmap_itn_cov = ListedColormap(colors)
 
-# Categorize the 'irs_cov' column into bins and assign labels
-gdf_merged['category'] = pd.cut(gdf_merged['irs_cov'], bins=[0] + bins_itn_cov, 
-                                labels=['NA'] + labels_itn_cov, right=False, include_lowest=True)
 
-# Create a figure and axis for the plot
-fig, ax = plt.subplots(figsize=(6, 6))
 
-# Map the categories to colors and fill missing values with the defined missing color
-gdf_merged['color'] = gdf_merged['category'].map(dict(zip(labels_itn_cov, colors)))
-gdf_merged['color'] = gdf_merged['color'].fillna(missing_color)
 
-# Plot the merged GeoDataFrame with the assigned colors
-gdf_merged.plot(color=gdf_merged['color'], ax=ax, legend=False)
 
-# Turn off the axis
-ax.set_axis_off()
 
-# Plot the boundary of the original GeoDataFrame with black lines
-gdf.boundary.plot(ax=ax, color='black', linewidth=1)
 
-# Dissolve the GeoDataFrame by 'FIRST_DNAM' and plot its boundary with white lines
-gdf.dissolve(by='FIRST_DNAM').boundary.plot(ax=ax, color='white', linewidth=1)
 
-# Create custom legend handles
-handles = []
-for label, color in zip(['NA'] + labels_itn_cov, [missing_color] + colors):
-    handles.append(plt.Line2D([0, 1], [0, 0], color=color, linewidth=10, label=label))
 
-# Create a custom legend and position it above the map
-fig.legend(handles=handles, title='2024 IRS coverage (%) at chiefdom-level in SL', 
-           loc='upper center', bbox_to_anchor=(0.5, 1.05), ncol=len(labels_itn_cov)+1, frameon=False)
+ 
 
-# Adjust layout, save the plot, and display it
-plt.tight_layout()
-plt.savefig('itn3.png', bbox_inches='tight')
-plt.show()
 
-```
-[Download data used for generating the map below](https://worldhealthorg.sharepoint.com/:x:/r/sites/GMPSUR/Shared%20Documents/Country_Analytical_Support/Countries/SLE/WHO_SLE/2024_SNT/Analysis_Mohamed/Final%20Databases%20for%20modelers/intervention_data_stockout.xlsx?d=wd124fdd8e0c24ed6a177f34c5f5c630e&csf=1&web=1&e=3uztZ4)
 
-![IRS IMAGE](https://github.com/user-attachments/assets/fb500ea3-05a0-46d1-b002-9b032cd2633d)
+
+
+
 
 
 
