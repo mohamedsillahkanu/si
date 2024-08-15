@@ -321,9 +321,21 @@ The results shown in Figure 12, aggregated by administrative region (adm1), are 
 
 #### Figure 12. Care-seeking rate in Sierra Leone
 
-
+---
 ### Prevalence of Plasmodium falciparum 
 The SLMIS study conducted in 2021 determined the prevalence of Plasmodium falciparum by microscopy and RDT in children. Findings suggested significant regional variations (Figure 13). The northern and eastern provinces exhibit consistently higher malaria prevalence rates across both age groups and diagnostic methods, while the southern and western provinces tend to have lower prevalence rates. Notably, there is a discrepancy in prevalence rates detected by Rapid Diagnostic Tests (RDTs) versus microscopy, with RDTs generally indicating higher rates of detection. District-level prevalence shows that RDT-detected malaria rates in children aged 6-59 months are equal to or higher than those in children aged 5-9 years across all districts. Conversely, microscopy-detected malaria prevalence in children aged 6-59 months is lower than in those aged 5-9 years in all districts (Figure 13).  
+
+
+
+![Untitled presentation (5)](https://github.com/user-attachments/assets/f9ba41c0-308f-4483-a950-7e17d63953c7)
+
+![Untitled presentation (5)](https://github.com/user-attachments/assets/f9ba41c0-308f-4483-a950-7e17d63953c7)
+
+
+
+
+
+
 
 
 
