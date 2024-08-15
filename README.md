@@ -127,7 +127,7 @@ Dr Beatriz Galatas (galatasb@who.int)
 
  <img width="479" alt="Partners" src="https://github.com/user-attachments/assets/c6630349-669f-4521-9862-23c3fca751a6"> 
 
- ![image_53](https://github.com/user-attachments/assets/6c85166d-0f48-4721-ba1c-df2615e5be5e)
+ 
 
  
  
@@ -153,7 +153,6 @@ To detect the presence of inconsistencies in the data, nested data elements were
 
 ![one to one scatter plot](https://github.com/user-attachments/assets/a683cfa8-d1be-4939-8fc4-c74820699abd)
 
-![image_8](https://github.com/user-attachments/assets/466137df-a471-4d03-ad31-5cc15888ce89)
 
 
 
@@ -478,6 +477,27 @@ According to the revised policy, only hard-to-reach CHWs are allowed to suspect 
 NMCP has identified this error and is working with DPPI to review the data collection and reporting tools. However, gaps remain in some northern and eastern regions, with notable regional variability in the testing rates.
 
 ![Untitled presentation (31)](https://github.com/user-attachments/assets/e9698c69-1c61-4cdb-9315-d99706c84b43)
+
+#### Figure 26. CHWs malaria testing rates
+---
+### Uncomplicated case management among CHWs – Treatment rates
+The quality of data from Community Health Workers (CHWs) has shown improvement over the years. In 2023 several chiefdoms report treatment rates below 75% (indicated in orange). Additionally, some chiefdoms continue to rely on presumptive treatments (shown in dark green), suggesting that diagnostic practices may not be uniformly implemented across all regions (Figure 27). 
+
+![Untitled presentation (32)](https://github.com/user-attachments/assets/7a63843f-0555-4816-99c6-f41025ae16af)
+
+#### Figure 27. CHW malaria treatment rates
+---
+### Severe case management – Hospital malaria mortality ratios
+The Hospital malaria mortality ratios for the period from 2015 to 2023 are depicted in Figure 28. 
+
+
+A consistently low hospital malaria mortality ratios is observed in the younger age groups, though with higher vulnerability, regional disparities in healthcare quality, particularly in northern and eastern regions, and an overall improvements in mortality ratios over time.
+To further reduce malaria mortality, focus should be laid on improving care for these age groups, address the regional disparities through strengthened healthcare quality of services, ensure continuous monitoring, and engage communities in education about early treatment seeking.
+
+![image_88](https://github.com/user-attachments/assets/eee1ecae-e1c6-48ee-ada0-de3619bf785a)
+
+#### Figure 28. Hospital malaria mortality ratios
+---
 
 
 
