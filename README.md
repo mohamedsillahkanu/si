@@ -290,7 +290,7 @@ Assumptions:  i)The routine data available for this analysis is reported only by
 
 #### Figure 10. Malaria incidence adjusted for testing, reporting and care seeking rate
 
-
+---
 
 
 The third level of adjustment provides the most comprehensive view of the malaria situation to date. From 2015 to 2019, the maps show a widespread high incidence of malaria across many chiefdoms, with large areas colored in orange and red. However, a notable shift occurs from 2020 onwards, with a general reduction in high-incidence areas and a transition towards more moderate (yellow) and low (blue) incidence rates across numerous chiefdoms. The bar graphs corroborate this trend, showing a gradual increase in the proportion of chiefdoms falling into lower incidence categories over time. The 2023 map reveals that while many areas now experience lower incidence rates, some pockets of higher incidence persist, particularly in the southern and eastern regions of the country (Figure 10).
@@ -350,6 +350,7 @@ In the absence of reliable community-level malaria mortality but when malaria is
 ![Untitled presentation (14)](https://github.com/user-attachments/assets/b0a1ceb8-fead-4ec2-8c2c-b89f0bd0f953)
 
 #### Figure 14. Under-five mortality rate, all causes from SLDHS 2019
+---
 
 ### Median malaria incidence between 2019-2023
 To synthesize the incidence data observed over the past five years, we calculated the median values of both crude and adjusted incidences for the 2019-2023 period (Figure 15). The median incidence over these five years, adjusted for testing and reporting rates, was identified as the most appropriate metric to represent malaria transmission patterns in the community and to guide decision-making (Figure 15).
@@ -415,6 +416,7 @@ The distribution of hospitals across districts in Sierra Leone varies significan
 ![Untitled presentation (24)](https://github.com/user-attachments/assets/f7d77dde-c31e-4bab-8c80-1e964e86bad2)
 
 #### Figure 21. Health facilities density per population
+---
 
 ### Uncomplicated case management – Testing rates
 
@@ -427,6 +429,7 @@ The proportion of children with fever who underwent testing during the Sierra Le
 ![Untitled presentation (27)](https://github.com/user-attachments/assets/b03f4ade-3898-4ce0-99a8-8b0717fd0993)
 
 #### Figure 22. Testing rate (DHS 2019)
+---
 
 ### Uncomplicated malaria case management at HFs – Testing rates
 Testing rates appear to have decreased across all age groups over the years, which may indicate a data quality issue. In 2023, the chiefdoms with testing rates below 75% were similar across all age groups. While the distribution of testing rates by age group is generally consistent across chiefdoms, the number of chiefdoms achieving testing rates above 95% is highest among 5-14-year-olds.
@@ -434,6 +437,7 @@ It is recommended that this information be reviewed regularly to identify chiefd
 
 ![Untitled presentation (28)](https://github.com/user-attachments/assets/5d8bf2a4-f56b-46bd-b4c2-676481c0f043)
 #### Figure 23. Testing rates for uncomplicated malaria in health facilities
+---
 
 ### Uncomplicated malaria case management at HFs – Treatment rates
 High treatment rates and presumptive treatment (indicated by green chiefdoms) are more commonly observed in children under 5 years old. Presumptive treatment (shown in dark green) became more prevalent in 2022 and 2023. However, a substantial number of chiefdoms still show treatment rates below 95% among confirmed patients. To address these issues, it is crucial to routinely review this information. This review should aim to identify chiefdoms with consistently poor performance in malaria case management, prompting investigations and appropriate responses where necessary (Figure 24).
