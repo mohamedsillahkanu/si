@@ -420,6 +420,29 @@ The distribution of hospitals across districts in Sierra Leone varies significan
 
 The proportion of children with fever who underwent testing during the Sierra Leone Demographic and Health Survey 2019 (SLDHS2019) is depicted in the figure below (Figure 22).
 
+![Untitled presentation (25)](https://github.com/user-attachments/assets/bc806e19-5161-46bd-88ed-b89ee8e13328)
+
+![Untitled presentation (26)](https://github.com/user-attachments/assets/6e296618-c051-44d4-9499-4bdd60b5484d)
+
+![Untitled presentation (27)](https://github.com/user-attachments/assets/b03f4ade-3898-4ce0-99a8-8b0717fd0993)
+
+#### Figure 22. Testing rate (DHS 2019)
+
+### Uncomplicated malaria case management at HFs – Testing rates
+Testing rates appear to have decreased across all age groups over the years, which may indicate a data quality issue. In 2023, the chiefdoms with testing rates below 75% were similar across all age groups. While the distribution of testing rates by age group is generally consistent across chiefdoms, the number of chiefdoms achieving testing rates above 95% is highest among 5-14-year-olds.
+It is recommended that this information be reviewed regularly to identify chiefdoms with persistently poor performance in malaria case management. Such identification should prompt an investigation followed by an appropriate response (Figure 23).
+
+![Untitled presentation (28)](https://github.com/user-attachments/assets/5d8bf2a4-f56b-46bd-b4c2-676481c0f043)
+#### Figure 23. Testing rates for uncomplicated malaria in health facilities
+
+### Uncomplicated malaria case management at HFs – Treatment rates
+High treatment rates and presumptive treatment (indicated by green chiefdoms) are more commonly observed in children under 5 years old. Presumptive treatment (shown in dark green) became more prevalent in 2022 and 2023. However, a substantial number of chiefdoms still show treatment rates below 95% among confirmed patients. To address these issues, it is crucial to routinely review this information. This review should aim to identify chiefdoms with consistently poor performance in malaria case management, prompting investigations and appropriate responses where necessary (Figure 24).
+
+
+
+
+
+
 
 
 
