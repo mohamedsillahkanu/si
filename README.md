@@ -499,6 +499,92 @@ To further reduce malaria mortality, focus should be laid on improving care for 
 #### Figure 28. Hospital malaria mortality ratios
 ---
 
+Case management – RDT stockouts
+There are a few chiefdoms with health facilities that experienced stock-outs >10% of the HF-months per year. Some of these chiefdoms repeatedly have stock-outs for several years in a row (Figure 29). To ensure consistent RDT availability, targeted interventions, improved supply chain management, and regular monitoring are recommended in these high-stockout areas.
+
+![Untitled presentation (34)](https://github.com/user-attachments/assets/9f5b3d7b-c4e6-42cc-a5b2-dc4476ad025b)
+
+#### Figure 29. RDT stockouts per year
+
+---
+### Case management- Antimalarial stockouts
+The stock-outs of injectable Artemether and Artesunate are illustrated in Figure 30. The maps reveal persistent stockouts of antimalarial drugs across various chiefdoms from 2020 to 2023, with many regions experiencing high stockout rates. To address these issues, it is recommended to enhance supply chain management, improve forecasting and distribution strategies, and strengthen monitoring and accountability mechanisms to ensure consistent drug availability and support malaria control efforts.
+
+![Untitled presentation (35)](https://github.com/user-attachments/assets/d9e301dd-1975-4678-9b74-36f4c80500ab)
+
+#### Figure 30. Antimalarial stock outs
+
+---
+
+The stock-outs of ACTs are illustrated in **Figure 31**. There were stockouts of Artemether & Lumefantrine (ACT) treatment doses across various chiefdoms from 2020 to 2023, with some chiefdoms experiencing high stockout rates, especially for the 12-tab and 24-tab formulations. To address these challenges, it is recommended to improve supply chain infrastructure, forecasting, and inventory management, as well as enhance monitoring and support for chiefdoms with ongoing stockout issues to ensure the continuous availability of ACTs.
+
+![Untitled presentation (36)](https://github.com/user-attachments/assets/84f5f7ff-3513-4804-b9c2-a0d9368e58e2)
+
+#### Figure 31. ACT stock-outs
+
+---
+
+### Vector control
+
+#### Routine ITN distributions through EPI (Penta 3 & ANC visit)
+
+In previous years, the reported operational coverage exceeded 100% (shown in yellow), indicating potential data issues. The 2023 data shows much lower operational coverage, which may reflect improved data quality. However, this also reveals that coverage requires significant improvement across nearly all districts in the country, which needs to be addressed through improved last-mile supply chain, data collection, validation, and reporting (**Figure 32**).
+
+![Untitled presentation (37)](https://github.com/user-attachments/assets/2301c640-d2d4-45b9-8a51-29d6b0d617f9)
+
+Figure 32. Coverage of ITN distribution through antenatal care visits
+
+Mass ITN campaigns
+The ITN coverage by district for the 2017, 2020 and 2023 mass campaigns is shown in Figure 33. The ITN coverage data from 2017 to 2023 indicates significant improvements, with many districts reaching high coverage levels. However, some areas still have coverage below 75%, suggesting a need for intensified efforts, equitable distribution, and targeted interventions to ensure universal ITN coverage and effective malaria prevention. Digitalization of mass ITN campaigns is one of the strategies to improve universal coverage of ITNs as demonstrated in the 2023 mass campaign.
+
+![image_86](https://github.com/user-attachments/assets/5e653dd3-be1b-49fc-a355-ce461e4b0d52)
+#### Figure 33. Coverage of mass ITN distribution  
+---
+### School-based ITN campaigns
+
+The chiedoms where ITN distribution in schools is currently carried out, as well as those where it will be conducted in the future, are shown on the map in Figure 34. The pilot of  School-Based Distribution (SBD) of ITNs in Sierra Leone was done in all 14 chiefdoms in Kono district. The planned expansion now covers five districts (Kambia, Tonkolili, Pujehun, Koinadugu and Bonthe). To ensure effective implementation, it is recommended that, adequate resources be provided, improve community engagement, and conduct evaluation to assess the impact of the SBD compared to non-SBD districts.
+
+![image_40](https://github.com/user-attachments/assets/cc88c71d-cd04-451f-8ec3-605ea492af3b)
+
+
+#### Figure 34. targeting of school-based ITN distribution (SBD)
+---
+### Household access
+
+While access to at least one net was >60% in nearly all households in the country, only up to 50% of households had one net for every two people in 2019. Access was lower when evaluated in 2021. From 2019 to 2021, improvements in household ITN ownership in Sierra Leone are evident, with more districts achieving higher coverage levels. However, gaps remain in the adequacy of net distribution, with some districts still lacking enough nets to cover every individual, highlighting the need for continued efforts to both increase net availability and ensure sufficient coverage (Figure 35).
+
+![image_5](https://github.com/user-attachments/assets/ac2ce0d5-45e8-4668-9631-5a2f2a53f49c)
+
+Figure 35. Household ITN access (map)
+In 2019, ITN access is generally lower in urban areas, the poorest and wealthiest populations. The bar charts below show that while rural households in Sierra Leone consistently have higher ITN ownership than urban households, with the gap narrowing recently, disparities persist, particularly in urban areas. Additionally, although ITN ownership has increased across all wealth quintiles, wealthier households generally have higher coverage, indicating the need for targeted interventions and outreach programs to ensure equitable ITN distribution and access for all socioeconomic groups (Figure 36).
+
+![image_25](https://github.com/user-attachments/assets/b4533547-9f3a-437a-b4e2-a31d33dbe477)
+
+#### Figure 36. Household ITN access (plot)
+---
+
+### Population ITN use
+
+The population-level usage of nets is generally <70% in Sierra Leone. Among the households with at least one net, usage increases to >60% everywhere in the country, with some districts recording lower use than others. In total, access is a key determinant for ITN use in Sierra Leone, SBCC messages to maximize use-given-access can be targeted to areas with high access but low use of ITNs (Figure 37).
+
+![image_28](https://github.com/user-attachments/assets/aaf0f5c3-82ab-43fe-b1db-5b7bf8d9f921)
+
+#### Figure 38. Pregnant women ITN use
+---
+### Population-level ITN use
+
+In 2019, bed net use is slightly lower in urban areas, among men, wealthier individuals and individuals with primary or secondary education. The ITN usage is higher among rural residents, wealthier quintiles, and individuals with higher education, with overall improvements in usage over time but persistent disparities based on location, socioeconomic status, and education. Recommendations include targeted distribution and education campaigns in underserved areas and among lower wealth quintiles, with a focus on consistent ITN use, especially for vulnerable groups like pregnant women, to achieve universal coverage and enhance malaria prevention (Figure 39).
+
+
+
+
+
+
+
+
+
+
+
 
 
 
