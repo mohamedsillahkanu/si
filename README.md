@@ -212,8 +212,6 @@ To calculate the malaria reporting rate, health facility level routine data were
 
 ![completenes2](https://github.com/user-attachments/assets/30024607-b6ca-4e07-89f5-431d0c42efed)    
 
-![image_90](https://github.com/user-attachments/assets/74be5190-fed5-4534-9c03-17315eecc5ed)
-
 
 ### Figure 5. Overall reporting status among DHIS2 HFs in Sierra Leone (2015-2023)
 
