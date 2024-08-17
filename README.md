@@ -499,7 +499,7 @@ To further reduce malaria mortality, focus should be laid on improving care for 
 #### Figure 28. Hospital malaria mortality ratios
 ---
 
-Case management – RDT stockouts
+#### Case management – RDT stockouts
 There are a few chiefdoms with health facilities that experienced stock-outs >10% of the HF-months per year. Some of these chiefdoms repeatedly have stock-outs for several years in a row (Figure 29). To ensure consistent RDT availability, targeted interventions, improved supply chain management, and regular monitoring are recommended in these high-stockout areas.
 
 ![Untitled presentation (34)](https://github.com/user-attachments/assets/9f5b3d7b-c4e6-42cc-a5b2-dc4476ad025b)
@@ -532,9 +532,9 @@ In previous years, the reported operational coverage exceeded 100% (shown in yel
 
 ![Untitled presentation (37)](https://github.com/user-attachments/assets/2301c640-d2d4-45b9-8a51-29d6b0d617f9)
 
-Figure 32. Coverage of ITN distribution through antenatal care visits
-
-Mass ITN campaigns
+#### Figure 32. Coverage of ITN distribution through antenatal care visits
+---
+### Mass ITN campaigns
 The ITN coverage by district for the 2017, 2020 and 2023 mass campaigns is shown in Figure 33. The ITN coverage data from 2017 to 2023 indicates significant improvements, with many districts reaching high coverage levels. However, some areas still have coverage below 75%, suggesting a need for intensified efforts, equitable distribution, and targeted interventions to ensure universal ITN coverage and effective malaria prevention. Digitalization of mass ITN campaigns is one of the strategies to improve universal coverage of ITNs as demonstrated in the 2023 mass campaign.
 
 ![image_86](https://github.com/user-attachments/assets/5e653dd3-be1b-49fc-a355-ce461e4b0d52)
@@ -625,14 +625,14 @@ In 2019, there were no significant socio-demographic differences that affected I
 ![image_77](https://github.com/user-attachments/assets/4e9f11ed-a4bd-43dd-9690-c63261ffc7bc)
 
 #### Figure 43. IPTp effective coverage (DHS 2019)    
-
- #### IPTi (PMC) coverage out of target population
+---
+### IPTi (PMC) coverage out of target population
 The assessment of IPTi is substantially affected by data quality issues (coverage >100% in most chiefdoms). Special efforts should be made to achieve near 100% coverage in all chiefdoms where coverage is currently <100% (Figure 44).
 
 ![image_95](https://github.com/user-attachments/assets/ea9e8d35-4879-4a06-94f4-4abd1af0ef9f)
 
 #### Figure 44. IPTi (PMC) Coverage out of target population  
-
+---
 ### Malaria vaccine plans for 2024
 
 Latest scale-up plans submitted to GAVI includes all chiefdoms in the country except for Western urban. Among the selected chiefdoms for scale-up, 85% may end up being supported by GAVI (pending communication from them) (Figure 45). 
@@ -648,9 +648,9 @@ The map below shows areas where insecticide resistance is monitored, insectarium
 ![image_15](https://github.com/user-attachments/assets/62652bbd-c4e5-4897-b1e3-6dc1e0bde3c1)
 
 #### Figure 46. Location of entomological surveillance sites
-
+---
 ### Malaria seasonality
-
+---
 #### Seasonality analysis
 
 Seasonality can be explored for various purposes and through different approaches. In this analysis, confirmed malaria cases in children under-five and among all-ages from routine reported data, along with mean rainfall estimates per chiefdom from CHIRPS’ satellite imagery, were used to determine the seasonality of malaria transmission (Figure 47). Key questions explored include whether there are any districts in Sierra Leone with seasonal patterns indicating that SMC could be an effective strategy and when the rainfall and malaria case seasonality peaks in Sierra Leone occur, to be considered for implementation to maximize the effectiveness of interventions (Figure 47).
@@ -658,8 +658,7 @@ Seasonality can be explored for various purposes and through different approache
 ![image_29](https://github.com/user-attachments/assets/8880e0b9-02c5-4c80-828c-c23e11b07cde)
 
 #### Figure 47. Rainfall vs cases (all ages and u5) for seasonality analysis
-
-
+---
 #### Profiling seasonality for SMC
 
 To determine seasonality for SMC, data from January 2015 to December 2023 were analyzed, encompassing a total of 108 months of rainfall and malaria case data (Figure 48) This dataset was divided into 96 month-blocks, each representing a continuous 12-month period. For each month-block, the seasonality rule was applied to identify periods of high malaria transmission. This rule tests whether the sum of rainfall or malaria cases over any four consecutive months constitutes at least 60% of the sum over the corresponding 12-month period. If this condition is met for one or more consecutive month-blocks, a seasonality peak is identified. A district is classified as a seasonal district if it exhibits a consistent number of seasonality peaks over the evaluation period. 
@@ -674,7 +673,7 @@ By using this methodology, we can accurately profile the seasonality of malaria 
 
 ![image_89](https://github.com/user-attachments/assets/94a24fe3-8d3e-4e60-ab71-49df14029ff9)
  
- #### Figure 49. Seasonality map based on rainfall vs case peaks
+#### Figure 49. Seasonality map based on rainfall vs case peaks
 ----
 Sierra Leone exhibits a very marked rainfall seasonality that is crucial for targeting SMC, a pattern not fully captured when solely exploring trends in malaria cases (Figure 49). The case data can be influenced by several factors, including the quality and completeness of reporting, the impact of other interventions occurring before the rainy season, and changes in care-seeking behaviour patterns, particularly if these behaviours are seasonal.
 
