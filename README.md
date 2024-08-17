@@ -569,11 +569,235 @@ The population-level usage of nets is generally <70% in Sierra Leone. Among the 
 
 ![image_28](https://github.com/user-attachments/assets/aaf0f5c3-82ab-43fe-b1db-5b7bf8d9f921)
 
+#### Figure 37. Population ITN use
+
+### Pregnant women ITN use
+
+The usage of ITNs among pregnant women is generally <70% in Sierra Leone except for a few districts.  Among the households with at least one ITN, usage increases to >70% everywhere in the country, with some districts recording lower use than others. Thus, access is a key determinant for ITN use in Sierra Leone, SBCC messages to maximize use-given-access can be targeted to areas with high access but low ITN use (Figure 38).
+
+![image_80](https://github.com/user-attachments/assets/e769086e-ebb2-4c3b-bdaa-61a5581182c1)
+
 #### Figure 38. Pregnant women ITN use
 ---
 ### Population-level ITN use
 
-In 2019, bed net use is slightly lower in urban areas, among men, wealthier individuals and individuals with primary or secondary education. The ITN usage is higher among rural residents, wealthier quintiles, and individuals with higher education, with overall improvements in usage over time but persistent disparities based on location, socioeconomic status, and education. Recommendations include targeted distribution and education campaigns in underserved areas and among lower wealth quintiles, with a focus on consistent ITN use, especially for vulnerable groups like pregnant women, to achieve universal coverage and enhance malaria prevention (Figure 39).
+In 2019, bed net use is slightly lower in urban areas, among men, wealthier individuals and individuals with primary or secondary education. The ITN usage is higher among rural residents, wealthier quintiles, and individuals with higher education, with overall improvements in usage over time but persistent disparities based on location, socioeconomic status, and education. Recommendations include targeted distribution and education campaigns in underserved areas and among lower wealth quintiles, with a focus on consistent ITN use, especially for vulnerable groups like pregnant women, to achieve universal coverage and enhance malaria prevention (**Figure 39**).
+
+![image_28](https://github.com/user-attachments/assets/95886be4-75fd-4041-b850-b7ff467c76a7)
+
+#### Figure 39. Population-level ITN use
+---
+### Net durability studies
+This study was conducted in the districts of Bo and Moyamba seven months after the 2020 ITN mass campaign by PMI – VectorLink (Figure 40). 
+
+![image_62](https://github.com/user-attachments/assets/61c519db-a4c1-4d9d-adeb-daaae6a773a9)
+
+#### Figure 40. Net durability 
+---
+### Net use: 
+Cohort ITNs were rarely used by children alone (<10% in both sites) and patterns of use with adults varied between sites, with nets more commonly shared by children and adults in Moyamba (54%) than Bo (43%). 
+ITN survivorship: 
+ITN survivorship combines the two aspects of durability (attrition and physical integrity) and is defined as the proportion of cohort ITNs originally received that are still in the possession of the household and in serviceable condition. 
+Nets given away to others or lost for other or unknown reasons are excluded from this calculation.
+Seven months following the campaign distribution, the proportion of surviving cohort ITNs was 92% in Bo and 85% in Moyamba (p=0.018). The lower level of survivorship for Olyset Plus ITNs in Moyamba district reflects the higher level of “torn” ITNs in this site.
+When considering determinants of durability, Moyamba had higher levels of household risk factors for damaged nets, though a higher proportion of respondents reported seeing rodents in the last six months in Bo (Figure 40). 
+
+
+### Indoor Residual Spraying (IRS)
+The chiefdoms where IRS is implemented along with the most recent coverages are shown in Figure 41. 
+
+![image_14](https://github.com/user-attachments/assets/c4a2ad9e-f1fb-45aa-83b7-675ebdf708f0)
+
+#### Figure 41. IRS implementation and coverage
+
+ ### IPTp operational coverage out of ANC1
+
+The assessment of IPTp operational coverage is substantially affected by data quality issues (coverage >100% in several chiefdoms). Special efforts should be made to achieve near 100% coverage in all chiefdoms where coverage is currently <100% (Figure 42).
+
+![image_46](https://github.com/user-attachments/assets/cc4abc0e-3631-439d-b1c1-69e8b355bd51)
+
+#### Figure 42. IPTp operational coverage out of ANC1  
+
+ ### IPTp effective coverage (DHS 2019)
+
+In 2019, there were no significant socio-demographic differences that affected IPTp coverage nationally (Figure 43).
+
+![image_77](https://github.com/user-attachments/assets/4e9f11ed-a4bd-43dd-9690-c63261ffc7bc)
+
+#### Figure 43. IPTp effective coverage (DHS 2019)    
+
+ #### IPTi (PMC) coverage out of target population
+The assessment of IPTi is substantially affected by data quality issues (coverage >100% in most chiefdoms). Special efforts should be made to achieve near 100% coverage in all chiefdoms where coverage is currently <100% (Figure 44).
+
+![image_95](https://github.com/user-attachments/assets/ea9e8d35-4879-4a06-94f4-4abd1af0ef9f)
+
+#### Figure 44. IPTi (PMC) Coverage out of target population  
+
+### Malaria vaccine plans for 2024
+
+Latest scale-up plans submitted to GAVI includes all chiefdoms in the country except for Western urban. Among the selected chiefdoms for scale-up, 85% may end up being supported by GAVI (pending communication from them) (Figure 45). 
+
+![image_63](https://github.com/user-attachments/assets/a74d95c0-d376-45e4-bd54-d1b4964f70cf)
+
+#### Figure 45. chiefdoms where malaria vaccination is conducted
+---
+### Entomology
+#### Insecticide resistance
+The map below shows areas where insecticide resistance is monitored, insectariums are located, and entomological surveillance is carried out (Figure 46).
+
+![image_15](https://github.com/user-attachments/assets/62652bbd-c4e5-4897-b1e3-6dc1e0bde3c1)
+
+#### Figure 46. Location of entomological surveillance sites
+
+### Malaria seasonality
+
+#### Seasonality analysis
+
+Seasonality can be explored for various purposes and through different approaches. In this analysis, confirmed malaria cases in children under-five and among all-ages from routine reported data, along with mean rainfall estimates per chiefdom from CHIRPS’ satellite imagery, were used to determine the seasonality of malaria transmission (Figure 47). Key questions explored include whether there are any districts in Sierra Leone with seasonal patterns indicating that SMC could be an effective strategy and when the rainfall and malaria case seasonality peaks in Sierra Leone occur, to be considered for implementation to maximize the effectiveness of interventions (Figure 47).
+
+![image_29](https://github.com/user-attachments/assets/8880e0b9-02c5-4c80-828c-c23e11b07cde)
+
+#### Figure 47. Rainfall vs cases (all ages and u5) for seasonality analysis
+
+
+#### Profiling seasonality for SMC
+
+To determine seasonality for SMC, data from January 2015 to December 2023 were analyzed, encompassing a total of 108 months of rainfall and malaria case data (Figure 48) This dataset was divided into 96 month-blocks, each representing a continuous 12-month period. For each month-block, the seasonality rule was applied to identify periods of high malaria transmission. This rule tests whether the sum of rainfall or malaria cases over any four consecutive months constitutes at least 60% of the sum over the corresponding 12-month period. If this condition is met for one or more consecutive month-blocks, a seasonality peak is identified. A district is classified as a seasonal district if it exhibits a consistent number of seasonality peaks over the evaluation period. 
+
+
+![image_64](https://github.com/user-attachments/assets/663002b0-17cc-4bb7-afce-4f7bc525b089)
+
+#### Figure 48. Profiling seasonality for SMC targeting
+
+By using this methodology, we can accurately profile the seasonality of malaria transmission in Sierra Leone. This profiling is crucial for optimizing the timing and effectiveness of SMC interventions. Figure 49 shows the chiefdoms found to have a seasonal pattern.
+
+
+![image_89](https://github.com/user-attachments/assets/94a24fe3-8d3e-4e60-ab71-49df14029ff9)
+ 
+ #### Figure 49. Seasonality map based on rainfall vs case peaks
+----
+Sierra Leone exhibits a very marked rainfall seasonality that is crucial for targeting SMC, a pattern not fully captured when solely exploring trends in malaria cases (Figure 49). The case data can be influenced by several factors, including the quality and completeness of reporting, the impact of other interventions occurring before the rainy season, and changes in care-seeking behaviour patterns, particularly if these behaviours are seasonal.
+
+### Seasonality for implementation purposes – Rainfall
+For implementation purposes, the rainfall peak period was identified for each district. This corresponds to the month in which the percentage change in rainfall compared with the previous month is the highest (Figure 50).
+
+![image_47](https://github.com/user-attachments/assets/c74e4bb7-2b85-44da-b911-9bc517c2bc7f)
+
+#### Figure 50. Rainfall peak detection (example of BO) 
+
+The maps below show the beginning and the end of the rainy season, together with the peak rainfall, are shown in figure 51 and will be used to determine the beginning, end and number of SMC cycles to be carried out by chiefdom.
+
+![image_6](https://github.com/user-attachments/assets/4a56ba2a-46cd-44e7-bbcc-8a98204ac3e4)
+
+#### Figure 51. The onset of end and peak of the rainy season
+---
+### Seasonality for implementation purposes – Cases
+
+The figure below identifies 4-month or 5-month periods that account for 50% to 60% of annual malaria cases (Figure 52). This highlights districts in Sierra Leone with concentrated malaria case peaks over 4 to 5 months, with varying peak periods from April to November, while some areas have more evenly distributed cases throughout the year.
+It is recommended that malaria prevention efforts are tailored to align with peak transmission periods in each chiefdom/district, focusing resources on areas with the longest peak periods, maintaining year-round interventions in areas with evenly distributed cases, and regularly update strategies based on current data to adapt to shifts in transmission patterns.
+
+![image_30](https://github.com/user-attachments/assets/fa0d1874-f81b-4a81-80da-f25943fc0056)
+
+#### Figure 52. Seasonality for implementation purposes using cases
+
+### Next steps
+
+With the completion of malaria risk stratification and analysis of its determinants, our next steps focus on targeting malaria control interventions. This targeting will be based on WHO-defined criteria and consensus reached at the national level in Sierra Leone. We will then determine the optimal mix of interventions for each chiefdom in the country. The potential impact of implementing this tailored intervention package will be evaluated using mathematical modeling techniques. These models will also aid in budget optimization and resource prioritization.
+This process will continue over the coming weeks. We will regularly update this report to reflect ongoing analyses, new findings, and the progress of our discussions. This iterative approach ensures that our strategies remain responsive to emerging data and stakeholder input.
+
+### Conclusion
+
+Epidemiological stratification and targeting of malaria control interventions in the light of WHO recommendations is an essential exercise in updating the national strategic plan and submitting funding applications to various funders. The current document, which is a preliminary version, summarizes the results obtained to date. This document is intended to be modified according to the amendments made by the various stakeholders and can in no way be considered as the final and official version of the Sierra Leone 2024 SNT. 
+
+
+### References
+1. 	World malaria report 2023 [Internet]. [cited 2024 Jan 8]; Available from: https://www.who.int/teams/global-malaria-programme/reports/world-malaria-report-2023
+2. 	Sierra Leone Demographic and Health Survey 2019. 
+3. 	Cibulskis RE, Aregawi M, Williams R, Otten M, Dye C. Worldwide Incidence of Malaria in 2009: Estimates, Time Trends, and a Critique of Methods. PLOS Medicine 2011;8(12):e1001142. 
+4. 	Weiss D.J., Bertozzi-Villa A., Rumisha S.F., Amratia P., Arambepola R., Battle K.E., et al. Indirect effects of the COVID-19 pandemic on malaria intervention coverage, morbidity, and mortality in Africa: a geospatial modelling analysis. Lancet Infect Dis 2021;21(1):59–69. 
+5. 	Battle KE, Lucas TCD, Nguyen M, Howes RE, Nandi AK, Twohig KA, et al. Mapping the global endemicity and clinical burden of Plasmodium vivax, 2000-17: a spatial and temporal modelling study. Lancet 2019;394(10195):332–43. 
+
+
+### Appendices
+Appendix 1: WHO incidence adjustment methodology
+
+![image_65](https://github.com/user-attachments/assets/6eed0045-9bf7-4ea6-916a-91f99ea14cab)
+
+Appendix 2: Seasonality per chiefdom
+
+![image_7](https://github.com/user-attachments/assets/441aac88-0d2b-41cc-91ff-4672c365855d)
+
+![image_18](https://github.com/user-attachments/assets/25c137c9-8da4-4153-b964-09b20efd702e)
+
+![image_19](https://github.com/user-attachments/assets/807f9e18-ca79-4112-8ec4-b8106d2ba7a4)
+
+![image_31](https://github.com/user-attachments/assets/4a5eb7df-bb1e-4c5f-b917-6bdc4f54e450)
+
+![image_32](https://github.com/user-attachments/assets/6de612a3-a651-416e-91a3-11d49863b0a0)
+
+![image_48](https://github.com/user-attachments/assets/98fca9b5-2aac-474e-96b0-1de73adf7469)
+
+![image_49](https://github.com/user-attachments/assets/849b9ceb-1bea-4de5-a728-dee117cbc736)
+
+![image_50](https://github.com/user-attachments/assets/4ee71c83-a81d-428c-bfa4-6cc221101645)
+
+![image_66](https://github.com/user-attachments/assets/3c9ec195-233f-4888-b22a-3af233142556)
+
+![image_67](https://github.com/user-attachments/assets/7fad971b-11c3-40c5-93c7-3f20f9261ef0)
+
+![image_78](https://github.com/user-attachments/assets/54359687-fd52-48c5-a429-c068994fe9c4)
+
+![image_81](https://github.com/user-attachments/assets/68da4c29-711f-4158-b65b-01e5bf8a3742)
+
+![image_87](https://github.com/user-attachments/assets/00ea097f-219f-4371-98b1-711f1df22c96)
+
+![image_96](https://github.com/user-attachments/assets/e0db9cc9-cf9c-4089-92f6-e951e357bac6)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
