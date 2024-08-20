@@ -46,29 +46,67 @@ if shp_file and shx_file and dbf_file and xlsx_file:
         missing_value_color = st.selectbox("Select Color for Missing Values:", options=["White", "Gray", "Red"], index=1)
         missing_value_label = st.text_input("Label for Missing Values:", value="No Data")
 
-        unique_values = sorted(df[map_column].dropna().unique().tolist())
-        selected_categories = st.multiselect(f"Select Categories for the Legend of {map_column}:", unique_values, default=unique_values)
-        ordered_categories = st.text_input(f"Order Categories for {map_column} (comma-separated):", value=", ".join(selected_categories)).split(", ")
+        # Categorical or Numeric variable selection as radio buttons
+        variable_type = st.radio("Select the variable type:", options=["Categorical", "Numeric"])
+
+        if variable_type == "Categorical":
+            #unique_values = sorted(df[map_column].dropna().unique().tolist())
+            selected_categories = st.multiselect(f"Select Categories for the Legend of {map_column}:")
+            ordered_categories = st.text_input(f"Order Categories for {map_column} (comma-separated):", value=", ".join(selected_categories)).split(", ")
+        elif variable_type == "Numeric":
+            try:
+                # Allow user to input custom labels for bins
+                bin_labels_input = st.text_input("Enter labels for bins (comma-separated, e.g., '10-20, 20-30, >30'):")
+                bin_labels = [label.strip() for label in bin_labels_input.split(',')]
+                
+                # Convert the labels into bin ranges
+                bins = []
+                for label in bin_labels:
+                    if '>' in label:
+                        lower = float(label.replace('>', '').strip())
+                        bins.append(lower)
+                    elif '-' in label:
+                        lower, upper = map(float, label.split('-'))
+                        bins.append(lower)
+                        bins.append(upper)
+                    else:
+                        st.error("Incorrect format. Please enter ranges as 'lower-upper' or '>lower'.")
+
+                # Ensure that the bins list ends with the max value in the data
+                bins = sorted(list(set(bins)))
+                if bins[-1] < df[map_column].max():
+                    bins.append(df[map_column].max() + 1)  # Adjust the max bin to include the max value
+
+                # Perform binning
+                df[map_column + "_bins"] = pd.cut(df[map_column], bins=bins, labels=bin_labels, include_lowest=True)
+                map_column = map_column + "_bins"
+                selected_categories = bin_labels
+                ordered_categories = bin_labels
+
+            except ValueError:
+                st.error(f"Error: The column '{map_column}' contains non-numeric data or cannot be converted to numeric values.")
 
         # Get colors from the selected palette (max 9 colors)
         cmap = plt.get_cmap(color_palette_name)
         num_colors = min(9, cmap.N)
         colors = [to_hex(cmap(i / (num_colors - 1))) for i in range(num_colors)]
-        color_mapping = {}
+        
+        color_mapping = {category: colors[i % num_colors] for i, category in enumerate(ordered_categories)}
+
         if st.checkbox("Select Colors for Columns"):
             for i, category in enumerate(ordered_categories):
                 color_mapping[category] = st.selectbox(f"Select Color for '{category}' in {map_column}:", options=colors, index=i)
         else:
-            color_mapping = {category: colors[i % num_colors] for i, category in enumerate(ordered_categories)}
+            color_mapping = {category: color_mapping[category] for category in ordered_categories}
 
         # Check if two columns are selected for merging
         if len(shapefile_columns) == 2 and len(excel_columns) == 2:
-            column1_line_color = st.selectbox(f"Select Line Color for '{shapefile_columns[0]}' boundaries:", options=["White", "Black", "Red", "Blue", "Green"], index=1)
+            column1_line_color = st.selectbox(f"Select Line Color for '{shapefile_columns[0]}' boundaries:", options=["White", "Black", "Red"], index=1)
             column1_line_width = st.slider(f"Select Line Width for '{shapefile_columns[0]}' boundaries:", min_value=0.5, max_value=10.0, value=2.5)
-            column2_line_color = st.selectbox(f"Select Line Color for '{shapefile_columns[1]}' boundaries:", options=["White", "Black", "Red", "Blue", "Green"], index=1)
+            column2_line_color = st.selectbox(f"Select Line Color for '{shapefile_columns[1]}' boundaries:", options=["White", "Black", "Red"], index=1)
             column2_line_width = st.slider(f"Select Line Width for '{shapefile_columns[1]}' boundaries:", min_value=0.5, max_value=10.0, value=2.5)
         elif len(shapefile_columns) == 1 and len(excel_columns) == 1:
-            column1_line_color = st.selectbox(f"Select Line Color for '{shapefile_columns[0]}' boundaries:", options=["White", "Black", "Red", "Blue", "Green"], index=1)
+            column1_line_color = st.selectbox(f"Select Line Color for '{shapefile_columns[0]}' boundaries:", options=["White", "Black", "Red"], index=1)
             column1_line_width = st.slider(f"Select Line Width for '{shapefile_columns[0]}' boundaries:", min_value=0.5, max_value=10.0, value=2.5)
             column2_line_color = None
             column2_line_width = None
@@ -111,10 +149,11 @@ if shp_file and shx_file and dbf_file and xlsx_file:
                     legend = ax.legend(handles=handles, title=legend_title, fontsize=14, loc='upper right', frameon=True, framealpha=1, 
                                        edgecolor='black', fancybox=True)
                     
-                    # Bold the title and categories
+                    # Bold the
+                                        # Bold the title and categories
                     plt.setp(legend.get_title(), fontsize=16, fontweight='bold')
                     plt.setp(legend.get_texts(), fontsize=14, fontweight='bold')
-                    
+
                     # Draw a rectangular box around the legend
                     legend.get_frame().set_linewidth(2)
                     legend.get_frame().set_edgecolor('black')
