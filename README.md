@@ -750,6 +750,54 @@ Appendix 2: Seasonality per chiefdom
 
 ![image_96](https://github.com/user-attachments/assets/e0db9cc9-cf9c-4089-92f6-e951e357bac6)
 
+```python
+import pandas as pd
+import pathlib
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from matplotlib.colors import ListedColormap
+import geopandas as gpd
+from tqdm import tqdm
+import dataframe_image as dfi
+import datetime
+
+district_data_dir = './/data//Updated_Epi_Data_By_District_2015-2023'
+
+input_files = [p for p in pathlib.Path(district_data_dir).iterdir() if p.is_file()]
+sheets = {f: 'Sheet1' for f in input_files}
+
+# gather all dataframes first to check column names
+raw_dfs = [pd.read_excel(file, sheet_name = sheets[file]) for file in input_files]
+
+# check that all columns names match between files, concatenate all files if so
+diff = []
+for i in raw_dfs:
+    for j in raw_dfs:
+        if set(i.columns) == set(j.columns):
+            diff.append(True)
+        else:
+            diff.append(False)
+
+if all(diff):
+    raw0 = pd.concat(raw_dfs)
+else:
+    print('Check column names are all the same between files before concatenating')
+    
+# Clear memory
+raw_dfs = []
+
+
+
+
+
+
+
+
+
+
+
+```
 
 
 
