@@ -81,7 +81,7 @@
 - [Figure 52. Seasonality for implementation purposes using cases](#figure-52-seasonality-for-implementation-purposes-using-cases)
 
 - Code Repository: python version
-  - [Indoor Residual Spray](#indoor-residual-spray)
+  - [Data Managemnt](#data-management)
 
 
 
@@ -749,6 +749,9 @@ Appendix 2: Seasonality per chiefdom
 ![image_87](https://github.com/user-attachments/assets/00ea097f-219f-4371-98b1-711f1df22c96)
 
 ![image_96](https://github.com/user-attachments/assets/e0db9cc9-cf9c-4089-92f6-e951e357bac6)
+
+
+### Data Management
 
 ```python
 import pandas as pd
