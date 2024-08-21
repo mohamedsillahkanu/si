@@ -5,11 +5,6 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
 from matplotlib.colors import ListedColormap, to_hex
 
-def convert_to_numeric(df, columns):
-    """Convert specified columns in the DataFrame to numeric, coercing errors."""
-    for col in columns:
-        df[col] = pd.to_numeric(df[col], errors='coerce')
-    return df
 
 st.title("Map Generator")
 
@@ -35,8 +30,6 @@ if shp_file and shx_file and dbf_file and xlsx_file:
         st.error(f"Error loading shapefile: {e}")
     else:
         df = pd.read_excel("/tmp/uploaded.xlsx")
-        # Convert all columns to numeric where possible
-        df = convert_to_numeric(df, df.columns)
 
         shapefile_columns = st.multiselect("Select Shapefile Column(s):", gdf.columns)
         excel_columns = st.multiselect("Select Excel Column(s):", df.columns)
@@ -202,11 +195,13 @@ if shp_file and shx_file and dbf_file and xlsx_file:
 
                     st.pyplot(fig)
 
+
                     # Save the figure and provide download button
                     image_path = f"/tmp/{image_name}_{map_column}.png"
                     fig.savefig(image_path, bbox_inches='tight')
                     with open(image_path, "rb") as img:
                         st.download_button(label="Download Image", data=img, file_name=f"{image_name}_{map_column}.png", mime="image/png")
+
 
             except Exception as e:
                 st.error(f"Error generating map: {e}")
