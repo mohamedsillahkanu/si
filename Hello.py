@@ -50,8 +50,8 @@ if shp_file and shx_file and dbf_file and xlsx_file:
         variable_type = st.radio("Select the variable type:", options=["Categorical", "Numeric"])
 
         if variable_type == "Categorical":
-            #unique_values = sorted(df[map_column].dropna().unique().tolist())
-            selected_categories = st.multiselect(f"Select Categories for the Legend of {map_column}:")
+            unique_values = sorted(df[map_column].dropna().unique().tolist())
+            selected_categories = st.multiselect(f"Select Categories for the Legend of {map_column}:", unique_values)
             ordered_categories = st.text_input(f"Order Categories for {map_column} (comma-separated):", value=", ".join(selected_categories)).split(", ")
         elif variable_type == "Numeric":
             try:
