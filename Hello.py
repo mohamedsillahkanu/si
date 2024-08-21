@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
 from matplotlib.colors import ListedColormap, to_hex
 
+
 st.title("Map Generator")
 
 # File uploads
