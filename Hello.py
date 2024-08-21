@@ -170,8 +170,8 @@ if shp_file and shx_file and dbf_file and xlsx_file:
                         title=legend_title, 
                         fontsize=14, 
                         loc='lower left', 
-                        bbox_to_anchor=(1, 1),  # Lower-left position outside the map
-                        frameon=True, 
+                        bbox_to_anchor=(-0.25, 0),  # Lower-left position outside the map
+                        frameon=False, 
                         framealpha=1, 
                         edgecolor='black', 
                         fancybox=True
