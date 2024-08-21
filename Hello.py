@@ -51,7 +51,6 @@ if shp_file and shx_file and dbf_file and xlsx_file:
 
         # Categorical or Numeric variable selection as radio buttons
         variable_type = st.radio("Select the variable type:", options=["Categorical", "Numeric"])
-
         if variable_type == "Categorical":
             unique_values = sorted(df[map_column].dropna().unique().tolist())
             selected_categories = st.multiselect(f"Select Categories for the Legend of {map_column}:", unique_values, default=unique_values)
