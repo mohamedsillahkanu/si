@@ -5,6 +5,12 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
 from matplotlib.colors import ListedColormap, to_hex
 
+def convert_to_numeric(df, columns):
+    """Convert specified columns in the DataFrame to numeric, coercing errors."""
+    for col in columns:
+        df[col] = pd.to_numeric(df[col], errors='coerce')
+    return df
+
 st.title("Map Generator")
 
 # File uploads
@@ -29,13 +35,8 @@ if shp_file and shx_file and dbf_file and xlsx_file:
         st.error(f"Error loading shapefile: {e}")
     else:
         df = pd.read_excel("/tmp/uploaded.xlsx")
-
-        # Ensure the map column is numeric, with error handling
-        try:
-            df = df.apply(pd.to_numeric, errors='raise')
-        except ValueError as e:
-            st.error(f"Error converting column to numeric: {e}")
-            st.stop()  # Stop further execution if there are conversion issues
+        # Convert all columns to numeric where possible
+        df = convert_to_numeric(df, df.columns)
 
         shapefile_columns = st.multiselect("Select Shapefile Column(s):", gdf.columns)
         excel_columns = st.multiselect("Select Excel Column(s):", df.columns)
@@ -73,9 +74,6 @@ if shp_file and shx_file and dbf_file and xlsx_file:
 
         elif variable_type == "Numeric":
             try:
-                # Convert the map column to numeric (including decimals) with error raising
-                df[map_column] = pd.to_numeric(df[map_column], errors='raise')
-
                 # Allow user to input custom labels for bins, accepting decimal intervals
                 bin_labels_input = st.text_input("Enter labels for bins (comma-separated, e.g., '10-20.5, 20.6-30.1, >30.2'):")
                 bin_labels = [label.strip() for label in bin_labels_input.split(',')]
@@ -106,9 +104,8 @@ if shp_file and shx_file and dbf_file and xlsx_file:
                 # Calculate counts for the binned categories
                 category_counts = df[map_column].value_counts().to_dict()
 
-            except ValueError as e:
+            except ValueError:
                 st.error(f"Error: The column '{map_column}' contains non-numeric data or cannot be converted to numeric values.")
-                st.stop()  # Stop further execution if there are conversion issues
 
         # Get colors from the selected palette (max 9 colors)
         cmap = plt.get_cmap(color_palette_name)
@@ -154,32 +151,62 @@ if shp_file and shx_file and dbf_file and xlsx_file:
 
                     # Plot the main map with default line settings
                     merged_gdf.plot(column=map_column, ax=ax, linewidth=line_width, edgecolor=line_color.lower(), cmap=custom_cmap, 
-                                    legend=False, missing_kwds={'color': missing_value_color.lower(), 'edgecolor': line_color.lower(), 
-                                    'hatch': '///', 'label': missing_value_label})
+                                    legend=False, missing_kwds={'color': missing_value_color.lower(), 'edgecolor': line_color.lower(), 'label': missing_value_label})
+                    ax.set_title(map_title, fontsize=font_size, fontweight='bold')
+                    ax.set_axis_off()
 
-                    # Overlay the first selected column
-                    if shapefile_columns and column1_line_color:
-                        merged_gdf.boundary.plot(ax=ax, linewidth=column1_line_width, edgecolor=column1_line_color.lower())
+                    # Dissolve the GeoDataFrame by a column if specified
+                    if len(shapefile_columns) > 0:
+                        dissolved_gdf = merged_gdf.dissolve(by=shapefile_columns[0])
+                        dissolved_gdf.boundary.plot(ax=ax, edgecolor=column1_line_color.lower(), linewidth=column1_line_width)
+                        if len(shapefile_columns) > 1:
+                            dissolved_gdf2 = merged_gdf.dissolve(by=shapefile_columns[1])
+                            dissolved_gdf2.boundary.plot(ax=ax, edgecolor=column2_line_color.lower(), linewidth=column2_line_width)
 
-                    # Overlay the second selected column (if any)
-                    if shapefile_columns and column2_line_color:
-                        merged_gdf.boundary.plot(ax=ax, linewidth=column2_line_width, edgecolor=column2_line_color.lower())
+                    # Create legend handles with category counts
+                    handles = []
+                    for cat in selected_categories:
+                        label_with_count = f"{cat} ({category_counts.get(cat, 0)})"
+                        handles.append(Patch(color=color_mapping[cat], label=label_with_count))
 
-                    # Add title with adjustable font size
-                    plt.title(map_title, fontsize=font_size)
+                    # Add missing value handle
+                    handles.append(Patch(color=missing_value_color.lower(), label=f"{missing_value_label} ({df[map_column].isna().sum()})"))
 
-                    # Create a custom legend
-                    handles = [Patch(color=color_mapping[cat], label=f"{cat} ({category_counts.get(cat, 0)})") for cat in selected_categories]
-                    handles.append(Patch(color=missing_value_color.lower(), label=f"{missing_value_label} ({merged_gdf[map_column].isnull().sum()})"))
+                    # Customize and position the legend in the lower left outside the map
+                    legend = ax.legend(
+                        handles=handles, 
+                        title=legend_title, 
+                        fontsize=14, 
+                        loc='lower left', 
+                        bbox_to_anchor=(-0.5, 0),  # Lower-left position outside the map
+                        frameon=True, 
+                        framealpha=1, 
+                        edgecolor='black', 
+                        fancybox=True
+                    )
 
-                    plt.legend(handles=handles, title=legend_title, loc='lower left')
+                    # Bold the title and categories
+                    plt.setp(legend.get_title(), fontsize=16, fontweight='bold')
+                    plt.setp(legend.get_texts(), fontsize=14, fontweight='bold')
 
-                    plt.axis('off')
+                    # Draw a rectangular box around the legend
+                    legend.get_frame().set_linewidth(2)
+                    legend.get_frame().set_edgecolor('black')
+                    legend.get_frame().set_boxstyle('Round,pad=0.5,rounding_size=0.5')
+
+                    # Customize missing data label
+                    for text in legend.get_texts():
+                        if text.get_text() == missing_value_label:
+                            text.set_fontsize(14)
+                            text.set_fontweight('bold')
+
                     st.pyplot(fig)
-                    fig.savefig(f"{image_name}.png", dpi=300)
 
-                    st.success(f"Map generated and saved as {image_name}.png")
+                    # Save the figure and provide download button
+                    image_path = f"/tmp/{image_name}_{map_column}.png"
+                    fig.savefig(image_path, bbox_inches='tight')
+                    with open(image_path, "rb") as img:
+                        st.download_button(label="Download Image", data=img, file_name=f"{image_name}_{map_column}.png", mime="image/png")
 
             except Exception as e:
-                st.error(f"An error occurred: {e}")
-
+                st.error(f"Error generating map: {e}")
