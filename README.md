@@ -753,6 +753,87 @@ Appendix 2: Seasonality per chiefdom
 
 ### Data Management
 
+
+
+
+```python
+
+This script is designed to import multiple Excel files from a specified directory, check that the column names match across all the files, and then concatenate them into a single DataFrame if the columns are consistent. Here’s a step-by-step explanation of the code:
+
+### Step 1: Import Necessary Libraries
+```python
+import pandas as pd
+import pathlib
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from matplotlib.colors import ListedColormap
+import geopandas as gpd
+from tqdm import tqdm
+import dataframe_image as dfi
+import datetime
+```
+- **pandas (`pd`)**: Used for data manipulation and analysis.
+- **pathlib**: Provides a way to work with file paths, making it easier to locate files in a directory.
+- **numpy (`np`)**: Useful for numerical operations, though not directly used in this script.
+- **matplotlib (`plt`)** and **seaborn (`sns`)**: Used for creating plots and visualizations, though not directly used in this snippet.
+- **geopandas (`gpd`)**: For working with geospatial data, not directly used here.
+- **tqdm**: A library for displaying progress bars, not used in this snippet.
+- **dataframe_image (`dfi`)**: Used for saving DataFrames as images, not used here.
+- **datetime**: Provides classes for manipulating dates and times.
+
+### Step 2: Define Directory and Load Files
+```python
+district_data_dir = './/data//Updated_Epi_Data_By_District_2015-2023'
+input_files = [p for p in pathlib.Path(district_data_dir).iterdir() if p.is_file()]
+sheets = {f: 'Sheet1' for f in input_files}
+```
+- **district_data_dir**: Specifies the directory where the Excel files are stored.
+- **input_files**: Uses `pathlib.Path()` to iterate over the files in the directory. `iterdir()` lists all items in the directory, and `if p.is_file()` ensures only files (not subdirectories) are selected.
+- **sheets**: A dictionary mapping each file path to the sheet name `'Sheet1'`, assuming all files have data in the same sheet.
+
+### Step 3: Load Data from Excel Files into DataFrames
+```python
+raw_dfs = [pd.read_excel(file, sheet_name=sheets[file]) for file in input_files]
+```
+- **raw_dfs**: A list comprehension is used to read each Excel file into a DataFrame using `pd.read_excel()`. Each DataFrame is stored in a list called `raw_dfs`.
+
+### Step 4: Check Column Names Consistency
+```python
+diff = []
+for i in raw_dfs:
+    for j in raw_dfs:
+        if set(i.columns) == set(j.columns):
+            diff.append(True)
+        else:
+            diff.append(False)
+```
+- **diff**: This empty list will store `True` or `False` values based on whether the columns match.
+- **Nested Loop**: The outer loop (`for i in raw_dfs`) iterates over each DataFrame, and the inner loop (`for j in raw_dfs`) compares the columns of every other DataFrame to the current one.
+  - **set(i.columns) == set(j.columns)**: Converts the columns of DataFrames `i` and `j` into sets and checks if they are equal. If they match, `True` is appended to `diff`; otherwise, `False` is appended.
+
+### Step 5: Concatenate DataFrames If Columns Match
+```python
+if all(diff):
+    raw0 = pd.concat(raw_dfs)
+else:
+    print('Check column names are all the same between files before concatenating')
+```
+- **all(diff)**: Checks if all elements in the `diff` list are `True`, meaning all files have consistent columns.
+  - If `True`, `pd.concat(raw_dfs)` is used to concatenate all the DataFrames into a single DataFrame (`raw0`).
+  - If `False`, an error message is printed, alerting you to check the column names.
+
+### Step 6: Clear Memory
+```python
+raw_dfs = []
+```
+- **raw_dfs = []**: This clears the list of DataFrames (`raw_dfs`) to free up memory after the concatenation process is complete.
+
+### Summary
+This script is useful when you have multiple Excel files with similar structures that you want to combine into one. It ensures that the files have consistent column names before merging them, preventing potential data integrity issues. If the columns don't match, it will prompt you to review and correct the discrepancies.
+
+```
+
 ```python
 import pandas as pd
 import pathlib
@@ -789,17 +870,6 @@ else:
     
 # Clear memory
 raw_dfs = []
-
-
-
-
-
-
-
-
-
-
-
 ```
 
 
