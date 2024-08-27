@@ -753,11 +753,6 @@ Appendix 2: Seasonality per chiefdom
 
 ### Data Management
 
-
-
-
-```python
-
 This script is designed to import multiple Excel files from a specified directory, check that the column names match across all the files, and then concatenate them into a single DataFrame if the columns are consistent. Here’s a step-by-step explanation of the code:
 
 ### Step 1: Import Necessary Libraries
@@ -870,7 +865,7 @@ else:
     
 # Clear memory
 raw_dfs = []
-
+```
 
 
 
