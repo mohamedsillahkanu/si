@@ -833,7 +833,7 @@ raw_dfs = []
 This script is useful when you have multiple Excel files with similar structures that you want to combine into one. It ensures that the files have consistent column names before merging them, preventing potential data integrity issues. If the columns don't match, it will prompt you to review and correct the discrepancies.
 
 ```
-
+### Full code
 ```python
 import pandas as pd
 import pathlib
@@ -870,6 +870,8 @@ else:
     
 # Clear memory
 raw_dfs = []
+
+
 ```
 
 
