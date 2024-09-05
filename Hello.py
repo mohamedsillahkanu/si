@@ -7,6 +7,7 @@ from matplotlib.colors import ListedColormap, to_hex
 
 
 st.title("Map Generator")
+st.image("", caption="Image from URL", use_column_width=True)
 
 # File uploads
 shp_file = st.file_uploader("Upload .shp File", type=["shp"])
