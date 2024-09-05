@@ -45,7 +45,7 @@ if shp_file and shx_file and dbf_file and xlsx_file:
         line_color = st.selectbox("Select Default Line Color:", options=["White", "Black", "Red"], index=1)
         line_width = st.slider("Select Default Line Width:", min_value=0.5, max_value=5.0, value=2.5)
 
-        missing_value_color = st.selectbox("Select Color for Missing Values:", options=["White", "Gray", "Red"], index=1)
+        missing_value_color = st.selectbox("Select Color for Missing Values:", options=["","White", "Gray", "Red"], index=1)
         missing_value_label = st.text_input("Label for Missing Values:", value="No Data")
 
         # Initialize category_counts
