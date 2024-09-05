@@ -6,8 +6,8 @@ from matplotlib.patches import Patch
 from matplotlib.colors import ListedColormap, to_hex
 
 
-st.title("ICF-SL MAP GENERATOR")
-st.image("icf_sl (1).jpg", caption="ICF-SL", use_column_width=True)
+
+st.image("icf_sl (1).jpg", caption="MAP GENERATOR", use_column_width=True)
 
 # File uploads
 shp_file = st.file_uploader("Upload .shp File", type=["shp"])
