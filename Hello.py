@@ -170,7 +170,7 @@ if shp_file and shx_file and dbf_file and xlsx_file:
                     legend = ax.legend(
                         handles=handles, 
                         title=legend_title, 
-                        fontsize=14, 
+                        fontsize=10, 
                         loc='lower left', 
                         bbox_to_anchor=(-0.5, 0),  # Lower-left position outside the map
                         frameon=True, 
@@ -180,8 +180,8 @@ if shp_file and shx_file and dbf_file and xlsx_file:
                     )
 
                     # Bold the title and categories
-                    plt.setp(legend.get_title(), fontsize=16, fontweight='bold')
-                    plt.setp(legend.get_texts(), fontsize=14, fontweight='bold')
+                    plt.setp(legend.get_title(), fontsize=10, fontweight='bold')
+                    plt.setp(legend.get_texts(), fontsize=10, fontweight='bold')
 
                     # Draw a rectangular box around the legend
                     legend.get_frame().set_linewidth(2)
