@@ -1,14 +1,11 @@
 import streamlit as st
 
-# Apply sky blue background to main app and light pink to sidebar using custom CSS
+# Apply sky blue background using custom CSS and set content width
 st.markdown(
     """
     <style>
     .stApp {
         background-color: skyblue;
-    }
-    .css-1d391kg {  /* This class targets the sidebar */
-        background-color: lightpink;
     }
     .code-block {
         max-width: 800px;
@@ -35,7 +32,7 @@ st.markdown(
 st.title("R Code Display with Sample Output")
 
 # Dropdown menu for displaying content
-option = st.sidebar.selectbox("Choose an option:", ('None', 'See R Code', 'Explanation', 'Sample Output'))
+option = st.selectbox("Choose an option:", ('None', 'See R Code', 'Explanation', 'Sample Output'))
 
 # R Code to display
 r_code = """
@@ -73,3 +70,8 @@ elif option == 'Sample Output':
         </div>
         """, unsafe_allow_html=True)
 
+# Provide context or additional instructions
+st.markdown("""
+This Streamlit app allows you to choose between viewing the R code for creating a scatter plot, 
+an explanation of how the code works, or a sample output of the plot.
+""")
