@@ -106,50 +106,22 @@ The Python code demonstrates how to create a scatter plot using `seaborn` and `m
 sample_output_r = "https://github.com/mohamedsillahkanu/si/blob/c6b5747886fb15b511fe99ac90afdbad64b0628f/image_10.png?raw=true"
 sample_output_python = "https://example.com/sample_output_python.png"  # Replace with actual link
 
-# Content related to shapefiles
-shapefile_options = {
-    'Outline': 'Select an option related to shapefiles.',
-    'Import shapefiles': 'Instructions and code for importing shapefiles.',
-    'Rename and match names': 'Instructions and code for renaming and matching names in shapefiles.',
-    'Link shapefiles to relevant scales': 'Instructions and code for linking shapefiles to scales.',
-    'Visualizing shapefiles and making basic maps': 'Instructions and code for visualizing shapefiles and creating basic maps.'
-}
-
 # Display content based on selected options
 if data_option != 'None':
     st.subheader(f"Content for {data_option}")
-
-    if data_option == 'Shapefiles':
-        if content_option in shapefile_options:
-            st.write(shapefile_options[content_option])
-            if content_option == 'Import shapefiles':
-                # Sample code for importing shapefiles (Python example)
-                st.code("""
-import geopandas as gpd
-
-# Load a shapefile
-gdf = gpd.read_file('path_to_shapefile.shp')
-print(gdf.head())
-                """, language='python')
-            elif content_option == 'Rename and match names':
-                st.write("Here you can provide details on renaming and matching names in shapefiles.")
-            elif content_option == 'Link shapefiles to relevant scales':
-                st.write("Here you can provide details on linking shapefiles to scales.")
-            elif content_option == 'Visualizing shapefiles and making basic maps':
-                st.write("Here you can provide details on visualizing shapefiles and creating maps.")
-    else:
-        if content_option == 'See R Code':
-            st.code(r_code, language='r')
-        elif content_option == 'See Python Code':
-            st.code(python_code, language='python')
-        elif content_option == 'Explanation of R Code':
-            st.write(explanation_r)
-        elif content_option == 'Explanation of Python Code':
-            st.write(explanation_python)
-        elif content_option == 'Sample Output':
-            if 'R' in data_option:
-                st.image(sample_output_r, caption="Sample output of the R code")
-            else:
-                st.image(sample_output_python, caption="Sample output of the Python code")
+    
+    if content_option == 'See R Code':
+        st.code(r_code, language='r')
+    elif content_option == 'See Python Code':
+        st.code(python_code, language='python')
+    elif content_option == 'Explanation of R Code':
+        st.write(explanation_r)
+    elif content_option == 'Explanation of Python Code':
+        st.write(explanation_python)
+    elif content_option == 'Sample Output':
+        if 'R' in data_option:
+            st.image(sample_output_r, caption="Sample output of the R code")
+        else:
+            st.image(sample_output_python, caption="Sample output of the Python code")
 else:
     st.write("Please select a data management option to view content.")
