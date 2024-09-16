@@ -11,22 +11,11 @@ st.markdown(
     """, unsafe_allow_html=True
 )
 
-
-# Custom CSS for sidebar background and text color
-sidebar_bg_css = """
-<style>
-[data-testid="stSidebar"] {
-    background-color: #FFB6C1; /* Sky blue background */
-    color: #000000; /* Sidebar text color */
-}
-</style>
-"""
-
 # Title of the app
-st.title("R Code Display and Explanation")
+st.title("R Code Display with Sample Output")
 
-# Radio button to display R code or explanations
-option = st.sidebar.selectbox("Choose an option:", ('None', 'See R Code', 'Explanation'))
+# Dropdown menu for displaying content
+option = st.selectbox("Choose an option:", ('None', 'See R Code', 'Explanation', 'Sample Output'))
 
 # R Code to display
 r_code = """
@@ -50,8 +39,18 @@ The above R code demonstrates how to create a scatter plot using the `ggplot2` l
 4. The `labs()` function adds labels for the title and axes.
 """
 
-# Logic for displaying R code or explanation
+# Logic for displaying R code, explanation, or sample output
 if option == 'See R Code':
     st.code(r_code, language='r')
 elif option == 'Explanation':
     st.write(explanation)
+elif option == 'Sample Output':
+    # Display a sample image (e.g., an R-generated plot or a placeholder image)
+    st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Ggplot2_example.png/300px-Ggplot2_example.png", 
+             caption="Sample output of the R code (scatter plot using ggplot2)")
+
+# Provide context or additional instructions
+st.markdown("""
+This Streamlit app allows you to choose between viewing the R code for creating a scatter plot, 
+an explanation of how the code works, or a sample output of the plot.
+""")
