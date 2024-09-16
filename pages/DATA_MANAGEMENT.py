@@ -15,7 +15,7 @@ st.markdown(
 st.title("R Code Display with Sample Output")
 
 # Dropdown menu for displaying content
-option = st.selectbox("Choose an option:", ('None', 'See R Code', 'Explanation', 'Sample Output'))
+option = st.sidebar.selectbox("Choose an option:", ('None', 'See R Code', 'Explanation', 'Sample Output'))
 
 # R Code to display
 r_code = """
