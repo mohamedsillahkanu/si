@@ -7,6 +7,19 @@ from scipy.stats import shapiro, normaltest, anderson, probplot
 import numpy as np
 from scipy.stats import probplot, norm, shapiro, normaltest, anderson, skew, kurtosis
 
+# Custom CSS for sidebar background and text color
+sidebar_bg_css = """
+<style>
+[data-testid="stSidebar"] {
+    background-color: #b0e0e6; /* Pale blue background */
+    color: #000000; /* Sidebar text color */
+}
+</style>
+"""
+
+# Apply the sidebar CSS
+st.markdown(sidebar_bg_css, unsafe_allow_html=True)
+
 # Sidebar for Data Management
 st.sidebar.title("Data Management")
 data_management_option = st.sidebar.selectbox(
