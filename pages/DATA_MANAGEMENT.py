@@ -104,7 +104,7 @@ The Python code demonstrates how to create a scatter plot using `seaborn` and `m
 
 # Sample Output URLs
 sample_output_r = "https://github.com/mohamedsillahkanu/si/blob/c6b5747886fb15b511fe99ac90afdbad64b0628f/image_10.png?raw=true"
-sample_output_python = "https://example.com/sample_output_python.png"  # Replace with actual link
+sample_output_python = "https://github.com/mohamedsillahkanu/si/blob/c6b5747886fb15b511fe99ac90afdbad64b0628f/image_10.png?raw=true" 
 
 # Display content based on selected options
 if data_option != 'None':
