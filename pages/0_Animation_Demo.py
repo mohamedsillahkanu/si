@@ -11,6 +11,17 @@ st.markdown(
     """, unsafe_allow_html=True
 )
 
+
+# Custom CSS for sidebar background and text color
+sidebar_bg_css = """
+<style>
+[data-testid="stSidebar"] {
+    background-color: #FFB6C1; /* Sky blue background */
+    color: #000000; /* Sidebar text color */
+}
+</style>
+"""
+
 # Title of the app
 st.title("R Code Display and Explanation")
 
