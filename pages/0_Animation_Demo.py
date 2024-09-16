@@ -45,8 +45,8 @@ if option == 'See R Code':
 elif option == 'Explanation':
     st.write(explanation)
 elif option == 'Sample Output':
-    # Display a sample image (e.g., an R-generated plot or a placeholder image)
-    st.image("https://github.com/user-attachments/assets/30024607-b6ca-4e07-89f5-431d0c42efed)", 
+    # Display the image from the provided GitHub link
+    st.image("https://github.com/mohamedsillahkanu/si/blob/c6b5747886fb15b511fe99ac90afdbad64b0628f/image_10.png?raw=true", 
              caption="Sample output of the R code (scatter plot using ggplot2)")
 
 # Provide context or additional instructions
