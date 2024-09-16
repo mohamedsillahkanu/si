@@ -1,28 +1,11 @@
 import streamlit as st
 
-# Apply sky blue background using custom CSS and set content width
+# Apply sky blue background using custom CSS
 st.markdown(
     """
     <style>
     .stApp {
         background-color: skyblue;
-    }
-    .code-block {
-        max-width: 800px;
-        word-wrap: break-word;
-        margin: auto;
-    }
-    .explanation {
-        max-width: 800px;
-        word-wrap: break-word;
-        margin: auto;
-        font-size: 16px;
-    }
-    .centered-image img {
-        display: block;
-        margin-left: auto;
-        margin-right: auto;
-        max-width: 90%;
     }
     </style>
     """, unsafe_allow_html=True
@@ -58,17 +41,13 @@ The above R code demonstrates how to create a scatter plot using the `ggplot2` l
 
 # Logic for displaying R code, explanation, or sample output
 if option == 'See R Code':
-    st.markdown(f"<div class='code-block'>{st.code(r_code, language='r')}</div>", unsafe_allow_html=True)
+    st.code(r_code, language='r')
 elif option == 'Explanation':
-    st.markdown(f"<div class='explanation'>{explanation}</div>", unsafe_allow_html=True)
+    st.write(explanation)
 elif option == 'Sample Output':
-    st.markdown(
-        """
-        <div class='centered-image'>
-            <img src='https://github.com/mohamedsillahkanu/si/blob/c6b5747886fb15b511fe99ac90afdbad64b0628f/image_10.png?raw=true' 
-            alt='Sample output of the R code (scatter plot using ggplot2)' />
-        </div>
-        """, unsafe_allow_html=True)
+    # Display the image from the provided GitHub link
+    st.image("https://github.com/mohamedsillahkanu/si/blob/c6b5747886fb15b511fe99ac90afdbad64b0628f/image_10.png?raw=true", 
+             caption="Sample output of the R code (scatter plot using ggplot2)")
 
 # Provide context or additional instructions
 st.markdown("""
