@@ -15,7 +15,7 @@ st.markdown(
 sidebar_bg_css = """
 <style>
 [data-testid="stSidebar"] {
-    background-color: #FFB6C1; /* Sky blue background */
+    background-color: #8dd3c7; /* Sky blue background */
     color: #000000; /* Sidebar text color */
 }
 </style>
