@@ -20,6 +20,16 @@ import pydeck as pdk
 import streamlit as st
 from streamlit.hello.utils import show_code
 
+# Custom CSS for sidebar background and text color
+sidebar_bg_css = """
+<style>
+[data-testid="stSidebar"] {
+    background-color: #FFFFE0; /* Sky blue background */
+    color: #000000; /* Sidebar text color */
+}
+</style>
+"""
+
 
 def mapping_demo():
     @st.cache_data
