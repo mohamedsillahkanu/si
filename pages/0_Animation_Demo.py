@@ -1,4 +1,4 @@
-barimport streamlit as st
+import streamlit as st
 
 # Apply sky blue background using custom CSS
 st.markdown(
