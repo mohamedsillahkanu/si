@@ -11,3 +11,4 @@ openpyxl
 seaborn
 rasterio
 requests
+plotly
