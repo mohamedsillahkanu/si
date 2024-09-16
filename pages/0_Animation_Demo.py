@@ -47,10 +47,6 @@ elif option == 'Explanation':
 elif option == 'Sample Output':
     # Display the image from the provided GitHub link
     st.image("https://github.com/mohamedsillahkanu/si/blob/c6b5747886fb15b511fe99ac90afdbad64b0628f/image_10.png?raw=true", 
-             caption="Sample output of the R code (scatter plot using ggplot2)")
+             caption="Sample output crude incidence")
 
-# Provide context or additional instructions
-st.markdown("""
-This Streamlit app allows you to choose between viewing the R code for creating a scatter plot, 
-an explanation of how the code works, or a sample output of the plot.
-""")
+
