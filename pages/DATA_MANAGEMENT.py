@@ -23,14 +23,33 @@ sidebar_bg_css = """
 
 # Apply the sidebar CSS
 st.markdown(sidebar_bg_css, unsafe_allow_html=True)
+
 # Title of the app
-st.title("R Code Display with Sample Output")
+st.title("Data Management Options")
 
+# Dropdown menu for data management options
+data_option = st.sidebar.selectbox(
+    "Choose a data management option:",
+    (
+        'None',
+        'Shapefiles',
+        'Health Facilities',
+        'Routine case data from DHIS2',
+        'DHS data',
+        'Climate data',
+        'LMIS data',
+        'Modeled data',
+        'Population data'
+    )
+)
 
-# Dropdown menu for displaying content
-option = st.sidebar.selectbox("Choose an option:", ('None', 'See R Code', 'Explanation', 'Sample Output'))
+# Dropdown menu for content options
+content_option = st.sidebar.selectbox(
+    "Choose what to view:",
+    ('None', 'See R Code', 'See Python Code', 'Explanation of Code', 'Sample Output')
+)
 
-# R Code to display
+# Sample R and Python code for demonstration
 r_code = """
 # Load the ggplot2 library
 library(ggplot2)
@@ -43,27 +62,59 @@ ggplot(data = mtcars, aes(x = wt, y = mpg)) +
        y = "Miles per Gallon")
 """
 
-# Explanation for the R code
-explanation = """
-The above R code demonstrates how to create a scatter plot using the `ggplot2` library. 
-1. The `ggplot()` function initializes the plot, where `data = mtcars` specifies the dataset.
-2. The `aes()` function maps the `wt` column (weight) to the x-axis and `mpg` (miles per gallon) to the y-axis.
-3. `geom_point()` adds points to the plot to represent each car.
-4. The `labs()` function adds labels for the title and axes.
+python_code = """
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
+
+# Load dataset
+df = pd.DataFrame({
+    'Weight': [2.5, 3.5, 4.5, 5.5, 6.5],
+    'MPG': [25, 30, 22, 28, 24]
+})
+
+# Create a scatter plot
+sns.scatterplot(x='Weight', y='MPG', data=df)
+plt.title('Scatter plot of MPG vs. Weight')
+plt.xlabel('Weight (1000 lbs)')
+plt.ylabel('Miles per Gallon')
+plt.show()
 """
 
-# Logic for displaying R code, explanation, or sample output
-if option == 'See R Code':
-    st.code(r_code, language='r')
-elif option == 'Explanation':
-    st.write(explanation)
-elif option == 'Sample Output':
-    # Display the image from the provided GitHub link
-    st.image("https://github.com/mohamedsillahkanu/si/blob/c6b5747886fb15b511fe99ac90afdbad64b0628f/image_10.png?raw=true", 
-             caption="Sample output of the R code (scatter plot using ggplot2)")
+# Explanation of the R and Python code
+explanation_r = """
+The R code demonstrates how to create a scatter plot using the `ggplot2` library.
+1. `ggplot(data = mtcars, aes(x = wt, y = mpg))` initializes the plot with data.
+2. `geom_point()` adds points to the plot.
+3. `labs()` adds labels to the plot.
+"""
 
-# Provide context or additional instructions
-st.markdown("""
-This Streamlit app allows you to choose between viewing the R code for creating a scatter plot, 
-an explanation of how the code works, or a sample output of the plot.
-""")
+explanation_python = """
+The Python code demonstrates how to create a scatter plot using `seaborn` and `matplotlib`.
+1. `sns.scatterplot(x='Weight', y='MPG', data=df)` creates the scatter plot.
+2. `plt.title()`, `plt.xlabel()`, and `plt.ylabel()` add labels and title.
+"""
+
+# Sample Output URLs
+sample_output_r = "https://github.com/mohamedsillahkanu/si/blob/c6b5747886fb15b511fe99ac90afdbad64b0628f/image_10.png?raw=true"
+sample_output_python = "https://example.com/sample_output_python.png"  # Replace with actual link
+
+# Display content based on selected options
+if data_option != 'None':
+    st.subheader(f"Content for {data_option}")
+    
+    if content_option == 'See R Code':
+        st.code(r_code, language='r')
+    elif content_option == 'See Python Code':
+        st.code(python_code, language='python')
+    elif content_option == 'Explanation of Code':
+        if data_option in ['Shapefiles', 'Health Facilities', 'Routine case data from DHIS2', 'DHS data', 'Climate data', 'LMIS data', 'Modeled data', 'Population data']:
+            if content_option == 'See R Code':
+                st.write(explanation_r)
+            elif content_option == 'See Python Code':
+                st.write(explanation_python)
+    elif content_option == 'Sample Output':
+        if data_option in ['Shapefiles', 'Health Facilities', 'Routine case data from DHIS2', 'DHS data', 'Climate data', 'LMIS data', 'Modeled data', 'Population data']:
+            st.image(sample_output_r if 'R' in content_option else sample_output_python, caption="Sample output")
+else:
+    st.write("Please select an option to view the content.")
