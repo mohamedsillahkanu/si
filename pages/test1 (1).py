@@ -11,7 +11,7 @@ from scipy.stats import probplot, norm, shapiro, normaltest, anderson, skew, kur
 sidebar_bg_css = """
 <style>
 [data-testid="stSidebar"] {
-    background-color: #b0e0e6; /* Pale blue background */
+    background-color: #87ceeb; /* Sky blue background */
     color: #000000; /* Sidebar text color */
 }
 </style>
