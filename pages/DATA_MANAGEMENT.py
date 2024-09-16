@@ -44,7 +44,7 @@ data_option = st.sidebar.selectbox(
 )
 
 # Dropdown menu for content options
-content_option = st.sidebar.selectbox(
+content_option = st.selectbox(
     "Choose what to view:",
     (
         'None',
