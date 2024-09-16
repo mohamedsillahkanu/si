@@ -1,4 +1,4 @@
-import streamlit as st
+barimport streamlit as st
 
 # Apply sky blue background using custom CSS
 st.markdown(
@@ -15,7 +15,7 @@ st.markdown(
 st.title("R Code Display and Explanation")
 
 # Radio button to display R code or explanations
-option = st.selectbox("Choose an option:", ('None', 'See R Code', 'Explanation'))
+option = st.sidebar.selectbox("Choose an option:", ('None', 'See R Code', 'Explanation'))
 
 # R Code to display
 r_code = """
