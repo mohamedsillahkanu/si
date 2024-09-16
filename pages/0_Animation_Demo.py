@@ -1,5 +1,47 @@
 import streamlit as st
 
+import streamlit as st
+
+# Define the Python files and their colors
+files = {
+    "file1.py": "blue",
+    "file2.py": "green",
+    "file3.py": "red"
+}
+
+# Sidebar selection
+selected_file = st.sidebar.selectbox(
+    "Select Python file",
+    options=list(files.keys()),
+    format_func=lambda x: f"<span style='color:{files[x]};'>{x}</span>"
+)
+
+# Read and display the content of the selected file
+def read_file(file_path):
+    with open(file_path, "r") as file:
+        return file.read()
+
+file_content = read_file(selected_file)
+
+# Display the file content
+st.write(f"### Content of {selected_file}")
+
+# Function to apply color to the content based on the selected file
+def colorize_code(code, file_name):
+    # Basic colorization based on file name
+    color = files[file_name]
+    return f"<pre style='color:{color};'>{code}</pre>"
+
+# Display colored content
+colored_content = colorize_code(file_content, selected_file)
+st.markdown(colored_content, unsafe_allow_html=True)
+
+
+# Display colored content
+colored_content = colorize_code(file_content, selected_file)
+st.markdown(f"<pre>{colored_content}</pre>", unsafe_allow_html=True)
+
+
 # Apply sky blue background using custom CSS
 st.markdown(
     """
