@@ -25,7 +25,7 @@ sidebar_bg_css = """
 st.markdown(sidebar_bg_css, unsafe_allow_html=True)
 # Title of the app
 st.title("R Code Display with Sample Output")
-st.subtitle(" Authors: Mohamed Kanu, Sammy, Jaline")
+
 
 # Dropdown menu for displaying content
 option = st.sidebar.selectbox("Choose an option:", ('None', 'See R Code', 'Explanation', 'Sample Output'))
