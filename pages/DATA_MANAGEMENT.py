@@ -44,9 +44,16 @@ data_option = st.sidebar.selectbox(
 )
 
 # Dropdown menu for content options
-content_option = st.selectbox(
+content_option = st.sidebar.selectbox(
     "Choose what to view:",
-    ('None', 'See R Code', 'See Python Code', 'Explanation of Code', 'Sample Output')
+    (
+        'None',
+        'See R Code',
+        'Explanation of R Code',
+        'See Python Code',
+        'Explanation of Python Code',
+        'Sample Output'
+    )
 )
 
 # Sample R and Python code for demonstration
@@ -97,7 +104,7 @@ The Python code demonstrates how to create a scatter plot using `seaborn` and `m
 
 # Sample Output URLs
 sample_output_r = "https://github.com/mohamedsillahkanu/si/blob/c6b5747886fb15b511fe99ac90afdbad64b0628f/image_10.png?raw=true"
-sample_output_python = "https://github.com/mohamedsillahkanu/si/blob/c6b5747886fb15b511fe99ac90afdbad64b0628f/image_10.png?raw=true"
+sample_output_python = "https://example.com/sample_output_python.png"  # Replace with actual link
 
 # Display content based on selected options
 if data_option != 'None':
@@ -107,14 +114,14 @@ if data_option != 'None':
         st.code(r_code, language='r')
     elif content_option == 'See Python Code':
         st.code(python_code, language='python')
-    elif content_option == 'Explanation of Code':
-        if data_option in ['Shapefiles', 'Health Facilities', 'Routine case data from DHIS2', 'DHS data', 'Climate data', 'LMIS data', 'Modeled data', 'Population data']:
-            if content_option == 'See R Code':
-                st.write(explanation_r)
-            elif content_option == 'See Python Code':
-                st.write(explanation_python)
+    elif content_option == 'Explanation of R Code':
+        st.write(explanation_r)
+    elif content_option == 'Explanation of Python Code':
+        st.write(explanation_python)
     elif content_option == 'Sample Output':
-        if data_option in ['Shapefiles', 'Health Facilities', 'Routine case data from DHIS2', 'DHS data', 'Climate data', 'LMIS data', 'Modeled data', 'Population data']:
-            st.image(sample_output_r if 'R' in content_option else sample_output_python, caption="Sample output")
+        if 'R' in data_option:
+            st.image(sample_output_r, caption="Sample output of the R code")
+        else:
+            st.image(sample_output_python, caption="Sample output of the Python code")
 else:
-    st.write("Please select an option to view the content.")
+    st.write("Please select a data management option to view content.")
