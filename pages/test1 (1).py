@@ -9,7 +9,7 @@ from scipy.stats import probplot, norm, shapiro, normaltest, anderson, skew, kur
 
 # Sidebar for Data Management
 st.sidebar.title("Data Management")
-data_management_option = st.sidebar.radio(
+data_management_option = st.sidebar.dropdown(
     "Choose an option:",
     ["Import Dataset", "Sanity Checks", "Merge Datasets", "Data Cleaning", "Quality Control/Checks"]
 )
