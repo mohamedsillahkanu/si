@@ -6,7 +6,7 @@ from matplotlib.patches import Patch
 from matplotlib.colors import ListedColormap, to_hex
 
 st.image("icf_sl (1).jpg", caption="MAP GENERATOR", use_column_width=True)
-gdf = gpd.read_file("https://raw.githubusercontent.com/mohamedsillahkanu/si/2b7f982174b609f9647933147dec2a59a33e736a/Chiefdom%202021.shp"")
+gdf = gpd.read_file("https://raw.githubusercontent.com/mohamedsillahkanu/si/2b7f982174b609f9647933147dec2a59a33e736a/Chiefdom%202021.shp")
 df = pd.read_excel("/tmp/uploaded.xlsx")
 
 shapefile_columns = st.multiselect("Select Shapefile Column(s):", gdf.columns)
