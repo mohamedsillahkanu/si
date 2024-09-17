@@ -8,7 +8,7 @@ import requests
 from io import BytesIO
 
 # Direct URL to the shapefile on GitHub
-shapefile_base_url = "https://github.com/mohamedsillahkanu/si/raw/e1c761955bbbb09b49d5ab40d51409632a71395c/"
+shapefile_base_url = "https://github.com/mohamedsillahkanu/si/raw/e1c761955bbbb09b49d5ab40d51409632a71395c"
 shapefile_name = "Chiefdom 2021"
 
 # Function to download shapefile and associated files
