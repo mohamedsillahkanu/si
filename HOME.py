@@ -30,6 +30,9 @@ st.title("SNT Code Library Overview")
 # Overview Section
 st.header("Overview")
 
+st.subheader("Version: 13 September 2024")
+st.subheader("Authors: Mohamed Sillah Kanu, Sammy Oppong, Jaline Gerardin")
+
 # Motivation Section
 st.subheader("Motivation")
 st.write("""
