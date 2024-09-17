@@ -44,9 +44,17 @@ uploaded_excel_file = st.file_uploader("Upload Excel File", type=["xlsx"])
 if uploaded_excel_file:
     df = pd.read_excel(uploaded_excel_file)
 
+    # Ensure 'FIRST_CHIE' exists in both files
+    if 'FIRST_CHIE' not in df.columns:
+        st.error("Column 'FIRST_CHIE' not found in the uploaded Excel file.")
+        st.stop()
+    if 'FIRST_CHIE' not in gdf.columns:
+        st.error("Column 'FIRST_CHIE' not found in the shapefile.")
+        st.stop()
+
     # Streamlit components
-    shapefile_columns = st.multiselect("Select Shapefile Column(s):", gdf.columns)
-    excel_columns = st.multiselect("Select Excel Column(s):", df.columns)
+    shapefile_columns = st.multiselect("Select Shapefile Column(s):", gdf.columns, default=["FIRST_CHIE"])
+    excel_columns = st.multiselect("Select Excel Column(s):", df.columns, default=["FIRST_CHIE"])
     map_column = st.selectbox("Select Map Column:", df.columns)
     map_title = st.text_input("Map Title:")
     legend_title = st.text_input("Legend Title:")
@@ -69,23 +77,15 @@ if uploaded_excel_file:
     if variable_type == "Categorical":
         unique_values = sorted(df[map_column].dropna().unique().tolist())
         selected_categories = st.multiselect(f"Select Categories for the Legend of {map_column}:", unique_values, default=unique_values)
-        category_counts = df[map_column].value_counts().to_dict()  # Preserve original counts
+        category_counts = df[map_column].value_counts().to_dict()
 
-        # Reorder the categories to match the selected categories order
         df[map_column] = pd.Categorical(df[map_column], categories=selected_categories, ordered=True)
-
-        # Ensure the counts for each category remain consistent
-        for category in selected_categories:
-            if category not in category_counts:
-                category_counts[category] = 0
 
     elif variable_type == "Numeric":
         try:
-            # Allow user to input custom labels for bins, accepting decimal intervals
             bin_labels_input = st.text_input("Enter labels for bins (comma-separated, e.g., '10-20.5, 20.6-30.1, >30.2'): ")
             bin_labels = [label.strip() for label in bin_labels_input.split(',')]
 
-            # Convert the labels into bin ranges, supporting decimal points
             bins = []
             for label in bin_labels:
                 if '>' in label:
@@ -98,23 +98,19 @@ if uploaded_excel_file:
                 else:
                     st.error("Incorrect format. Please enter ranges as 'lower-upper' or '>lower'.")
 
-            # Ensure that the bins list ends with the max value in the data
             bins = sorted(list(set(bins)))
             if bins[-1] < df[map_column].max():
-                bins.append(df[map_column].max() + 1)  # Adjust the max bin to include the max value
+                bins.append(df[map_column].max() + 1)
 
-            # Perform binning
             df[map_column + "_bins"] = pd.cut(df[map_column], bins=bins, labels=bin_labels, include_lowest=True)
             map_column = map_column + "_bins"
             selected_categories = bin_labels
 
-            # Calculate counts for the binned categories
             category_counts = df[map_column].value_counts().to_dict()
 
         except ValueError:
             st.error(f"Error: The column '{map_column}' contains non-numeric data or cannot be converted to numeric values.")
 
-    # Get colors from the selected palette (max 9 colors)
     cmap = plt.get_cmap(color_palette_name)
     num_colors = min(9, cmap.N)
     colors = [to_hex(cmap(i / (num_colors - 1))) for i in range(num_colors)]
@@ -125,38 +121,17 @@ if uploaded_excel_file:
         for i, category in enumerate(selected_categories):
             color_mapping[category] = st.selectbox(f"Select Color for '{category}' in {map_column}:", options=colors, index=i)
 
-    # Check if two columns are selected for merging
-    if len(shapefile_columns) == 2 and len(excel_columns) == 2:
+    if len(shapefile_columns) == 1 and len(excel_columns) == 1:
         column1_line_color = st.selectbox(f"Select Line Color for '{shapefile_columns[0]}' boundaries:", options=["White", "Black", "Red"], index=1)
         column1_line_width = st.slider(f"Select Line Width for '{shapefile_columns[0]}' boundaries:", min_value=0.5, max_value=10.0, value=2.5)
-        column2_line_color = st.selectbox(f"Select Line Color for '{shapefile_columns[1]}' boundaries:", options=["White", "Black", "Red"], index=1)
-        column2_line_width = st.slider(f"Select Line Width for '{shapefile_columns[1]}' boundaries:", min_value=0.5, max_value=10.0, value=2.5)
-    elif len(shapefile_columns) == 1 and len(excel_columns) == 1:
-        column1_line_color = st.selectbox(f"Select Line Color for '{shapefile_columns[0]}' boundaries:", options=["White", "Black", "Red"], index=1)
-        column1_line_width = st.slider(f"Select Line Width for '{shapefile_columns[0]}' boundaries:", min_value=0.5, max_value=10.0, value=2.5)
-        column2_line_color = None
-        column2_line_width = None
-    else:
-        st.warning("Please select the same number of columns from the shapefile and Excel file (either one or two).")
 
     if st.button("Generate Map"):
         try:
-            # Merge the shapefile and Excel data based on the selected columns
-            merged_gdf = gdf
-            if len(shapefile_columns) == 2 and len(excel_columns) == 2:
-                merged_gdf = merged_gdf.merge(df, left_on=shapefile_columns[0], right_on=excel_columns[0], how='left')
-                merged_gdf = merged_gdf.merge(df, left_on=shapefile_columns[1], right_on=excel_columns[1], how='left')
-            elif len(shapefile_columns) == 1 and len(excel_columns) == 1:
-                merged_gdf = merged_gdf.merge(df, left_on=shapefile_columns[0], right_on=excel_columns[0], how='left')
+            merged_gdf = gdf.merge(df, left_on=shapefile_columns[0], right_on=excel_columns[0], how='left')
 
-            # Plotting
             fig, ax = plt.subplots(figsize=(10, 10))
-            if column2_line_color:
-                merged_gdf.plot(column=shapefile_columns[1], ax=ax, edgecolor=column2_line_color.lower(), linewidth=column2_line_width, legend=True, cmap=color_palette_name)
-            if column1_line_color:
-                merged_gdf.plot(column=shapefile_columns[0], ax=ax, edgecolor=column1_line_color.lower(), linewidth=column1_line_width, legend=True, cmap=color_palette_name)
+            merged_gdf.plot(column=shapefile_columns[0], ax=ax, edgecolor=column1_line_color.lower(), linewidth=column1_line_width, legend=True, cmap=color_palette_name)
 
-            # Customize the map title and legend
             if map_title:
                 ax.set_title(map_title, fontsize=font_size)
 
@@ -165,7 +140,6 @@ if uploaded_excel_file:
 
             st.pyplot(fig)
 
-            # Save and display the image
             fig.savefig(f"{image_name}.png", dpi=300, bbox_inches='tight')
             with open(f"{image_name}.png", "rb") as file:
                 st.download_button(label="Download Map Image", data=file, file_name=f"{image_name}.png", mime="image/png")
