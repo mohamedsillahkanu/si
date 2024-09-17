@@ -94,15 +94,10 @@ if len(shapefile_columns) == 2 and len(excel_columns) == 2:
 elif len(shapefile_columns) == 1 and len(excel_columns) == 1:
     column1_line_color = st.selectbox(f"Select Line Color for '{shapefile_columns[0]}' boundaries:", options=["White", "Black", "Red"], index=1)
     column1_line_width = st.slider(f"Select Line Width for '{shapefile_columns[0]}' boundaries:", min_value=0.5, max_value=10.0, value=2.5)
-    column2_line_color = None
-    column2_line_width = None
+    column2_line_color = "White"  # Default value for single column
+    column2_line_width = 1.0  # Default value for single column
 else:
     st.warning("Please select the same number of columns from the shapefile and Excel file (either one or two).")
-
-# Checkboxes for optional features
-show_category_counts = st.checkbox("Show Category Counts in Legend", value=True)
-show_missing_value_label = st.checkbox("Show Missing Value Label", value=True)
-show_first_dnam = st.checkbox("Show FIRST_DNAM Subplot", value=False)  # Checkbox for FIRST_DNAM subplot
 
 if st.button("Generate Map"):
     try:
@@ -136,40 +131,50 @@ if st.button("Generate Map"):
             ax.set_title(f"{map_title} (General Map)", fontsize=font_size, fontweight='bold')
             ax.set_axis_off()
             
-            # Create legend handles with category counts if enabled
-            handles = []
-            for cat in selected_categories:
-                if show_category_counts:
+            # Create legend handles with category counts
+            if st.checkbox("Show Category Counts and Missing Value Labels"):
+                handles = []
+                for cat in selected_categories:
                     label_with_count = f"{cat} ({category_counts.get(cat, 0)})"
-                else:
-                    label_with_count = cat
-                handles.append(Patch(color=color_mapping.get(cat, missing_value_color.lower()), label=label_with_count))
-            
-            if show_missing_value_label:
-                handles.append(Patch(color=missing_value_color.lower(), label=missing_value_label))
-            
-            # Add legend to the map
-            ax.legend(handles=handles, title=legend_title, title_fontsize='13', fontsize='10', loc='upper right')
-            
-            # Save and display the map
-            plt.savefig(f"{image_name}.png", dpi=300, bbox_inches='tight')
-            st.image(f"{image_name}.png", caption="Generated Map", use_column_width=True)
+                    handles.append(Patch(color=color_mapping.get(cat, missing_value_color.lower()), label=label_with_count))
 
-            st.success(f"Map has been successfully generated and saved as {image_name}.png")
+                handles.append(Patch(color=missing_value_color.lower(), label=f"{missing_value_label} ({df[map_column].isna().sum()})"))
 
-            # Optionally show subplot for FIRST_DNAM
-            if show_first_dnam:
-                fig, ax = plt.subplots(figsize=(12, 6))
-                if 'FIRST_DNAM' in df.columns:
-                    df['FIRST_DNAM'].value_counts().plot(kind='bar', ax=ax, color='skyblue')
-                    ax.set_title('FIRST_DNAM Distribution', fontsize=font_size, fontweight='bold')
-                    ax.set_xlabel('FIRST_DNAM')
-                    ax.set_ylabel('Count')
-                    plt.xticks(rotation=45)
-                    st.pyplot(fig)
-                else:
-                    st.warning("The column 'FIRST_DNAM' does not exist in the dataset.")
+                ax.legend(handles=handles, title=legend_title, bbox_to_anchor=(1.05, 1), loc='upper left')
+            
+            # Save or display the general map
+            general_map_path = f"{image_name}_general_map.png"
+            plt.savefig(general_map_path, bbox_inches='tight')
+            st.image(general_map_path, caption=f"{map_title} (General Map)", use_column_width=True)
 
+            # Display separate maps for each unique value of FIRST_DNAM
+            for first_dnam_value in merged_gdf['FIRST_DNAM'].unique():
+                subset_gdf = merged_gdf[merged_gdf['FIRST_DNAM'] == first_dnam_value]
+                
+                fig, ax = plt.subplots(1, 1, figsize=(12, 12))
+                subset_gdf.boundary.plot(ax=ax, edgecolor=boundary_color, linewidth=boundary_width)
+                
+                subset_gdf.plot(column=map_column, ax=ax, linewidth=boundary_width, edgecolor=boundary_color, cmap=custom_cmap,
+                                legend=False, missing_kwds={'color': missing_value_color.lower(), 'edgecolor': boundary_color, 'label': missing_value_label})
+                
+                ax.set_title(f"{map_title} - {first_dnam_value}", fontsize=font_size, fontweight='bold')
+                ax.set_axis_off()
+                
+                # Create legend handles for subset map
+                if st.checkbox("Show Category Counts and Missing Value Labels"):
+                    handles = []
+                    for cat in selected_categories:
+                        label_with_count = f"{cat} ({category_counts.get(cat, 0)})"
+                        handles.append(Patch(color=color_mapping.get(cat, missing_value_color.lower()), label=label_with_count))
+                    
+                    handles.append(Patch(color=missing_value_color.lower(), label=f"{missing_value_label} ({subset_gdf[map_column].isna().sum()})"))
+                    
+                    ax.legend(handles=handles, title=legend_title, bbox_to_anchor=(1.05, 1), loc='upper left')
+
+                # Save or display the subset map
+                subset_map_path = f"{image_name}_{first_dnam_value}.png"
+                plt.savefig(subset_map_path, bbox_inches='tight')
+                st.image(subset_map_path, caption=f"{map_title} - {first_dnam_value}", use_column_width=True)
+                
     except Exception as e:
         st.error(f"An error occurred: {e}")
-
