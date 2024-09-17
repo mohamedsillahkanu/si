@@ -155,10 +155,35 @@ plt.show()
 
 # Explanations
 explanation_r_shapefiles = """
-The R code demonstrates how to import and visualize shapefiles using the `sf` and `ggplot2` libraries.
-1. `st_read()` reads the shapefile data.
-2. `ggplot(data = shapefile_data) + geom_sf()` creates a plot of the shapefile geometries.
-3. `theme_minimal() + theme()` customizes the plot by removing grid lines and axis details.
+Got it! Here’s an explanation of the R code for handling and visualizing shapefiles:
+
+### **1. Installing and Loading Libraries**
+
+- **Install Libraries**: The code starts by installing two libraries: `sf` for handling spatial data and `ggplot2` for visualization. These libraries are essential for reading and plotting shapefiles.
+
+- **Load Libraries**: After installation, these libraries are loaded into the R environment to make their functions available for use in the script.
+
+### **2. Importing Shapefiles**
+
+- **Define Shapefile Path**: The path to the shapefile is specified. This path should be adjusted based on the actual location of the shapefile you want to work with.
+
+- **Read Shapefile**: The `st_read()` function from the `sf` library is used to read the shapefile from the specified path. This function imports the shapefile and stores the data in a variable, which will be an object containing spatial data.
+
+- **Preview Data**: To ensure that the shapefile has been read correctly, the script prints the first few rows of the data. This helps you check the contents and confirm that the data is as expected.
+
+### **3. Visualizing Shapefiles and Creating Basic Maps**
+
+- **Initialize Plot**: The code initializes a plot using `ggplot2`, with the shapefile data as the source. This sets up the base for creating a visualization.
+
+- **Add Geometries**: The `geom_sf()` function is used to add the spatial features from the shapefile to the plot. This function plots the geographical data represented in the shapefile.
+
+- **Add Title**: A title is added to the plot using `labs()`, which helps provide context to what the map represents.
+
+- **Apply Minimal Theme**: The `theme_minimal()` function is applied to give the plot a clean appearance with minimal distractions.
+
+- **Customize Appearance**: Further customization is done to remove grid lines, axis titles, axis labels, and axis ticks. This results in a map that focuses solely on the spatial features without additional elements that might clutter the visualization.
+
+In essence, this R code sets up an environment for spatial data analysis, imports a shapefile, and visualizes it using a clean and minimal map layout.
 """
 
 explanation_python_shapefiles = """
