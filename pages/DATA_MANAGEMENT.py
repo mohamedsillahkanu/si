@@ -182,8 +182,8 @@ The Python code demonstrates how to create a bar plot for Health Facilities data
 """
 
 # Sample images for different options
-sample_output_shapefiles_r = "https://github.com/mohamedsillahkanu/si/blob/99ccc5bd8425859a0a801f01ca713e36edbd0c21/MAP_R.png?raw=true"
-sample_output_shapefiles_python = "https://github.com/mohamedsillahkanu/si/blob/d3705941c975aeab86e701d0d2093b38052a50e2/MAP_PYTHON.png?raw=true"
+sample_output_shapefiles = "https://github.com/mohamedsillahkanu/si/blob/99ccc5bd8425859a0a801f01ca713e36edbd0c21/MAP_R.png?raw=true"
+sample_output_shapefiles = "https://github.com/mohamedsillahkanu/si/blob/d3705941c975aeab86e701d0d2093b38052a50e2/MAP_PYTHON.png?raw=true"
 
 sample_output_health_facilities = "https://example.com/health_facilities_image.png"  # Replace with actual image URL
 
