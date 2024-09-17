@@ -102,8 +102,7 @@ else:
 # Checkboxes for optional features
 show_category_counts = st.checkbox("Show Category Counts in Legend", value=True)
 show_missing_value_label = st.checkbox("Show Missing Value Label", value=True)
-show_first_dnam = st.checkbox("Show FIRST_DNAM in Plots", value=True)
-show_first_chie = st.checkbox("Show FIRST_CHIE in Plots", value=True)
+show_first_dnam = st.checkbox("Show FIRST_DNAM Subplot", value=False)  # Checkbox for FIRST_DNAM subplot
 
 if st.button("Generate Map"):
     try:
@@ -157,6 +156,19 @@ if st.button("Generate Map"):
             st.image(f"{image_name}.png", caption="Generated Map", use_column_width=True)
 
             st.success(f"Map has been successfully generated and saved as {image_name}.png")
+
+            # Optionally show subplot for FIRST_DNAM
+            if show_first_dnam:
+                fig, ax = plt.subplots(figsize=(12, 6))
+                if 'FIRST_DNAM' in df.columns:
+                    df['FIRST_DNAM'].value_counts().plot(kind='bar', ax=ax, color='skyblue')
+                    ax.set_title('FIRST_DNAM Distribution', fontsize=font_size, fontweight='bold')
+                    ax.set_xlabel('FIRST_DNAM')
+                    ax.set_ylabel('Count')
+                    plt.xticks(rotation=45)
+                    st.pyplot(fig)
+                else:
+                    st.warning("The column 'FIRST_DNAM' does not exist in the dataset.")
 
     except Exception as e:
         st.error(f"An error occurred: {e}")
