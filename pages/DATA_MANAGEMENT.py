@@ -56,7 +56,7 @@ content_option = st.selectbox(
     )
 )
 
-# Sample R and Python code for Shapefiles
+# Sample R and Python code and images for different options
 r_code_shapefiles = """
 # Install libraries
 install.packages("sf")      # For handling shapefiles
@@ -116,7 +116,6 @@ ax.set_axis_off()  # Remove axis title, text, and ticks
 plt.show()
 """
 
-# Sample code for Health Facilities (as an example, adjust as needed)
 r_code_health_facilities = """
 # Example R code for Health Facilities
 # Load necessary libraries
@@ -182,8 +181,17 @@ The Python code demonstrates how to create a bar plot for Health Facilities data
 2. `plt.title()`, `plt.xlabel()`, and `plt.ylabel()` add labels and title.
 """
 
-# Sample Output URL
-sample_output = "https://github.com/mohamedsillahkanu/si/blob/c6b5747886fb15b511fe99ac90afdbad64b0628f/image_10.png?raw=true"  # Replace with actual link
+# Sample images for different options
+sample_output_shapefiles = "https://github.com/mohamedsillahkanu/si/blob/c6b5747886fb15b511fe99ac90afdbad64b0628f/image_10.png?raw=true"
+
+sample_output_health_facilities = "https://example.com/health_facilities_image.png"  # Replace with actual image URL
+
+sample_output_dhis2 = "https://example.com/dhis2_image.png"  # Replace with actual image URL
+sample_output_dhs = "https://example.com/dhs_image.png"  # Replace with actual image URL
+sample_output_climate = "https://example.com/climate_image.png"  # Replace with actual image URL
+sample_output_lmis = "https://example.com/lmis_image.png"  # Replace with actual image URL
+sample_output_modeled = "https://example.com/modeled_image.png"  # Replace with actual image URL
+sample_output_population = "https://example.com/population_image.png"  # Replace with actual image URL
 
 # Display content based on selected options
 if data_option == 'Shapefiles':
@@ -198,7 +206,7 @@ if data_option == 'Shapefiles':
     elif content_option == 'Explanation of Python Code':
         st.write(explanation_python_shapefiles)
     elif content_option == 'Sample Output':
-        st.image(sample_output, caption="Sample output of the code")
+        st.image(sample_output_shapefiles, caption="Sample output of the Shapefiles code")
 
 elif data_option == 'Health Facilities':
     st.subheader("Health Facilities Content")
@@ -211,7 +219,42 @@ elif data_option == 'Health Facilities':
         st.write(explanation_r_health_facilities)
     elif content_option == 'Explanation of Python Code':
         st.write(explanation_python_health_facilities)
-    # For sample output, you would add the relevant image or link for Health Facilities if available.
+    elif content_option == 'Sample Output':
+        st.image(sample_output_health_facilities, caption="Sample output of the Health Facilities code")
 
-else:
-    st.write("Please select a data management option to view content.")
+# Add similar conditions for other data options if needed
+elif data_option == 'Routine case data from DHIS2':
+    st.subheader("Routine case data from DHIS2 Content")
+    # Implement specific code and sample image for DHIS2 here
+    if content_option == 'Sample Output':
+        st.image(sample_output_dhis2, caption="Sample output of the DHIS2 code")
+
+elif data_option == 'DHS data':
+    st.subheader("DHS data Content")
+    # Implement specific code and sample image for DHS data here
+    if content_option == 'Sample Output':
+        st.image(sample_output_dhs, caption="Sample output of the DHS data code")
+
+elif data_option == 'Climate data':
+    st.subheader("Climate data Content")
+    # Implement specific code and sample image for Climate data here
+    if content_option == 'Sample Output':
+        st.image(sample_output_climate, caption="Sample output of the Climate data code")
+
+elif data_option == 'LMIS data':
+    st.subheader("LMIS data Content")
+    # Implement specific code and sample image for LMIS data here
+    if content_option == 'Sample Output':
+        st.image(sample_output_lmis, caption="Sample output of the LMIS data code")
+
+elif data_option == 'Modeled data':
+    st.subheader("Modeled data Content")
+    # Implement specific code and sample image for Modeled data here
+    if content_option == 'Sample Output':
+        st.image(sample_output_modeled, caption="Sample output of the Modeled data code")
+
+elif data_option == 'Population data':
+    st.subheader("Population data Content")
+    # Implement specific code and sample image for Population data here
+    if content_option == 'Sample Output':
+        st.image(sample_output_population, caption="Sample output of the Population data code")
