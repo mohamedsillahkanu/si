@@ -110,7 +110,7 @@ if st.button("Generate Map"):
             custom_cmap = ListedColormap([color_mapping.get(cat, missing_value_color.lower()) for cat in selected_categories])
             
             # Plot the map data with categories
-            merged_gdf.plot(column=map_column, ax=ax, edgecolor=column1_line_color, cmap=custom_cmap,
+            merged_gdf.plot(column=map_column, ax=ax, edgecolor=column2_line_color, cmap=custom_cmap,
                             legend=False, missing_kwds={'color': missing_value_color.lower(), 'edgecolor': column1_line_color, 'label': missing_value_label})
             
             ax.set_title(f"{map_title} (General Map)", fontsize=font_size, fontweight='bold')
