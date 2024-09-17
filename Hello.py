@@ -24,7 +24,11 @@ color_palette_name = st.selectbox("Color Palette:", options=list(plt.colormaps()
 line_color = st.selectbox("Select Default Line Color:", options=["White", "Black", "Red"], index=1)
 line_width = st.slider("Select Default Line Width:", min_value=0.5, max_value=5.0, value=2.5)
 
+missing_value_color = st.selectbox("Select Color for Missing Values:", options=["White", "Gray", "Red"], index=1)
+missing_value_label = st.text_input("Label for Missing Values:", value="No Data")
 
+# Initialize category_counts
+category_counts = {}
 
 variable_type = st.radio("Select the variable type:", options=["Categorical", "Numeric"])
 
@@ -133,7 +137,7 @@ if st.button("Generate Map"):
                 label_with_count = f"{cat} ({category_counts.get(cat, 0)})"
                 handles.append(Patch(color=color_mapping.get(cat, missing_value_color.lower()), label=label_with_count))
             
-            
+            handles.append(Patch(color=missing_value_color.lower(), label=f"{missing_value_label} ({df[map_column].isna().sum()})"))
             
             ax.legend(handles=handles, title=legend_title, bbox_to_anchor=(1.05, 1), loc='upper left')
             
