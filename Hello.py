@@ -19,18 +19,12 @@ font_size = st.slider("Font Size (for Map Title):", min_value=8, max_value=24, v
 color_palette_name = st.selectbox("Color Palette:", options=list(plt.colormaps()), index=list(plt.colormaps()).index('Set3'))
 
 # General map line color and width
-general_line_color = st.selectbox("Select Line Color for General Map Boundaries:", options=["None", "White", "Black", "Red"], index=1)
-general_line_width = st.slider("Select Line Width for General Map Boundaries:", min_value=0.5, max_value=5.0, value=2.5)
+general_line_color = st.selectbox("Select Line Color for General Map:", options=["None", "White", "Black", "Red"], index=1)
+general_line_width = st.slider("Select Line Width for General Map:", min_value=0.5, max_value=5.0, value=2.5)
 
 # FIRST_DNAM subplots line color and width
-first_dnam_line_color = st.selectbox("Select Line Color for FIRST_DNAM Subplots Boundaries:", options=["None", "White", "Black", "Red"], index=1)
-first_dnam_line_width = st.slider("Select Line Width for FIRST_DNAM Subplots Boundaries:", min_value=0.5, max_value=5.0, value=2.5)
-
-# FIRST_CHIE line color and width
-general_first_chie_line_color = st.selectbox("Select Line Color for FIRST_CHIE in General Map:", options=["None", "White", "Black", "Red"], index=1)
-general_first_chie_line_width = st.slider("Select Line Width for FIRST_CHIE in General Map:", min_value=0.5, max_value=5.0, value=2.5)
-subplot_first_chie_line_color = st.selectbox("Select Line Color for FIRST_CHIE in FIRST_DNAM Subplots:", options=["None", "White", "Black", "Red"], index=1)
-subplot_first_chie_line_width = st.slider("Select Line Width for FIRST_CHIE in FIRST_DNAM Subplots:", min_value=0.5, max_value=5.0, value=2.5)
+first_dnam_line_color = st.selectbox("Select Line Color for FIRST_DNAM Subplots:", options=["None", "White", "Black", "Red"], index=1)
+first_dnam_line_width = st.slider("Select Line Width for FIRST_DNAM Subplots:", min_value=0.5, max_value=5.0, value=2.5)
 
 missing_value_color = st.selectbox("Select Color for Missing Values:", options=["None", "White", "Gray", "Red"], index=1)
 missing_value_label = st.text_input("Label for Missing Values:", value="No Data")
@@ -125,24 +119,21 @@ if st.button("Generate Map"):
                 merged_gdf.plot(column=map_column, ax=ax, linewidth=general_line_width, edgecolor=general_line_color.lower() if general_line_color != 'None' else 'black', cmap=cmap,
                                 legend=False, missing_kwds={'color': missing_value_color.lower() if missing_value_color != 'None' else 'gray', 'edgecolor': general_line_color.lower() if general_line_color != 'None' else 'black', 'label': missing_value_label if missing_value_label else None})
 
-                # Add text labels for each `FIRST_CHIE`
-                for idx, row in merged_gdf.iterrows():
-                    ax.text(row.geometry.centroid.x, row.geometry.centroid.y, row['FIRST_CHIE'], fontsize=10, ha='center', color='black', fontweight='bold')
+                # Create legend handles
+                handles = []
+                for cat in selected_categories:
+                    label_with_count = f"{cat} ({category_counts.get(cat, 0)})" if show_label_counts else cat
+                    handles.append(Patch(color=color_mapping.get(cat, 'gray'), label=label_with_count))
+
+                if show_missing_data and missing_value_color != 'None':
+                    handles.append(Patch(color=missing_value_color.lower(), label=f"{missing_value_label} ({merged_gdf[map_column].isna().sum()})"))
+
+                ax.legend(handles=handles, title=legend_title, bbox_to_anchor=(1.05, 1), loc='upper left')
 
                 ax.set_title(map_title, fontsize=font_size, fontweight='bold')
                 ax.set_axis_off()
 
-                # Create general legend
-                handles = []
-                for cat in selected_categories:
-                    handles.append(Patch(color=color_mapping.get(cat, 'gray'), label=cat))
-
-                if show_missing_data and missing_value_color != 'None':
-                    handles.append(Patch(color=missing_value_color.lower(), label=f"{missing_value_label}"))
-
-                ax.legend(handles=handles, title=legend_title, bbox_to_anchor=(1.05, 1), loc='upper left', frameon=False, prop={'weight': 'bold'})
-
-                # Save or display general map
+                # Save or display the general map
                 general_map_path = f"/tmp/{image_name}_general.png"
                 plt.savefig(general_map_path, dpi=300, bbox_inches='tight')
                 st.image(general_map_path, caption="General Map", use_column_width=True)
@@ -165,7 +156,7 @@ if st.button("Generate Map"):
 
                     # Add text labels for each `FIRST_CHIE`
                     for idx, row in subset_gdf.iterrows():
-                        ax.text(row.geometry.centroid.x, row.geometry.centroid.y, row['FIRST_CHIE'], fontsize=10, ha='center', color='black', fontweight='bold')
+                        ax.text(row.geometry.centroid.x, row.geometry.centroid.y, row['FIRST_CHIE'], fontsize=10, ha='center', color='black')
 
                     ax.set_title(f"{map_title} - {value}", fontsize=font_size, fontweight='bold')
                     ax.set_axis_off()
@@ -179,7 +170,7 @@ if st.button("Generate Map"):
                     if show_missing_data and missing_value_color != 'None':
                         handles.append(Patch(color=missing_value_color.lower(), label=f"{missing_value_label} ({subset_gdf[map_column].isna().sum()})"))
 
-                    ax.legend(handles=handles, title=legend_title, bbox_to_anchor=(1.05, 1), loc='upper left', frameon=False, prop={'weight': 'bold'})
+                    ax.legend(handles=handles, title=legend_title, bbox_to_anchor=(1.05, 1), loc='upper left')
 
                     # Save or display each subplot
                     subplot_path = f"/tmp/{image_name}_{value}.png"
