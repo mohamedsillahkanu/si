@@ -223,13 +223,26 @@ The Python code demonstrates how to create a bar plot for Health Facilities data
 sample_output_shapefiles_r = "https://github.com/mohamedsillahkanu/si/blob/99ccc5bd8425859a0a801f01ca713e36edbd0c21/MAP_R.png?raw=true"
 sample_output_shapefiles_python = "https://github.com/mohamedsillahkanu/si/blob/d3705941c975aeab86e701d0d2093b38052a50e2/MAP_PYTHON.png?raw=true"
 
-sample_output_health_facilities = "https://example.com/health_facilities_image.png"  # Replace with actual image URL
+sample_output_health_facilities_r = "https://example.com/health_facilities_image.png"  # Replace with actual image URL
+sample_output_health_facilities_python = "https://example.com/health_facilities_image.png" 
 
-sample_output_dhis2 = "https://example.com/dhis2_image.png"  # Replace with actual image URL
-sample_output_dhs = "https://example.com/dhs_image.png"  # Replace with actual image URL
-sample_output_climate = "https://example.com/climate_image.png"  # Replace with actual image URL
+sample_output_routine_case_data_dhis2_r = "https://example.com/dhis2_image.png"  # Replace with actual image URL
+sample_output_routine_case_data_dhis2_python = "https://example.com/dhis2_image.png"  # Replace with actual image URL
+
+sample_output_DHS_Data_r = "https://example.com/dhs_image.png"  # Replace with actual image URL
+sample_output_DHS_Data_python = "https://example.com/dhs_image.png"  # Replace with actual image URL
+
+sample_output_Climate_Data_r = "https://example.com/climate_image.png"  # Replace with actual image URL
+
+sample_output_Climate_Data_python = "https://example.com/climate_image.png"  # Replace with actual image URL
+
+
 sample_output_lmis = "https://example.com/lmis_image.png"  # Replace with actual image URL
+
+
 sample_output_modeled = "https://example.com/modeled_image.png"  # Replace with actual image URL
+
+
 sample_output_population = "https://example.com/population_image.png"  # Replace with actual image URL
 
 # Display content based on selected options
