@@ -164,7 +164,7 @@ if shp_file and shx_file and dbf_file and xlsx_file:
                         handles.append(Patch(color=color_mapping[cat], label=label_with_count))
 
                     # Add missing value handle
-                    handles.append(Patch(color=missing_value_color.lower(), label=f"{missing_value_label} ({df[map_column].sum()})"))
+                    handles.append(Patch(color=missing_value_color.lower(), label=f"{missing_value_label} ({df[map_column]})"))
 
                     # Customize and position the legend in the lower left outside the map
                     legend = ax.legend(
