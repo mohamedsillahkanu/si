@@ -159,7 +159,9 @@ if st.button("Generate Map"):
 
             # Bold the title and categories
             plt.setp(legend.get_title(), fontsize=10, fontweight='bold')
-            plt.setp(legend.get_texts(), fontsize=10)
+            plt.setp(legend.get_texts(), fontsize=10, fontweight='bold')
+
+            
 
             # Save and display the map
             plt.savefig(f"/tmp/{image_name}.png", dpi=300, bbox_inches='tight')
