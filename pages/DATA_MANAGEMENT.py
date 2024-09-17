@@ -260,7 +260,102 @@ elif data_option == 'Health Facilities':
     elif content_option == 'Explanation of Python Code':
         st.write(explanation_python_health_facilities)
     elif content_option == 'Sample Output':
-        st.image(sample_output_health_facilities, caption="Sample output of the Health Facilities code")
+        st.image(sample_output_health_facilities_r, caption="Sample output of the Health Facilities R code")
+        st.image(sample_output_health_facilities_python, caption="Sample output of the Health Facilities Python code")
+
+elif data_option == 'Routine case data from DHIS2':
+    st.subheader("Routine case data from DHIS2 Content")
+    
+    if content_option == 'See R Code':
+        st.code(r_code_routine_case_data_dhis2, language='r')
+    elif content_option == 'See Python Code':
+        st.code(python_code_routine_case_data_dhis2, language='python')
+    elif content_option == 'Explanation of R Code':
+        st.write(explanation_r_routine_case_data_dhis2)
+    elif content_option == 'Explanation of Python Code':
+        st.write(explanation_python_routine_case_data_dhis2)
+    elif content_option == 'Sample Output':
+        st.image(sample_output_routine_case_data_dhis2_r, caption="Sample output of the Routine case data from DHIS2 R code")
+        st.image(sample_output_routine_case_data_dhis2_python, caption="Sample output of the Routine case data from DHIS2 Python code")
+
+
+
+elif data_option == 'DHS Data':
+    st.subheader("DHS Data Content")
+    
+    if content_option == 'See R Code':
+        st.code(r_code_DHS_Data, language='r')
+    elif content_option == 'See Python Code':
+        st.code(python_code_DHS_Data, language='python')
+    elif content_option == 'Explanation of R Code':
+        st.write(explanation_r_DHS_Data)
+    elif content_option == 'Explanation of Python Code':
+        st.write(explanation_python_DHS_Data)
+    elif content_option == 'Sample Output':
+        st.image(sample_output_DHS_Data_r, caption="Sample output of the DHS Data R code")
+        st.image(sample_output_DHS_Data_python, caption="Sample output of the DHS Data Python code")
+
+elif data_option == 'Climate Data':
+    st.subheader("Climate Data Content")
+    
+    if content_option == 'See R Code':
+        st.code(r_code_Climate_Data, language='r')
+    elif content_option == 'See Python Code':
+        st.code(python_code_Climate_Data, language='python')
+    elif content_option == 'Explanation of R Code':
+        st.write(explanation_r_Climate_Data)
+    elif content_option == 'Explanation of Python Code':
+        st.write(explanation_python_Climate_Data)
+    elif content_option == 'Sample Output':
+        st.image(sample_output_Climate_Data, caption="Sample output of the Climate Data")
+
+
+elif data_option == 'LMIS Data':
+    st.subheader("LMIS Data Content")
+    
+    if content_option == 'See R Code':
+        st.code(r_code_LMIS_Data, language='r')
+    elif content_option == 'See Python Code':
+        st.code(python_code_LMIS_Data, language='python')
+    elif content_option == 'Explanation of R Code':
+        st.write(explanation_r_LMIS_Data)
+    elif content_option == 'Explanation of Python Code':
+        st.write(explanation_python_LMIS_Data)
+    elif content_option == 'Sample Output':
+        st.image(sample_output_LMIS_Data, caption="Sample output of the LMIS Data")
+
+
+
+
+elif data_option == 'Modeled Data':
+    st.subheader("Modeled Data Content")
+    
+    if content_option == 'See R Code':
+        st.code(r_code_Modeled_Data, language='r')
+    elif content_option == 'See Python Code':
+        st.code(python_code_Modeled_Data, language='python')
+    elif content_option == 'Explanation of R Code':
+        st.write(explanation_r_Modeled_Data)
+    elif content_option == 'Explanation of Python Code':
+        st.write(explanation_python_Modeled_Data)
+    elif content_option == 'Sample Output':
+        st.image(sample_output_Modeled_Data, caption="Sample output of the Modeled Data")
+
+
+
+elif data_option == 'Population Data':
+    st.subheader("Population Data Content")
+    
+    if content_option == 'See R Code':
+        st.code(r_code_Population_Data, language='r')
+    elif content_option == 'See Python Code':
+        st.code(python_code_Population_Data, language='python')
+    elif content_option == 'Explanation of R Code':
+        st.write(explanation_r_Population_Data)
+    elif content_option == 'Explanation of Python Code':
+        st.write(explanation_python_Population_Data)
+    elif content_option == 'Sample Output':
+        st.image(sample_output_Population_Data, caption="Sample output of the Population Data")
 
 # Add similar conditions for other data options if needed
 elif data_option == 'Routine case data from DHIS2':
