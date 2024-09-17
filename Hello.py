@@ -21,20 +21,20 @@ image_name = st.text_input("Image Name:", value="map_image")
 font_size = st.slider("Font Size (for Map Title):", min_value=8, max_value=24, value=15)
 color_palette_name = st.selectbox("Color Palette:", options=list(plt.colormaps()), index=list(plt.colormaps()).index('Set3'))
 
-line_color = st.selectbox("Select Default Line Color:", options=["White", "Black", "Red"], index=1, key="line_color")
-line_width = st.slider("Select Default Line Width:", min_value=0.5, max_value=5.0, value=2.5, key="line_width")
+line_color = st.selectbox("Select Default Line Color:", options=["White", "Black", "Red"], index=1)
+line_width = st.slider("Select Default Line Width:", min_value=0.5, max_value=5.0, value=2.5)
 
-missing_value_color = st.selectbox("Select Color for Missing Values:", options=["White", "Gray", "Red"], index=1, key="missing_value_color")
-missing_value_label = st.text_input("Label for Missing Values:", value="No Data", key="missing_value_label")
+missing_value_color = st.selectbox("Select Color for Missing Values:", options=["White", "Gray", "Red"], index=1)
+missing_value_label = st.text_input("Label for Missing Values:", value="No Data")
 
 # Initialize category_counts
 category_counts = {}
 
-variable_type = st.radio("Select the variable type:", options=["Categorical", "Numeric"], key="variable_type")
+variable_type = st.radio("Select the variable type:", options=["Categorical", "Numeric"])
 
 if variable_type == "Categorical":
     unique_values = sorted(df[map_column].dropna().unique().tolist())
-    selected_categories = st.multiselect(f"Select Categories for the Legend of {map_column}:", unique_values, default=unique_values, key="selected_categories")
+    selected_categories = st.multiselect(f"Select Categories for the Legend of {map_column}:", unique_values, default=unique_values)
     category_counts = df[map_column].value_counts().to_dict()
 
     # Reorder the categories to match the selected categories order
@@ -47,7 +47,7 @@ if variable_type == "Categorical":
 
 elif variable_type == "Numeric":
     try:
-        bin_labels_input = st.text_input("Enter labels for bins (comma-separated, e.g., '10-20.5, 20.6-30.1, >30.2'): ", key="bin_labels_input")
+        bin_labels_input = st.text_input("Enter labels for bins (comma-separated, e.g., '10-20.5, 20.6-30.1, >30.2'): ")
         bin_labels = [label.strip() for label in bin_labels_input.split(',')]
 
         bins = []
@@ -81,25 +81,25 @@ colors = [to_hex(cmap(i / (num_colors - 1))) for i in range(num_colors)]
 
 color_mapping = {category: colors[i % num_colors] for i, category in enumerate(selected_categories)}
 
-if st.checkbox("Select Colors for Columns", key="color_selection"):
+if st.checkbox("Select Colors for Columns"):
     for i, category in enumerate(selected_categories):
-        color_mapping[category] = st.selectbox(f"Select Color for '{category}' in {map_column}:", options=colors, index=i, key=f"color_{category}")
+        color_mapping[category] = st.selectbox(f"Select Color for '{category}' in {map_column}:", options=colors, index=i)
 
 # Check if columns are selected for merging
 if len(shapefile_columns) == 2 and len(excel_columns) == 2:
-    column1_line_color = st.selectbox(f"Select Line Color for '{shapefile_columns[0]}' boundaries:", options=["White", "Black", "Red"], index=1, key="column1_line_color")
-    column1_line_width = st.slider(f"Select Line Width for '{shapefile_columns[0]}' boundaries:", min_value=0.5, max_value=10.0, value=2.5, key="column1_line_width")
-    column2_line_color = st.selectbox(f"Select Line Color for '{shapefile_columns[1]}' boundaries:", options=["White", "Black", "Red"], index=1, key="column2_line_color")
-    column2_line_width = st.slider(f"Select Line Width for '{shapefile_columns[1]}' boundaries:", min_value=0.5, max_value=10.0, value=2.5, key="column2_line_width")
+    column1_line_color = st.selectbox(f"Select Line Color for '{shapefile_columns[0]}' boundaries:", options=["White", "Black", "Red"], index=1)
+    column1_line_width = st.slider(f"Select Line Width for '{shapefile_columns[0]}' boundaries:", min_value=0.5, max_value=10.0, value=2.5)
+    column2_line_color = st.selectbox(f"Select Line Color for '{shapefile_columns[1]}' boundaries:", options=["White", "Black", "Red"], index=1)
+    column2_line_width = st.slider(f"Select Line Width for '{shapefile_columns[1]}' boundaries:", min_value=0.5, max_value=10.0, value=2.5)
 elif len(shapefile_columns) == 1 and len(excel_columns) == 1:
-    column1_line_color = st.selectbox(f"Select Line Color for '{shapefile_columns[0]}' boundaries:", options=["White", "Black", "Red"], index=1, key="column1_line_color_single")
-    column1_line_width = st.slider(f"Select Line Width for '{shapefile_columns[0]}' boundaries:", min_value=0.5, max_value=10.0, value=2.5, key="column1_line_width_single")
-    column2_line_color = "White"  # Default value for single column
-    column2_line_width = 1.0  # Default value for single column
+    column1_line_color = st.selectbox(f"Select Line Color for '{shapefile_columns[0]}' boundaries:", options=["White", "Black", "Red"], index=1)
+    column1_line_width = st.slider(f"Select Line Width for '{shapefile_columns[0]}' boundaries:", min_value=0.5, max_value=10.0, value=2.5)
+    column2_line_color = None
+    column2_line_width = None
 else:
     st.warning("Please select the same number of columns from the shapefile and Excel file (either one or two).")
 
-if st.button("Generate Map", key="generate_map"):
+if st.button("Generate Map"):
     try:
         # Merge the shapefile and Excel data based on the selected columns
         merged_gdf = gdf
@@ -132,49 +132,58 @@ if st.button("Generate Map", key="generate_map"):
             ax.set_axis_off()
             
             # Create legend handles with category counts
-            if st.checkbox("Show Category Counts and Missing Value Labels", key="show_counts_labels"):
+            handles = []
+            for cat in selected_categories:
+                label_with_count = f"{cat} ({category_counts.get(cat, 0)})"
+                handles.append(Patch(color=color_mapping.get(cat, missing_value_color.lower()), label=label_with_count))
+            
+            handles.append(Patch(color=missing_value_color.lower(), label=f"{missing_value_label} ({df[map_column].isna().sum()})"))
+            
+            ax.legend(handles=handles, title=legend_title, bbox_to_anchor=(1.05, 1), loc='upper left')
+            
+            # Save or display the general map
+            general_map_path = f"/tmp/{image_name}_general.png"
+            plt.savefig(general_map_path, dpi=300, bbox_inches='tight')
+            st.image(general_map_path, caption="General Map", use_column_width=True)
+            plt.close(fig)
+
+            # Plot each unique `FIRST_DNAM` separately
+            first_dnam_values = merged_gdf['FIRST_DNAM'].unique()
+
+            for value in first_dnam_values:
+                fig, ax = plt.subplots(1, 1, figsize=(12, 12))
+                subset_gdf = merged_gdf[merged_gdf['FIRST_DNAM'] == value]
+
+                # Set default line color and width for subset
+                subset_boundary_color = column1_line_color.lower() if column1_line_color else line_color.lower()
+                subset_boundary_width = column1_line_width if column1_line_width else boundary_width
+
+                subset_gdf.boundary.plot(ax=ax, edgecolor=subset_boundary_color, linewidth=subset_boundary_width)
+                subset_gdf.plot(column=map_column, ax=ax, linewidth=subset_boundary_width, edgecolor=subset_boundary_color, cmap=custom_cmap,
+                                legend=False, missing_kwds={'color': missing_value_color.lower(), 'edgecolor': subset_boundary_color, 'label': missing_value_label})
+
+                # Add text labels for each `FIRST_CHIE`
+                for idx, row in subset_gdf.iterrows():
+                    ax.text(row.geometry.centroid.x, row.geometry.centroid.y, row['FIRST_CHIE'], fontsize=10, ha='center', color='black')
+
+                ax.set_title(f"{map_title} - {value}", fontsize=font_size, fontweight='bold')
+                ax.set_axis_off()
+
+                # Create legend handles with category counts
                 handles = []
                 for cat in selected_categories:
                     label_with_count = f"{cat} ({category_counts.get(cat, 0)})"
                     handles.append(Patch(color=color_mapping.get(cat, missing_value_color.lower()), label=label_with_count))
 
-                handles.append(Patch(color=missing_value_color.lower(), label=f"{missing_value_label} ({merged_gdf[map_column].isna().sum()})"))
+                handles.append(Patch(color=missing_value_color.lower(), label=f"{missing_value_label} ({subset_gdf[map_column].isna().sum()})"))
 
                 ax.legend(handles=handles, title=legend_title, bbox_to_anchor=(1.05, 1), loc='upper left')
 
-            # Save or display the general map
-            general_map_path = f"{image_name}_general_map.png"
-            plt.savefig(general_map_path, bbox_inches='tight')
-            st.image(general_map_path, caption=f"{map_title} (General Map)", use_column_width=True)
+                # Save or display each subplot
+                subplot_path = f"/tmp/{image_name}_{value}.png"
+                plt.savefig(subplot_path, dpi=300, bbox_inches='tight')
+                st.image(subplot_path, caption=f"Map for {value}", use_column_width=True)
+                plt.close(fig)
 
-            # Display separate maps for each unique value of FIRST_DNAM
-            for first_dnam_value in merged_gdf['FIRST_DNAM'].unique():
-                subset_gdf = merged_gdf[merged_gdf['FIRST_DNAM'] == first_dnam_value]
-                
-                fig, ax = plt.subplots(1, 1, figsize=(12, 12))
-                subset_gdf.boundary.plot(ax=ax, edgecolor=boundary_color, linewidth=boundary_width)
-                
-                subset_gdf.plot(column=map_column, ax=ax, linewidth=boundary_width, edgecolor=boundary_color, cmap=custom_cmap,
-                                legend=False, missing_kwds={'color': missing_value_color.lower(), 'edgecolor': boundary_color, 'label': missing_value_label})
-                
-                ax.set_title(f"{map_title} - {first_dnam_value}", fontsize=font_size, fontweight='bold')
-                ax.set_axis_off()
-                
-                # Create legend handles for subset map
-                if st.checkbox("Show Category Counts and Missing Value Labels", key=f"show_counts_labels_{first_dnam_value}"):
-                    handles = []
-                    for cat in selected_categories:
-                        label_with_count = f"{cat} ({category_counts.get(cat, 0)})"
-                        handles.append(Patch(color=color_mapping.get(cat, missing_value_color.lower()), label=label_with_count))
-                    
-                    handles.append(Patch(color=missing_value_color.lower(), label=f"{missing_value_label} ({subset_gdf[map_column].isna().sum()})"))
-                    
-                    ax.legend(handles=handles, title=legend_title, bbox_to_anchor=(1.05, 1), loc='upper left')
-
-                # Save or display the subset map
-                subset_map_path = f"{image_name}_{first_dnam_value}.png"
-                plt.savefig(subset_map_path, bbox_inches='tight')
-                st.image(subset_map_path, caption=f"{map_title} - {first_dnam_value}", use_column_width=True)
-                
     except Exception as e:
         st.error(f"An error occurred: {e}")
