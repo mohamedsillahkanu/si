@@ -99,11 +99,6 @@ elif len(shapefile_columns) == 1 and len(excel_columns) == 1:
 else:
     st.warning("Please select the same number of columns from the shapefile and Excel file (either one or two).")
 
-# Options for displaying additional elements
-show_category_counts = st.checkbox("Show Category Counts", value=True)
-show_missing_value_label = st.checkbox("Show Missing Value Label", value=True)
-show_first_dnam_subplots = st.checkbox("Show FIRST_DNAM Subplots", value=True)
-
 if st.button("Generate Map"):
     try:
         # Merge the shapefile and Excel data based on the selected columns
@@ -119,73 +114,76 @@ if st.button("Generate Map"):
             # Plot the general map with the legend
             fig, ax = plt.subplots(1, 1, figsize=(12, 12))
             
+            # Set default line color and width
+            boundary_color = line_color.lower()
+            boundary_width = line_width
+            
             # Plot boundaries with the selected line width
-            merged_gdf.boundary.plot(ax=ax, edgecolor=line_color.lower(), linewidth=line_width)
+            merged_gdf.boundary.plot(ax=ax, edgecolor=boundary_color, linewidth=boundary_width)
             
             # Apply custom colors if specified
             custom_cmap = ListedColormap([color_mapping.get(cat, missing_value_color.lower()) for cat in selected_categories])
             
             # Plot the map data with categories
-            merged_gdf.plot(column=map_column, ax=ax, linewidth=line_width, edgecolor=line_color.lower(), cmap=custom_cmap,
-                            legend=False, missing_kwds={'color': missing_value_color.lower(), 'edgecolor': line_color.lower(), 'label': missing_value_label if show_missing_value_label else None})
+            merged_gdf.plot(column=map_column, ax=ax, linewidth=boundary_width, edgecolor=boundary_color, cmap=custom_cmap,
+                            legend=False, missing_kwds={'color': missing_value_color.lower(), 'edgecolor': boundary_color, 'label': missing_value_label})
             
             ax.set_title(f"{map_title} (General Map)", fontsize=font_size, fontweight='bold')
             ax.set_axis_off()
             
             # Create legend handles with category counts
             handles = []
-            if show_category_counts:
-                for cat in selected_categories:
-                    label_with_count = f"{cat} ({category_counts.get(cat, 0)})"
-                    handles.append(Patch(color=color_mapping.get(cat, missing_value_color.lower()), label=label_with_count))
+            for cat in selected_categories:
+                label_with_count = f"{cat} ({category_counts.get(cat, 0)})"
+                handles.append(Patch(color=color_mapping.get(cat, missing_value_color.lower()), label=label_with_count))
             
-            if show_missing_value_label:
-                handles.append(Patch(color=missing_value_color.lower(), label=f"{missing_value_label} ({df[map_column].isna().sum()})"))
+            handles.append(Patch(color=missing_value_color.lower(), label=f"{missing_value_label} ({df[map_column].isna().sum()})"))
             
-            if handles:
-                ax.legend(handles=handles, title=legend_title, bbox_to_anchor=(1.05, 1), loc='upper left')
+            ax.legend(handles=handles, title=legend_title, bbox_to_anchor=(1.05, 1), loc='upper left')
             
             # Save or display the general map
             general_map_path = f"/tmp/{image_name}_general.png"
             plt.savefig(general_map_path, dpi=300, bbox_inches='tight')
             st.image(general_map_path, caption="General Map", use_column_width=True)
-            plt.close()
+            plt.close(fig)
 
-            if show_first_dnam_subplots:
-                # Create subplots for FIRST_DNAM
-                for shapefile_column in shapefile_columns:
-                    fig, ax = plt.subplots(1, 1, figsize=(12, 12))
-                    
-                    # Plot boundaries with the selected line width
-                    merged_gdf.boundary.plot(ax=ax, edgecolor=column1_line_color.lower(), linewidth=column1_line_width)
-                    
-                    # Apply custom colors if specified
-                    merged_gdf.plot(column=shapefile_column, ax=ax, linewidth=column1_line_width, edgecolor=column1_line_color.lower(), cmap=custom_cmap,
-                                    legend=False, missing_kwds={'color': missing_value_color.lower(), 'edgecolor': column1_line_color.lower(), 'label': missing_value_label if show_missing_value_label else None})
-                    
-                    ax.set_title(f"{map_title} - {shapefile_column}", fontsize=font_size, fontweight='bold')
-                    ax.set_axis_off()
-                    
-                    # Create legend handles with category counts
-                    handles = []
-                    if show_category_counts:
-                        for cat in selected_categories:
-                            label_with_count = f"{cat} ({category_counts.get(cat, 0)})"
-                            handles.append(Patch(color=color_mapping.get(cat, missing_value_color.lower()), label=label_with_count))
-                    
-                    if show_missing_value_label:
-                        handles.append(Patch(color=missing_value_color.lower(), label=f"{missing_value_label} ({df[map_column].isna().sum()})"))
-                    
-                    if handles:
-                        ax.legend(handles=handles, title=legend_title, bbox_to_anchor=(1.05, 1), loc='upper left')
-                    
-                    # Save or display the FIRST_DNAM subplot
-                    subplot_path = f"/tmp/{image_name}_{shapefile_column}.png"
-                    plt.savefig(subplot_path, dpi=300, bbox_inches='tight')
-                    st.image(subplot_path, caption=f"{shapefile_column} Subplot", use_column_width=True)
-                    plt.close()
-            else:
-                st.warning("No FIRST_DNAM subplots to display.")
-    
+            # Plot each unique `FIRST_DNAM` separately
+            first_dnam_values = merged_gdf['FIRST_DNAM'].unique()
+
+            for value in first_dnam_values:
+                fig, ax = plt.subplots(1, 1, figsize=(12, 12))
+                subset_gdf = merged_gdf[merged_gdf['FIRST_DNAM'] == value]
+
+                # Set default line color and width for subset
+                subset_boundary_color = column1_line_color.lower() if column1_line_color else line_color.lower()
+                subset_boundary_width = column1_line_width if column1_line_width else boundary_width
+
+                subset_gdf.boundary.plot(ax=ax, edgecolor=subset_boundary_color, linewidth=subset_boundary_width)
+                subset_gdf.plot(column=map_column, ax=ax, linewidth=subset_boundary_width, edgecolor=subset_boundary_color, cmap=custom_cmap,
+                                legend=False, missing_kwds={'color': missing_value_color.lower(), 'edgecolor': subset_boundary_color, 'label': missing_value_label})
+
+                # Add text labels for each `FIRST_CHIE`
+                for idx, row in subset_gdf.iterrows():
+                    ax.text(row.geometry.centroid.x, row.geometry.centroid.y, row['FIRST_CHIE'], fontsize=10, ha='center', color='black')
+
+                ax.set_title(f"{map_title} - {value}", fontsize=font_size, fontweight='bold')
+                ax.set_axis_off()
+
+                # Create legend handles with category counts
+                handles = []
+                for cat in selected_categories:
+                    label_with_count = f"{cat} ({category_counts.get(cat, 0)})"
+                    handles.append(Patch(color=color_mapping.get(cat, missing_value_color.lower()), label=label_with_count))
+
+                handles.append(Patch(color=missing_value_color.lower(), label=f"{missing_value_label} ({subset_gdf[map_column].isna().sum()})"))
+
+                ax.legend(handles=handles, title=legend_title, bbox_to_anchor=(1.05, 1), loc='upper left')
+
+                # Save or display each subplot
+                subplot_path = f"/tmp/{image_name}_{value}.png"
+                plt.savefig(subplot_path, dpi=300, bbox_inches='tight')
+                st.image(subplot_path, caption=f"Map for {value}", use_column_width=True)
+                plt.close(fig)
+
     except Exception as e:
         st.error(f"An error occurred: {e}")
