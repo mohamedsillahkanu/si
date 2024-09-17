@@ -233,17 +233,17 @@ sample_output_DHS_Data_r = "https://example.com/dhs_image.png"  # Replace with a
 sample_output_DHS_Data_python = "https://example.com/dhs_image.png"  # Replace with actual image URL
 
 sample_output_Climate_Data_r = "https://example.com/climate_image.png"  # Replace with actual image URL
-
 sample_output_Climate_Data_python = "https://example.com/climate_image.png"  # Replace with actual image URL
 
 
-sample_output_lmis = "https://example.com/lmis_image.png"  # Replace with actual image URL
+sample_output_LMIS_Data_r = "https://example.com/lmis_image.png"  # Replace with actual image URL
+sample_output_LMIS_Data_python = "https://example.com/lmis_image.png"  # Replace with actual image URL
 
+sample_output_Modeled_Data_r = "https://example.com/modeled_image.png"  # Replace with actual image URL
+sample_output_Modeled_Data_python = "https://example.com/modeled_image.png"  # Replace with actual image URL
 
-sample_output_modeled = "https://example.com/modeled_image.png"  # Replace with actual image URL
-
-
-sample_output_population = "https://example.com/population_image.png"  # Replace with actual image URL
+sample_output_Population_Data_r = "https://example.com/population_image.png"  # Replace with actual image URL
+sample_output_Population_Data = "https://example.com/population_image.png"  # Replace with actual image URL
 
 # Display content based on selected options
 if data_option == 'Shapefiles':
