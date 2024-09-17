@@ -112,7 +112,7 @@ if st.button("Generate Map"):
             st.error(f"The column '{map_column}' does not exist in the merged dataset.")
         else:
             # Plot each unique `first_dnam` separately
-            first_dnam_values = merged_gdf['first_dnam'].unique()
+            first_dnam_values = merged_gdf['FIRST_DNAM'].unique()
 
             for value in first_dnam_values:
                 fig, ax = plt.subplots(1, 1, figsize=(10, 10))
