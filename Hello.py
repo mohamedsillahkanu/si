@@ -131,12 +131,7 @@ if st.button("Generate Map"):
             ax.set_title(f"{map_title} (General Map)", fontsize=font_size, fontweight='bold')
             ax.set_axis_off()
             
-            # Create legend handles
-            handles = []
-            for cat in selected_categories:
-                handles.append(Patch(color=color_mapping.get(cat, missing_value_color.lower()), label=cat))
-            
-            handles.append(Patch(color=missing_value_color.lower(), label=missing_value_label))
+        
             
             ax.legend(handles=handles, title=legend_title, bbox_to_anchor=(1.05, 1), loc='upper left')
             
@@ -158,28 +153,25 @@ if st.button("Generate Map"):
                 subset_boundary_width = column1_line_width if column1_line_width else boundary_width
 
                 subset_gdf.boundary.plot(ax=ax, edgecolor=subset_boundary_color, linewidth=subset_boundary_width)
-                subset_gdf.plot(column=map_column, ax=ax, linewidth=subset_boundary_width, edgecolor=subset_boundary_color,
-                                cmap=custom_cmap, legend=False,
-                                missing_kwds={'color': missing_value_color.lower(), 'edgecolor': subset_boundary_color, 'label': missing_value_label})
-                
-                ax.set_title(f"{map_title} (Subset: {value})", fontsize=font_size, fontweight='bold')
+                subset_gdf.plot(column=map_column, ax=ax, linewidth=subset_boundary_width, edgecolor=subset_boundary_color, cmap=custom_cmap,
+                                legend=False, missing_kwds={'color': missing_value_color.lower(), 'edgecolor': subset_boundary_color, 'label': missing_value_label})
+
+                # Add text labels for each `FIRST_CHIE`
+                for idx, row in subset_gdf.iterrows():
+                    ax.text(row.geometry.centroid.x, row.geometry.centroid.y, row['FIRST_CHIE'], fontsize=10, ha='center', color='black')
+
+                ax.set_title(f"{map_title} - {value}", fontsize=font_size, fontweight='bold')
                 ax.set_axis_off()
 
-                # Create legend handles for the subset
-                subset_handles = []
-                for cat in selected_categories:
-                    subset_handles.append(Patch(color=color_mapping.get(cat, missing_value_color.lower()), label=cat))
-                
-                subset_handles.append(Patch(color=missing_value_color.lower(), label=missing_value_label))
-                
-                ax.legend(handles=subset_handles, title=legend_title, bbox_to_anchor=(1.05, 1), loc='upper left')
+               
 
-                # Save or display the subset map
-                subset_map_path = f"/tmp/{image_name}_subset_{value}.png"
-                plt.savefig(subset_map_path, dpi=300, bbox_inches='tight')
-                st.image(subset_map_path, caption=f"Subset Map: {value}", use_column_width=True)
+                ax.legend(title=legend_title, bbox_to_anchor=(1.05, 1), loc='upper left')
+
+                # Save or display each subplot
+                subplot_path = f"/tmp/{image_name}_{value}.png"
+                plt.savefig(subplot_path, dpi=300, bbox_inches='tight')
+                st.image(subplot_path, caption=f"Map for {value}", use_column_width=True)
                 plt.close(fig)
 
     except Exception as e:
         st.error(f"An error occurred: {e}")
-
