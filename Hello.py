@@ -47,7 +47,7 @@ if variable_type == "Categorical":
 elif variable_type == "Numeric":
     try:
         # Allow user to input custom labels for bins, accepting decimal intervals
-        bin_labels_input = st.text_input("Enter labels for bins (comma-separated, e.g., '10-20.5, 20.6-30.1, >30.2'):")
+        bin_labels_input = st.text_input("Enter labels for bins (comma-separated, e.g., '10-20.5, 20.6-30.1, >30.2'): ")
         bin_labels = [label.strip() for label in bin_labels_input.split(',')]
 
         # Convert the labels into bin ranges, supporting decimal points
@@ -118,22 +118,23 @@ if st.button("Generate Map"):
         else:
             fig, ax = plt.subplots(1, 1, figsize=(10, 10))
 
-            # Apply custom colors if specified
-            custom_cmap = ListedColormap([color_mapping[cat] for cat in selected_categories])
-
-            # Plot the main map with default line settings
-            merged_gdf.plot(column=map_column, ax=ax, linewidth=line_width, edgecolor=line_color.lower(), cmap=custom_cmap, 
-                            legend=False, missing_kwds={'color': missing_value_color.lower(), 'edgecolor': line_color.lower(), 'label': missing_value_label})
-            ax.set_title(map_title, fontsize=font_size, fontweight='bold')
-            ax.set_axis_off()
-
-            # Dissolve the GeoDataFrame by a column if specified
+            # Dissolve the GeoDataFrame by the first shapefile column
             if len(shapefile_columns) > 0:
                 dissolved_gdf = merged_gdf.dissolve(by=shapefile_columns[0])
                 dissolved_gdf.boundary.plot(ax=ax, edgecolor=column1_line_color.lower(), linewidth=column1_line_width)
+
+                # Dissolve further by the second shapefile column if provided
                 if len(shapefile_columns) > 1:
                     dissolved_gdf2 = merged_gdf.dissolve(by=shapefile_columns[1])
                     dissolved_gdf2.boundary.plot(ax=ax, edgecolor=column2_line_color.lower(), linewidth=column2_line_width)
+
+            # Apply custom colors and plot the categorized map data
+            custom_cmap = ListedColormap([color_mapping[cat] for cat in selected_categories])
+            merged_gdf.plot(column=map_column, ax=ax, linewidth=0, edgecolor='none', cmap=custom_cmap,
+                            legend=False, missing_kwds={'color': missing_value_color.lower(), 'edgecolor': line_color.lower(), 'label': missing_value_label})
+
+            ax.set_title(map_title, fontsize=font_size, fontweight='bold')
+            ax.set_axis_off()
 
             # Create legend handles with category counts
             handles = []
@@ -142,29 +143,15 @@ if st.button("Generate Map"):
                 handles.append(Patch(color=color_mapping[cat], label=label_with_count))
 
             # Add missing value handle
-            handles.append(Patch(color=missing_value_color.lower(), label=f"{missing_value_label} ({df[map_column].isna().sum()})"))
+            handles.append(Patch(color=missing_value_color.lower(), label=f"{missing_value_label} ({category_counts.get('missing', 0)})"))
 
-            # Customize and position the legend in the lower left outside the map
-            legend = ax.legend(
-                handles=handles, 
-                title=legend_title, 
-                fontsize=10, 
-                loc='lower left', 
-                bbox_to_anchor=(-0.5, 0),  # Lower-left position outside the map
-                frameon=True, 
-                framealpha=1, 
-                edgecolor='black', 
-                fancybox=True
-            )
+            # Add legend
+            ax.legend(handles=handles, title=legend_title, bbox_to_anchor=(1.05, 1), loc='upper left')
 
-            # Bold the title and categories
-            plt.setp(legend.get_title(), fontsize=10, fontweight='bold')
-            plt.setp(legend.get_texts(), fontsize=10, fontweight='bold')
-
+            # Save or display the map
+            st.pyplot(fig)
+            fig.savefig(f"{image_name}.png", bbox_inches='tight')
+            st.success(f"Map saved as '{image_name}.png'.")
             
-
-            # Save and display the map
-            plt.savefig(f"/tmp/{image_name}.png", dpi=300, bbox_inches='tight')
-            st.image(f"/tmp/{image_name}.png", caption="Generated Map", use_column_width=True)
     except Exception as e:
-        st.error(f"An error occurred: {str(e)}")
+        st.error(f"An error occurred: {e}")
