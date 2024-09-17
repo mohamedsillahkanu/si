@@ -114,7 +114,7 @@ if st.button("Generate Map"):
             fig, ax = plt.subplots(1, 1, figsize=(12, 12))
             
             # Plot boundaries with the selected line width and color
-            merged_gdf.boundary.plot(ax=ax, edgecolor=line_color.lower(), linewidth=line_width)
+            merged_gdf.boundary.plot(ax=ax, edgecolor=column2_line_color, linewidth=column2_line_color)
             gdf.dissolve(by='FIRST_DNAM').boundary.plot(ax=ax, color=column1_line_color, linewidth=column1_line_width )
             
             # Apply custom colors if specified
