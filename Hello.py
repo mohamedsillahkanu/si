@@ -7,8 +7,8 @@ from matplotlib.colors import ListedColormap, to_hex
 import requests
 from io import BytesIO
 
-# Direct URL to the shapefile on GitHub
-shapefile_base_url = "https://github.com/mohamedsillahkanu/si/raw/e1c761955bbbb09b49d5ab40d51409632a71395c"
+# Correct URL to the raw shapefile on GitHub
+shapefile_base_url = "https://raw.githubusercontent.com/mohamedsillahkanu/si/e1c761955bbbb09b49d5ab40d51409632a71395c/"
 shapefile_name = "Chiefdom 2021"
 
 # Function to download shapefile and associated files
@@ -17,17 +17,25 @@ def download_shapefile(base_url, file_name):
     local_files = []
     for file_extension in files:
         url = f"{base_url}{file_name}{file_extension}"
-        response = requests.get(url)
-        response.raise_for_status()
-        local_file = f"/tmp/{file_name}{file_extension}"
-        with open(local_file, "wb") as f:
-            f.write(response.content)
-        local_files.append(local_file)
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+            local_file = f"/tmp/{file_name}{file_extension}"
+            with open(local_file, "wb") as f:
+                f.write(response.content)
+            local_files.append(local_file)
+        except requests.HTTPError as e:
+            st.error(f"Failed to download {file_name}{file_extension}: {e}")
+            return []
     return local_files
 
 # Download shapefile
 shapefile_files = download_shapefile(shapefile_base_url, shapefile_name)
-gdf = gpd.read_file(shapefile_files[0])
+if shapefile_files:
+    gdf = gpd.read_file(shapefile_files[0])
+else:
+    st.error("Failed to download shapefile. Please check the URL or your connection.")
+    st.stop()
 
 st.image("icf_sl (1).jpg", caption="MAP GENERATOR", use_column_width=True)
 
@@ -140,34 +148,29 @@ if uploaded_excel_file:
             elif len(shapefile_columns) == 1 and len(excel_columns) == 1:
                 merged_gdf = merged_gdf.merge(df, left_on=shapefile_columns[0], right_on=excel_columns[0], how='left')
 
-            if map_column not in merged_gdf.columns:
-                st.error(f"The column '{map_column}' does not exist in the merged dataset.")
-            else:
-                fig, ax = plt.subplots(1, 1, figsize=(10, 10))
-                merged_gdf.plot(column=map_column, ax=ax, legend=True, cmap=ListedColormap(colors), legend_kwds={"label": map_column})
+            # Plotting
+            fig, ax = plt.subplots(figsize=(10, 10))
+            if column2_line_color:
+                merged_gdf.plot(column=shapefile_columns[1], ax=ax, edgecolor=column2_line_color.lower(), linewidth=column2_line_width, legend=True, cmap=color_palette_name)
+            if column1_line_color:
+                merged_gdf.plot(column=shapefile_columns[0], ax=ax, edgecolor=column1_line_color.lower(), linewidth=column1_line_width, legend=True, cmap=color_palette_name)
 
-                # Plot boundaries with custom line settings
-                if len(shapefile_columns) == 2 and len(excel_columns) == 2:
-                    merged_gdf.boundary.plot(ax=ax, linewidth=column1_line_width, edgecolor=column1_line_color.lower())
-                elif len(shapefile_columns) == 1 and len(excel_columns) == 1:
-                    merged_gdf.boundary.plot(ax=ax, linewidth=column1_line_width, edgecolor=column1_line_color.lower())
+            # Customize the map title and legend
+            if map_title:
+                ax.set_title(map_title, fontsize=font_size)
 
-                # Customize the map title and legend
-                if map_title:
-                    ax.set_title(map_title, fontsize=font_size)
+            legend_labels = [Patch(color=color_mapping[cat], label=cat) for cat in selected_categories]
+            ax.legend(handles=legend_labels, title=legend_title, fontsize=font_size)
 
-                legend_labels = [Patch(color=color_mapping[cat], label=cat) for cat in selected_categories]
-                ax.legend(handles=legend_labels, title=legend_title, fontsize=font_size)
+            st.pyplot(fig)
 
-                st.pyplot(fig)
-
-                # Save and display the image
-                fig.savefig(f"{image_name}.png", dpi=300, bbox_inches='tight')
-                with open(f"{image_name}.png", "rb") as file:
-                    st.download_button(label="Download Map Image", data=file, file_name=f"{image_name}.png", mime="image/png")
+            # Save and display the image
+            fig.savefig(f"{image_name}.png", dpi=300, bbox_inches='tight')
+            with open(f"{image_name}.png", "rb") as file:
+                st.download_button(label="Download Map Image", data=file, file_name=f"{image_name}.png", mime="image/png")
 
         except Exception as e:
             st.error(f"An error occurred: {e}")
 
 else:
-    st.warning("Please upload an Excel file to proceed.")
+    st.warning("Please upload an Excel file.")
