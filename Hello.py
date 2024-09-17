@@ -170,4 +170,4 @@ if uploaded_excel_file:
             st.error(f"An error occurred: {e}")
 
 else:
-    st.warning("Please upload an Excel file.")
+    st.warning("Please upload an Excel file to proceed.")
