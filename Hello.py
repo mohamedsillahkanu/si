@@ -131,7 +131,13 @@ if st.button("Generate Map"):
             ax.set_title(f"{map_title} (General Map)", fontsize=font_size, fontweight='bold')
             ax.set_axis_off()
             
-        
+            # Create legend handles with category counts
+            handles = []
+            for cat in selected_categories:
+                label_with_count = f"{cat} ({category_counts.get(cat, 0)})"
+                handles.append(Patch(color=color_mapping.get(cat, missing_value_color.lower()), label=label_with_count))
+            
+            handles.append(Patch(color=missing_value_color.lower(), label=f"{missing_value_label} ({df[map_column].isna().sum()})"))
             
             ax.legend(handles=handles, title=legend_title, bbox_to_anchor=(1.05, 1), loc='upper left')
             
@@ -163,9 +169,15 @@ if st.button("Generate Map"):
                 ax.set_title(f"{map_title} - {value}", fontsize=font_size, fontweight='bold')
                 ax.set_axis_off()
 
-               
+                # Create legend handles with category counts
+                handles = []
+                for cat in selected_categories:
+                    label_with_count = f"{cat} ({category_counts.get(cat, 0)})"
+                    handles.append(Patch(color=color_mapping.get(cat, missing_value_color.lower()), label=label_with_count))
 
-                ax.legend(title=legend_title, bbox_to_anchor=(1.05, 1), loc='upper left')
+                handles.append(Patch(color=missing_value_color.lower(), label=f"{missing_value_label} ({subset_gdf[map_column].isna().sum()})"))
+
+                ax.legend(handles=handles, title=legend_title, bbox_to_anchor=(1.05, 1), loc='upper left')
 
                 # Save or display each subplot
                 subplot_path = f"/tmp/{image_name}_{value}.png"
