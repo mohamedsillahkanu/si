@@ -21,14 +21,14 @@ image_name = st.text_input("Image Name:", value="map_image")
 font_size = st.slider("Font Size (for Map Title):", min_value=8, max_value=24, value=15)
 color_palette_name = st.selectbox("Color Palette:", options=list(plt.colormaps()), index=list(plt.colormaps()).index('Set3'))
 
-line_color = st.selectbox("Select Default Line Color:", options=["White", "Black", "Red"], index=1)
-line_width = st.slider("Select Default Line Width:", min_value=0.5, max_value=5.0, value=2.5)
+#line_color = st.selectbox("Select Default Line Color:", options=["White", "Black", "Red"], index=1)
+#line_width = st.slider("Select Default Line Width:", min_value=0.5, max_value=5.0, value=2.5)
 
 missing_value_color = st.selectbox("Select Color for Missing Values:", options=["White", "Gray", "Red"], index=1)
 missing_value_label = st.text_input("Label for Missing Values:", value="No Data")
 
 # Initialize category_counts
-category_counts = {}
+#category_counts = {}
 
 variable_type = st.radio("Select the variable type:", options=["Categorical", "Numeric"])
 
@@ -41,9 +41,9 @@ if variable_type == "Categorical":
     df[map_column] = pd.Categorical(df[map_column], categories=selected_categories, ordered=True)
 
     # Ensure the counts for each category remain consistent
-    for category in selected_categories:
-        if category not in category_counts:
-            category_counts[category] = 0
+    #for category in selected_categories:
+        #if category not in category_counts:
+            #category_counts[category] = 0
 
 elif variable_type == "Numeric":
     try:
@@ -115,11 +115,11 @@ if st.button("Generate Map"):
             fig, ax = plt.subplots(1, 1, figsize=(12, 12))
             
             # Set default line color and width
-            boundary_color = line_color.lower()
-            boundary_width = line_width
+            #boundary_color = line_color.lower()
+            #boundary_width = line_width
             
             # Plot boundaries with the selected line width
-            merged_gdf.boundary.plot(ax=ax, edgecolor=boundary_color, linewidth=boundary_width)
+            merged_gdf.boundary.plot(ax=ax, edgecolor=column1_line_color, linewidth= column1_line_width)
             
             # Apply custom colors if specified
             custom_cmap = ListedColormap([color_mapping.get(cat, missing_value_color.lower()) for cat in selected_categories])
@@ -155,8 +155,8 @@ if st.button("Generate Map"):
                 subset_gdf = merged_gdf[merged_gdf['FIRST_DNAM'] == value]
 
                 # Set default line color and width for subset
-                subset_boundary_color = column1_line_color.lower() if column1_line_color else line_color.lower()
-                subset_boundary_width = column1_line_width if column1_line_width else boundary_width
+                subset_boundary_color = column2_line_color.lower() if column1_line_color else line_color.lower()
+                subset_boundary_width = column2_line_width if column1_line_width else boundary_width
 
                 subset_gdf.boundary.plot(ax=ax, edgecolor=subset_boundary_color, linewidth=subset_boundary_width)
                 subset_gdf.plot(column=map_column, ax=ax, linewidth=subset_boundary_width, edgecolor=subset_boundary_color, cmap=custom_cmap,
