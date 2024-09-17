@@ -131,7 +131,7 @@ if st.button("Generate Map"):
             ax.set_title(f"{map_title} (General Map)", fontsize=font_size, fontweight='bold')
             ax.set_axis_off()
             
-            # Create legend handles without category counts and missing data counts
+            # Create legend handles
             handles = []
             for cat in selected_categories:
                 handles.append(Patch(color=color_mapping.get(cat, missing_value_color.lower()), label=cat))
@@ -151,36 +151,35 @@ if st.button("Generate Map"):
 
             for value in first_dnam_values:
                 fig, ax = plt.subplots(1, 1, figsize=(12, 12))
-                
-                # Filter data for current `FIRST_DNAM`
                 subset_gdf = merged_gdf[merged_gdf['FIRST_DNAM'] == value]
+
+                # Set default line color and width for subset
+                subset_boundary_color = column1_line_color.lower() if column1_line_color else line_color.lower()
+                subset_boundary_width = column1_line_width if column1_line_width else boundary_width
+
+                subset_gdf.boundary.plot(ax=ax, edgecolor=subset_boundary_color, linewidth=subset_boundary_width)
+                subset_gdf.plot(column=map_column, ax=ax, linewidth=subset_boundary_width, edgecolor=subset_boundary_color,
+                                cmap=custom_cmap, legend=False,
+                                missing_kwds={'color': missing_value_color.lower(), 'edgecolor': subset_boundary_color, 'label': missing_value_label})
                 
-                # Plot boundaries with the selected line width
-                subset_gdf.boundary.plot(ax=ax, edgecolor=boundary_color, linewidth=boundary_width)
-                
-                # Apply custom colors if specified
-                subset_gdf.plot(column=map_column, ax=ax, linewidth=boundary_width, edgecolor=boundary_color, cmap=custom_cmap,
-                                legend=False, missing_kwds={'color': missing_value_color.lower(), 'edgecolor': boundary_color, 'label': missing_value_label})
-                
-                ax.set_title(f"{map_title} ({value})", fontsize=font_size, fontweight='bold')
+                ax.set_title(f"{map_title} (Subset: {value})", fontsize=font_size, fontweight='bold')
                 ax.set_axis_off()
-                
-                # Create legend handles without category counts and missing data counts
-                handles = []
+
+                # Create legend handles for the subset
+                subset_handles = []
                 for cat in selected_categories:
-                    handles.append(Patch(color=color_mapping.get(cat, missing_value_color.lower()), label=cat))
+                    subset_handles.append(Patch(color=color_mapping.get(cat, missing_value_color.lower()), label=cat))
                 
-                handles.append(Patch(color=missing_value_color.lower(), label=missing_value_label))
+                subset_handles.append(Patch(color=missing_value_color.lower(), label=missing_value_label))
                 
-                ax.legend(handles=handles, title=legend_title, bbox_to_anchor=(1.05, 1), loc='upper left')
-                
-                # Save or display the maps for each unique `FIRST_DNAM`
-                specific_map_path = f"/tmp/{image_name}_{value}.png"
-                plt.savefig(specific_map_path, dpi=300, bbox_inches='tight')
-                st.image(specific_map_path, caption=f"Map for {value}", use_column_width=True)
+                ax.legend(handles=subset_handles, title=legend_title, bbox_to_anchor=(1.05, 1), loc='upper left')
+
+                # Save or display the subset map
+                subset_map_path = f"/tmp/{image_name}_subset_{value}.png"
+                plt.savefig(subset_map_path, dpi=300, bbox_inches='tight')
+                st.image(subset_map_path, caption=f"Subset Map: {value}", use_column_width=True)
                 plt.close(fig)
-                
-            st.success("Maps have been generated successfully.")
 
     except Exception as e:
         st.error(f"An error occurred: {e}")
+
