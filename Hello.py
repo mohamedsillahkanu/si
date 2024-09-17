@@ -21,20 +21,20 @@ image_name = st.text_input("Image Name:", value="map_image")
 font_size = st.slider("Font Size (for Map Title):", min_value=8, max_value=24, value=15)
 color_palette_name = st.selectbox("Color Palette:", options=list(plt.colormaps()), index=list(plt.colormaps()).index('Set3'))
 
-line_color = st.selectbox("Select Default Line Color:", options=["White", "Black", "Red"], index=1)
-line_width = st.slider("Select Default Line Width:", min_value=0.5, max_value=5.0, value=2.5)
+line_color = st.selectbox("Select Default Line Color:", options=["White", "Black", "Red"], index=1, key="line_color")
+line_width = st.slider("Select Default Line Width:", min_value=0.5, max_value=5.0, value=2.5, key="line_width")
 
-missing_value_color = st.selectbox("Select Color for Missing Values:", options=["White", "Gray", "Red"], index=1)
-missing_value_label = st.text_input("Label for Missing Values:", value="No Data")
+missing_value_color = st.selectbox("Select Color for Missing Values:", options=["White", "Gray", "Red"], index=1, key="missing_value_color")
+missing_value_label = st.text_input("Label for Missing Values:", value="No Data", key="missing_value_label")
 
 # Initialize category_counts
 category_counts = {}
 
-variable_type = st.radio("Select the variable type:", options=["Categorical", "Numeric"])
+variable_type = st.radio("Select the variable type:", options=["Categorical", "Numeric"], key="variable_type")
 
 if variable_type == "Categorical":
     unique_values = sorted(df[map_column].dropna().unique().tolist())
-    selected_categories = st.multiselect(f"Select Categories for the Legend of {map_column}:", unique_values, default=unique_values)
+    selected_categories = st.multiselect(f"Select Categories for the Legend of {map_column}:", unique_values, default=unique_values, key="selected_categories")
     category_counts = df[map_column].value_counts().to_dict()
 
     # Reorder the categories to match the selected categories order
@@ -47,7 +47,7 @@ if variable_type == "Categorical":
 
 elif variable_type == "Numeric":
     try:
-        bin_labels_input = st.text_input("Enter labels for bins (comma-separated, e.g., '10-20.5, 20.6-30.1, >30.2'): ")
+        bin_labels_input = st.text_input("Enter labels for bins (comma-separated, e.g., '10-20.5, 20.6-30.1, >30.2'): ", key="bin_labels_input")
         bin_labels = [label.strip() for label in bin_labels_input.split(',')]
 
         bins = []
@@ -81,25 +81,25 @@ colors = [to_hex(cmap(i / (num_colors - 1))) for i in range(num_colors)]
 
 color_mapping = {category: colors[i % num_colors] for i, category in enumerate(selected_categories)}
 
-if st.checkbox("Select Colors for Columns"):
+if st.checkbox("Select Colors for Columns", key="color_selection"):
     for i, category in enumerate(selected_categories):
-        color_mapping[category] = st.selectbox(f"Select Color for '{category}' in {map_column}:", options=colors, index=i)
+        color_mapping[category] = st.selectbox(f"Select Color for '{category}' in {map_column}:", options=colors, index=i, key=f"color_{category}")
 
 # Check if columns are selected for merging
 if len(shapefile_columns) == 2 and len(excel_columns) == 2:
-    column1_line_color = st.selectbox(f"Select Line Color for '{shapefile_columns[0]}' boundaries:", options=["White", "Black", "Red"], index=1)
-    column1_line_width = st.slider(f"Select Line Width for '{shapefile_columns[0]}' boundaries:", min_value=0.5, max_value=10.0, value=2.5)
-    column2_line_color = st.selectbox(f"Select Line Color for '{shapefile_columns[1]}' boundaries:", options=["White", "Black", "Red"], index=1)
-    column2_line_width = st.slider(f"Select Line Width for '{shapefile_columns[1]}' boundaries:", min_value=0.5, max_value=10.0, value=2.5)
+    column1_line_color = st.selectbox(f"Select Line Color for '{shapefile_columns[0]}' boundaries:", options=["White", "Black", "Red"], index=1, key="column1_line_color")
+    column1_line_width = st.slider(f"Select Line Width for '{shapefile_columns[0]}' boundaries:", min_value=0.5, max_value=10.0, value=2.5, key="column1_line_width")
+    column2_line_color = st.selectbox(f"Select Line Color for '{shapefile_columns[1]}' boundaries:", options=["White", "Black", "Red"], index=1, key="column2_line_color")
+    column2_line_width = st.slider(f"Select Line Width for '{shapefile_columns[1]}' boundaries:", min_value=0.5, max_value=10.0, value=2.5, key="column2_line_width")
 elif len(shapefile_columns) == 1 and len(excel_columns) == 1:
-    column1_line_color = st.selectbox(f"Select Line Color for '{shapefile_columns[0]}' boundaries:", options=["White", "Black", "Red"], index=1)
-    column1_line_width = st.slider(f"Select Line Width for '{shapefile_columns[0]}' boundaries:", min_value=0.5, max_value=10.0, value=2.5)
+    column1_line_color = st.selectbox(f"Select Line Color for '{shapefile_columns[0]}' boundaries:", options=["White", "Black", "Red"], index=1, key="column1_line_color_single")
+    column1_line_width = st.slider(f"Select Line Width for '{shapefile_columns[0]}' boundaries:", min_value=0.5, max_value=10.0, value=2.5, key="column1_line_width_single")
     column2_line_color = "White"  # Default value for single column
     column2_line_width = 1.0  # Default value for single column
 else:
     st.warning("Please select the same number of columns from the shapefile and Excel file (either one or two).")
 
-if st.button("Generate Map"):
+if st.button("Generate Map", key="generate_map"):
     try:
         # Merge the shapefile and Excel data based on the selected columns
         merged_gdf = gdf
@@ -132,16 +132,16 @@ if st.button("Generate Map"):
             ax.set_axis_off()
             
             # Create legend handles with category counts
-            if st.checkbox("Show Category Counts and Missing Value Labels"):
+            if st.checkbox("Show Category Counts and Missing Value Labels", key="show_counts_labels"):
                 handles = []
                 for cat in selected_categories:
                     label_with_count = f"{cat} ({category_counts.get(cat, 0)})"
                     handles.append(Patch(color=color_mapping.get(cat, missing_value_color.lower()), label=label_with_count))
 
-                handles.append(Patch(color=missing_value_color.lower(), label=f"{missing_value_label} ({df[map_column].isna().sum()})"))
+                handles.append(Patch(color=missing_value_color.lower(), label=f"{missing_value_label} ({merged_gdf[map_column].isna().sum()})"))
 
                 ax.legend(handles=handles, title=legend_title, bbox_to_anchor=(1.05, 1), loc='upper left')
-            
+
             # Save or display the general map
             general_map_path = f"{image_name}_general_map.png"
             plt.savefig(general_map_path, bbox_inches='tight')
@@ -161,7 +161,7 @@ if st.button("Generate Map"):
                 ax.set_axis_off()
                 
                 # Create legend handles for subset map
-                if st.checkbox("Show Category Counts and Missing Value Labels"):
+                if st.checkbox("Show Category Counts and Missing Value Labels", key=f"show_counts_labels_{first_dnam_value}"):
                     handles = []
                     for cat in selected_categories:
                         label_with_count = f"{cat} ({category_counts.get(cat, 0)})"
