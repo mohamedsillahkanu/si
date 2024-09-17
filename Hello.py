@@ -92,6 +92,8 @@ elif len(shapefile_columns) == 1 and len(excel_columns) == 1:
 else:
     st.warning("Please select the same number of columns from the shapefile and Excel file (either one or two).")
 
+display_option = st.radio("Select Display Option:", options=["General Map", "Maps for Each Unique FIRST_DNAM"])
+
 if st.button("Generate Map"):
     try:
         merged_gdf = gdf
@@ -103,7 +105,32 @@ if st.button("Generate Map"):
         if map_column not in merged_gdf.columns:
             st.error(f"The column '{map_column}' does not exist in the merged dataset.")
         else:
-            if st.checkbox("Display Maps for Each Unique FIRST_DNAM"):
+            if display_option == "General Map":
+                fig, ax = plt.subplots(1, 1, figsize=(12, 12))
+                merged_gdf.boundary.plot(ax=ax, edgecolor=line_color.lower(), linewidth=line_width)
+                merged_gdf.plot(column=map_column, ax=ax, linewidth=line_width, edgecolor=line_color.lower(), cmap=cmap,
+                                legend=True, missing_kwds={'color': missing_value_color.lower(), 'edgecolor': line_color.lower(), 'label': missing_value_label})
+
+                # Create legend handles with category counts
+                handles = []
+                for cat in selected_categories:
+                    label_with_count = f"{cat} ({category_counts.get(cat, 0)})"
+                    handles.append(Patch(color=color_mapping.get(cat, missing_value_color.lower()), label=label_with_count))
+
+                handles.append(Patch(color=missing_value_color.lower(), label=f"{missing_value_label} ({merged_gdf[map_column].isna().sum()})"))
+
+                ax.legend(handles=handles, title=legend_title, bbox_to_anchor=(1.05, 1), loc='upper left')
+
+                ax.set_title(map_title, fontsize=font_size, fontweight='bold')
+                ax.set_axis_off()
+
+                # Save or display the general map
+                general_map_path = f"/tmp/{image_name}_general_map.png"
+                plt.savefig(general_map_path, dpi=300, bbox_inches='tight')
+                st.image(general_map_path, caption="General Map", use_column_width=True)
+                plt.close(fig)
+
+            elif display_option == "Maps for Each Unique FIRST_DNAM":
                 first_dnam_values = merged_gdf['FIRST_DNAM'].unique()
                 for value in first_dnam_values:
                     fig, ax = plt.subplots(1, 1, figsize=(12, 12))
@@ -114,7 +141,7 @@ if st.button("Generate Map"):
                     subset_boundary_width = column1_line_width if column1_line_width else line_width
 
                     subset_gdf.boundary.plot(ax=ax, edgecolor=subset_boundary_color, linewidth=subset_boundary_width)
-                    subset_gdf.plot(column=map_column, ax=ax, linewidth=subset_boundary_width, edgecolor=subset_boundary_color, cmap=custom_cmap,
+                    subset_gdf.plot(column=map_column, ax=ax, linewidth=subset_boundary_width, edgecolor=subset_boundary_color, cmap=cmap,
                                     legend=False, missing_kwds={'color': missing_value_color.lower(), 'edgecolor': subset_boundary_color, 'label': missing_value_label})
 
                     # Add text labels for each `FIRST_CHIE`
