@@ -186,10 +186,24 @@ In essence, this R code sets up an environment for spatial data analysis, import
 """
 
 explanation_python_shapefiles = """
-The Python code demonstrates how to import and visualize shapefiles using `geopandas` and `matplotlib`.
-1. `gpd.read_file()` reads the shapefile data.
-2. `shapefile_data.plot()` creates a plot of the shapefile geometries.
-3. `ax.grid(False)` and `ax.set_axis_off()` customize the plot by removing grid lines and axis details.
+1. **Install Libraries**: First, you install the necessary libraries using a command. These libraries are essential for handling and visualizing geospatial data.
+
+2. **Import Libraries**: You import two libraries:
+   - `geopandas` for working with geospatial data.
+   - `matplotlib.pyplot` for creating plots.
+
+3. **Define Shapefile Path**: Specify the location of the shapefile on your system. This file contains the geospatial data you want to work with.
+
+4. **Read Shapefile**: Load the shapefile into a data structure called a GeoDataFrame. This structure is designed to handle spatial data efficiently.
+
+5. **Preview the Data**: Display the first few rows of the GeoDataFrame to check the contents and ensure the data has been loaded correctly.
+
+6. **Create and Customize Plot**: Set up a plotting area and visualize the shapefile data. You plot the geometries of the shapefile, setting colors for the shapes and their boundaries.
+
+7. **Customize Plot Appearance**: Adjust the appearance of the plot by adding a title and removing grid lines and axis details to focus on the spatial features.
+
+8. **Show the Plot**: Render and display the plot so you can view the visual representation of the geospatial data. 
+
 """
 
 explanation_r_health_facilities = """
