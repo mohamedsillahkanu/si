@@ -18,8 +18,13 @@ image_name = st.text_input("Image Name:", value="map_image")
 font_size = st.slider("Font Size (for Map Title):", min_value=8, max_value=24, value=15)
 color_palette_name = st.selectbox("Color Palette:", options=list(plt.colormaps()), index=list(plt.colormaps()).index('Set3'))
 
-line_color = st.selectbox("Select Line Color for FIRST_DNAM subplots:", options=["None", "White", "Black", "Red"], index=1)
-line_width = st.slider("Select Line Width for FIRST_DNAM subplots:", min_value=0.5, max_value=5.0, value=2.5)
+# General map line color and width
+general_line_color = st.selectbox("Select Line Color for General Map:", options=["None", "White", "Black", "Red"], index=1)
+general_line_width = st.slider("Select Line Width for General Map:", min_value=0.5, max_value=5.0, value=2.5)
+
+# FIRST_DNAM subplots line color and width
+first_dnam_line_color = st.selectbox("Select Line Color for FIRST_DNAM Subplots:", options=["None", "White", "Black", "Red"], index=1)
+first_dnam_line_width = st.slider("Select Line Width for FIRST_DNAM Subplots:", min_value=0.5, max_value=5.0, value=2.5)
 
 missing_value_color = st.selectbox("Select Color for Missing Values:", options=["None", "White", "Gray", "Red"], index=1)
 missing_value_label = st.text_input("Label for Missing Values:", value="No Data")
@@ -110,16 +115,15 @@ if st.button("Generate Map"):
         else:
             if display_option == "General Map":
                 fig, ax = plt.subplots(1, 1, figsize=(12, 12))
-                merged_gdf.boundary.plot(ax=ax, edgecolor='black', linewidth=1)
-                merged_gdf.plot(column=map_column, ax=ax, linewidth=1, edgecolor='black', cmap=cmap,
-                                legend=True, missing_kwds={'color': missing_value_color.lower() if missing_value_color != 'None' else 'gray', 'edgecolor': 'black', 'label': missing_value_label if missing_value_label else None})
+                merged_gdf.boundary.plot(ax=ax, edgecolor=general_line_color.lower() if general_line_color != 'None' else 'black', linewidth=general_line_width)
+                merged_gdf.plot(column=map_column, ax=ax, linewidth=general_line_width, edgecolor=general_line_color.lower() if general_line_color != 'None' else 'black', cmap=cmap,
+                                legend=False, missing_kwds={'color': missing_value_color.lower() if missing_value_color != 'None' else 'gray', 'edgecolor': general_line_color.lower() if general_line_color != 'None' else 'black', 'label': missing_value_label if missing_value_label else None})
 
-                # Create legend handles with category counts if checkbox is selected
+                # Create legend handles
                 handles = []
-                if show_label_counts:
-                    for cat in selected_categories:
-                        label_with_count = f"{cat} ({category_counts.get(cat, 0)})"
-                        handles.append(Patch(color=color_mapping.get(cat, 'gray'), label=label_with_count))
+                for cat in selected_categories:
+                    label_with_count = f"{cat} ({category_counts.get(cat, 0)})" if show_label_counts else cat
+                    handles.append(Patch(color=color_mapping.get(cat, 'gray'), label=label_with_count))
 
                 if show_missing_data and missing_value_color != 'None':
                     handles.append(Patch(color=missing_value_color.lower(), label=f"{missing_value_label} ({merged_gdf[map_column].isna().sum()})"))
@@ -130,20 +134,21 @@ if st.button("Generate Map"):
                 ax.set_axis_off()
 
                 # Save or display the general map
-                general_map_path = f"/tmp/{image_name}_general_map.png"
+                general_map_path = f"/tmp/{image_name}_general.png"
                 plt.savefig(general_map_path, dpi=300, bbox_inches='tight')
                 st.image(general_map_path, caption="General Map", use_column_width=True)
                 plt.close(fig)
 
             elif display_option == "Maps for Each Unique FIRST_DNAM":
                 first_dnam_values = merged_gdf['FIRST_DNAM'].unique()
+
                 for value in first_dnam_values:
                     fig, ax = plt.subplots(1, 1, figsize=(12, 12))
                     subset_gdf = merged_gdf[merged_gdf['FIRST_DNAM'] == value]
 
-                    # Set line color and width only for FIRST_DNAM subplots
-                    subset_boundary_color = column1_line_color.lower() if column1_line_color else 'black'
-                    subset_boundary_width = column1_line_width if column1_line_width else 1
+                    # Set line color and width for FIRST_DNAM subplots
+                    subset_boundary_color = first_dnam_line_color.lower() if first_dnam_line_color != 'None' else 'black'
+                    subset_boundary_width = first_dnam_line_width if first_dnam_line_width else 1
 
                     subset_gdf.boundary.plot(ax=ax, edgecolor=subset_boundary_color, linewidth=subset_boundary_width)
                     subset_gdf.plot(column=map_column, ax=ax, linewidth=subset_boundary_width, edgecolor=subset_boundary_color, cmap=cmap,
@@ -158,10 +163,9 @@ if st.button("Generate Map"):
 
                     # Create legend handles with category counts if checkbox is selected
                     handles = []
-                    if show_label_counts:
-                        for cat in selected_categories:
-                            label_with_count = f"{cat} ({category_counts.get(cat, 0)})"
-                            handles.append(Patch(color=color_mapping.get(cat, 'gray'), label=label_with_count))
+                    for cat in selected_categories:
+                        label_with_count = f"{cat} ({category_counts.get(cat, 0)})" if show_label_counts else cat
+                        handles.append(Patch(color=color_mapping.get(cat, 'gray'), label=label_with_count))
 
                     if show_missing_data and missing_value_color != 'None':
                         handles.append(Patch(color=missing_value_color.lower(), label=f"{missing_value_label} ({subset_gdf[map_column].isna().sum()})"))
