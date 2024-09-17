@@ -85,7 +85,7 @@ if st.checkbox("Select Colors for Columns"):
     for i, category in enumerate(selected_categories):
         color_mapping[category] = st.selectbox(f"Select Color for '{category}' in {map_column}:", options=colors, index=i)
 
-# Check if columns are selected for merging
+# Check if two columns are selected for merging
 if len(shapefile_columns) == 2 and len(excel_columns) == 2:
     column1_line_color = st.selectbox(f"Select Line Color for '{shapefile_columns[0]}' boundaries:", options=["White", "Black", "Red"], index=1)
     column1_line_width = st.slider(f"Select Line Width for '{shapefile_columns[0]}' boundaries:", min_value=0.5, max_value=10.0, value=2.5)
