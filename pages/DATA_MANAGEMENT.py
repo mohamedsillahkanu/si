@@ -155,7 +155,6 @@ plt.show()
 
 # Explanations
 explanation_r_shapefiles = """
-Got it! Here’s an explanation of the R code for handling and visualizing shapefiles:
 
 ### **1. Installing and Loading Libraries**
 
