@@ -182,8 +182,8 @@ The Python code demonstrates how to create a bar plot for Health Facilities data
 """
 
 # Sample images for different options
-sample_output_shapefiles = "https://github.com/mohamedsillahkanu/si/blob/99ccc5bd8425859a0a801f01ca713e36edbd0c21/MAP_R.png?raw=true"
-sample_output_shapefiles = "https://github.com/mohamedsillahkanu/si/blob/d3705941c975aeab86e701d0d2093b38052a50e2/MAP_PYTHON.png?raw=true"
+sample_output_shapefiles_r = "https://github.com/mohamedsillahkanu/si/blob/99ccc5bd8425859a0a801f01ca713e36edbd0c21/MAP_R.png?raw=true"
+sample_output_shapefiles_python = "https://github.com/mohamedsillahkanu/si/blob/d3705941c975aeab86e701d0d2093b38052a50e2/MAP_PYTHON.png?raw=true"
 
 sample_output_health_facilities = "https://example.com/health_facilities_image.png"  # Replace with actual image URL
 
@@ -207,7 +207,8 @@ if data_option == 'Shapefiles':
     elif content_option == 'Explanation of Python Code':
         st.write(explanation_python_shapefiles)
     elif content_option == 'Sample Output':
-        st.image(sample_output_shapefiles, caption="Sample output of the Shapefiles code")
+        st.image(sample_output_shapefiles_r, caption="Sample output of the Shapefiles R code")
+        st.image(sample_output_shapefiles_python, caption="Sample output of the Shapefiles Python code")
 
 elif data_option == 'Health Facilities':
     st.subheader("Health Facilities Content")
@@ -225,37 +226,31 @@ elif data_option == 'Health Facilities':
 
 # Add similar conditions for other data options if needed
 elif data_option == 'Routine case data from DHIS2':
-    st.subheader("Routine case data from DHIS2 Content")
-    # Implement specific code and sample image for DHIS2 here
+    st.subheader("Routine case data from DHIS2")
     if content_option == 'Sample Output':
-        st.image(sample_output_dhis2, caption="Sample output of the DHIS2 code")
+        st.image(sample_output_dhis2, caption="Sample output of the Routine case data from DHIS2")
 
 elif data_option == 'DHS data':
-    st.subheader("DHS data Content")
-    # Implement specific code and sample image for DHS data here
+    st.subheader("DHS Data")
     if content_option == 'Sample Output':
-        st.image(sample_output_dhs, caption="Sample output of the DHS data code")
+        st.image(sample_output_dhs, caption="Sample output of the DHS data")
 
 elif data_option == 'Climate data':
-    st.subheader("Climate data Content")
-    # Implement specific code and sample image for Climate data here
+    st.subheader("Climate Data")
     if content_option == 'Sample Output':
-        st.image(sample_output_climate, caption="Sample output of the Climate data code")
+        st.image(sample_output_climate, caption="Sample output of the Climate data")
 
 elif data_option == 'LMIS data':
-    st.subheader("LMIS data Content")
-    # Implement specific code and sample image for LMIS data here
+    st.subheader("LMIS Data")
     if content_option == 'Sample Output':
-        st.image(sample_output_lmis, caption="Sample output of the LMIS data code")
+        st.image(sample_output_lmis, caption="Sample output of the LMIS data")
 
 elif data_option == 'Modeled data':
-    st.subheader("Modeled data Content")
-    # Implement specific code and sample image for Modeled data here
+    st.subheader("Modeled Data")
     if content_option == 'Sample Output':
-        st.image(sample_output_modeled, caption="Sample output of the Modeled data code")
+        st.image(sample_output_modeled, caption="Sample output of the Modeled data")
 
 elif data_option == 'Population data':
-    st.subheader("Population data Content")
-    # Implement specific code and sample image for Population data here
+    st.subheader("Population Data")
     if content_option == 'Sample Output':
-        st.image(sample_output_population, caption="Sample output of the Population data code")
+        st.image(sample_output_population, caption="Sample output of the Population data")
