@@ -307,8 +307,8 @@ elif data_option == 'Climate Data':
     elif content_option == 'Explanation of Python Code':
         st.write(explanation_python_Climate_Data)
     elif content_option == 'Sample Output':
-        st.image(sample_output_Climate_Data, caption="Sample output of the Climate Data")
-
+        st.image(sample_output_Climate_Data_r, caption="Sample output of the Climate Data R code")
+        st.image(sample_output_Climate_Data_python, caption="Sample output of the Climate Data python code")
 
 elif data_option == 'LMIS Data':
     st.subheader("LMIS Data Content")
@@ -322,7 +322,8 @@ elif data_option == 'LMIS Data':
     elif content_option == 'Explanation of Python Code':
         st.write(explanation_python_LMIS_Data)
     elif content_option == 'Sample Output':
-        st.image(sample_output_LMIS_Data, caption="Sample output of the LMIS Data")
+        st.image(sample_output_LMIS_Data_r, caption="Sample output of the LMIS Data R code")
+        st.image(sample_output_LMIS_Data_python, caption="Sample output of the LMIS Data python code")
 
 
 
@@ -339,7 +340,8 @@ elif data_option == 'Modeled Data':
     elif content_option == 'Explanation of Python Code':
         st.write(explanation_python_Modeled_Data)
     elif content_option == 'Sample Output':
-        st.image(sample_output_Modeled_Data, caption="Sample output of the Modeled Data")
+        st.image(sample_output_Modeled_Data_r, caption="Sample output of the Modeled Data R code")
+        st.image(sample_output_Modeled_Data_python, caption="Sample output of the Modeled Data Python code")
 
 
 
@@ -355,7 +357,8 @@ elif data_option == 'Population Data':
     elif content_option == 'Explanation of Python Code':
         st.write(explanation_python_Population_Data)
     elif content_option == 'Sample Output':
-        st.image(sample_output_Population_Data, caption="Sample output of the Population Data")
+        st.image(sample_output_Population_Data_r, caption="Sample output of the Population Data R code")
+        st.image(sample_output_Population_Data_python, caption="Sample output of the Population Data Python code")
 
 # Add similar conditions for other data options if needed
 elif data_option == 'Routine case data from DHIS2':
