@@ -10,9 +10,9 @@ from matplotlib.colors import ListedColormap, to_hex
 st.image("icf_sl (1).jpg", caption="MAP GENERATOR", use_column_width=True)
 
 # File uploads
-shp_file = st.file_uploader("Upload .shp File", type=["shp"])
-shx_file = st.file_uploader("Upload .shx File", type=["shx"])
-dbf_file = st.file_uploader("Upload .dbf File", type=["dbf"])
+shp_file = "https://raw.githubusercontent.com/mohamedsillahkanu/si/2b7f982174b609f9647933147dec2a59a33e736a/Chiefdom%202021.shp"
+shx_file = "https://raw.githubusercontent.com/mohamedsillahkanu/si/2b7f982174b609f9647933147dec2a59a33e736a/Chiefdom%202021.shx"
+dbf_file = "https://raw.githubusercontent.com/mohamedsillahkanu/si/2b7f982174b609f9647933147dec2a59a33e736a/Chiefdom%202021.dbf"
 xlsx_file = st.file_uploader("Upload Excel File (.xlsx)", type=["xlsx"])
 
 if shp_file and shx_file and dbf_file and xlsx_file:
