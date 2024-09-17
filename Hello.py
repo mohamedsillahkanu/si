@@ -85,7 +85,7 @@ if st.checkbox("Select Colors for Columns"):
     for i, category in enumerate(selected_categories):
         color_mapping[category] = st.selectbox(f"Select Color for '{category}' in {map_column}:", options=colors, index=i)
 
-# Check if two columns are selected for merging
+# Check if columns are selected for merging
 if len(shapefile_columns) == 2 and len(excel_columns) == 2:
     column1_line_color = st.selectbox(f"Select Line Color for '{shapefile_columns[0]}' boundaries:", options=["White", "Black", "Red"], index=1)
     column1_line_width = st.slider(f"Select Line Width for '{shapefile_columns[0]}' boundaries:", min_value=0.5, max_value=10.0, value=2.5)
@@ -147,9 +147,9 @@ if st.button("Generate Map"):
                 fig, ax = plt.subplots(1, 1, figsize=(12, 12))
                 subset_gdf = merged_gdf[merged_gdf['FIRST_DNAM'] == value]
 
-                subset_gdf.boundary.plot(ax=ax, edgecolor=line_color.lower(), linewidth=line_width)
-                subset_gdf.plot(column=map_column, ax=ax, linewidth=line_width, edgecolor=line_color.lower(), cmap=custom_cmap,
-                                legend=False, missing_kwds={'color': missing_value_color.lower(), 'edgecolor': line_color.lower(), 'label': missing_value_label})
+                subset_gdf.boundary.plot(ax=ax, edgecolor=column1_line_color.lower() if column1_line_color else line_color.lower(), linewidth=column1_line_width if column1_line_width else line_width)
+                subset_gdf.plot(column=map_column, ax=ax, linewidth=column1_line_width if column1_line_width else line_width, edgecolor=column1_line_color.lower() if column1_line_color else line_color.lower(), cmap=custom_cmap,
+                                legend=False, missing_kwds={'color': missing_value_color.lower(), 'edgecolor': column1_line_color.lower() if column1_line_color else line_color.lower(), 'label': missing_value_label})
 
                 # Add text labels for each `FIRST_CHIE`
                 for idx, row in subset_gdf.iterrows():
