@@ -116,7 +116,7 @@ if st.button("Generate Map"):
 
             for value in first_dnam_values:
                 fig, ax = plt.subplots(1, 1, figsize=(10, 10))
-                sub_gdf = merged_gdf[merged_gdf['first_dnam'] == value]
+                sub_gdf = merged_gdf[merged_gdf['FIRST_DNAM'] == value]
 
                 # Plot the boundaries first
                 sub_gdf.boundary.plot(ax=ax, edgecolor=line_color.lower(), linewidth=line_width)
