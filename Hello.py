@@ -3,15 +3,15 @@ import geopandas as gpd
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
-from matplotlib.colors import ListedColormap, to_hex
+from matplotlib.colors import to_hex
 import requests
 from io import BytesIO
 
-# Correct URL to the raw shapefile on GitHub
-shapefile_base_url = "https://raw.githubusercontent.com/mohamedsillahkanu/si/e1c761955bbbb09b49d5ab40d51409632a71395c/"
-shapefile_name = "Chiefdom 2021"
+# Correct URLs to the raw shapefile components on GitHub
+shapefile_base_url = "https://raw.githubusercontent.com/mohamedsillahkanu/si/2b7f982174b609f9647933147dec2a59a33e736a/"
+shapefile_name = "Chiefdom%202021"
 
-# Function to download shapefile and associated files
+# Function to download shapefile components
 def download_shapefile(base_url, file_name):
     files = ['.shp', '.shx', '.dbf']
     local_files = []
@@ -144,7 +144,8 @@ if uploaded_excel_file:
             # Merge the shapefile and Excel data based on the selected columns
             merged_gdf = gdf
             if len(shapefile_columns) == 2 and len(excel_columns) == 2:
-                merged_gdf = merged_gdf.merge(df, left_on=shapefile_columns, right_on=excel_columns, how='left')
+                merged_gdf = merged_gdf.merge(df, left_on=shapefile_columns[0], right_on=excel_columns[0], how='left')
+                merged_gdf = merged_gdf.merge(df, left_on=shapefile_columns[1], right_on=excel_columns[1], how='left')
             elif len(shapefile_columns) == 1 and len(excel_columns) == 1:
                 merged_gdf = merged_gdf.merge(df, left_on=shapefile_columns[0], right_on=excel_columns[0], how='left')
 
