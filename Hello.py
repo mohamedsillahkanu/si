@@ -21,8 +21,7 @@ image_name = st.text_input("Image Name:", value="map_image")
 font_size = st.slider("Font Size (for Map Title):", min_value=8, max_value=24, value=15)
 color_palette_name = st.selectbox("Color Palette:", options=list(plt.colormaps()), index=list(plt.colormaps()).index('Set3'))
 
-line_color = st.selectbox("Select Default Line Color:", options=["White", "Black", "Red"], index=1)
-line_width = st.slider("Select Default Line Width:", min_value=0.5, max_value=5.0, value=2.5)
+
 
 missing_value_color = st.selectbox("Select Color for Missing Values:", options=["White", "Gray", "Red"], index=1)
 missing_value_label = st.text_input("Label for Missing Values:", value="No Data")
@@ -116,7 +115,7 @@ if st.button("Generate Map"):
             
             # Plot boundaries with the selected line width and color
             merged_gdf.boundary.plot(ax=ax, edgecolor=line_color.lower(), linewidth=line_width)
-            gdf.dissolve(by='FIRST_DNAM').boundary.plot(ax=ax, color=line_color.lower(), linewidth=1)
+            gdf.dissolve(by='FIRST_DNAM').boundary.plot(ax=ax, color=column1_line_color, linewidth=column1_line_width )
             
             # Apply custom colors if specified
             custom_cmap = ListedColormap([color_mapping.get(cat, missing_value_color.lower()) for cat in selected_categories])
