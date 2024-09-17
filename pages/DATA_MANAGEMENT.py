@@ -56,72 +56,162 @@ content_option = st.selectbox(
     )
 )
 
-# Sample R and Python code for demonstration
-r_code = """
-# Load the ggplot2 library
-library(ggplot2)
+# Sample R and Python code for Shapefiles
+r_code_shapefiles = """
+# Install libraries
+install.packages("sf")      # For handling shapefiles
+install.packages("ggplot2") # For visualization
 
-# Create a simple scatter plot
-ggplot(data = mtcars, aes(x = wt, y = mpg)) +
-  geom_point() +
-  labs(title = "Scatter plot of mpg vs. weight",
-       x = "Weight (1000 lbs)",
-       y = "Miles per Gallon")
+# Load necessary libraries
+library(sf)       # For spatial data handling
+library(ggplot2)  # For visualization
+
+### A.1.1 Import shapefiles
+
+# Read a shapefile from a local directory
+shapefile_path <- "/content/Chiefdom 2021.shp"
+shapefile_data <- st_read(shapefile_path)
+
+# Preview the shapefile data
+print(head(shapefile_data))  # Shows the first few rows of the shapefile
+
+### A.1.4 Visualizing shapefiles and making basic maps
+
+# Plot the shapefile 
+ggplot(data = shapefile_data) +
+  geom_sf() +  # Plot the shapefile geometries
+  labs(title = "Basic Shapefile Map") +
+  theme_minimal() +
+  theme(panel.grid = element_blank(),     # Remove grid lines
+        axis.title = element_blank(),     # Remove axis titles
+        axis.text = element_blank(),      # Remove axis text
+        axis.ticks = element_blank())     # Remove axis ticks
 """
 
-python_code = """
+python_code_shapefiles = """
+!pip install geopandas matplotlib
+
+import geopandas as gpd
 import matplotlib.pyplot as plt
-import seaborn as sns
-import pandas as pd
 
-# Load dataset
-df = pd.DataFrame({
-    'Weight': [2.5, 3.5, 4.5, 5.5, 6.5],
-    'MPG': [25, 30, 22, 28, 24]
-})
+# Path to the shapefile (adjust the path as needed)
+shapefile_path = '/content/Chiefdom 2021.shp'
 
-# Create a scatter plot
-sns.scatterplot(x='Weight', y='MPG', data=df)
-plt.title('Scatter plot of MPG vs. Weight')
-plt.xlabel('Weight (1000 lbs)')
-plt.ylabel('Miles per Gallon')
+# Read the shapefile
+shapefile_data = gpd.read_file(shapefile_path)
+
+# Preview the shapefile data
+print(shapefile_data.head())  # Shows the first few rows of the shapefile
+
+# Plot the shapefile
+fig, ax = plt.subplots(figsize=(10, 10))
+shapefile_data.plot(ax=ax, color='lightblue', edgecolor='black')
+
+# Customize the plot to remove grid lines and axis labels
+ax.set_title('Basic Shapefile Map', fontsize=16)
+ax.grid(False)  # Remove grid lines
+ax.set_axis_off()  # Remove axis title, text, and ticks
+
+# Show the plot
 plt.show()
 """
 
-# Explanation of the R and Python code
-explanation_r = """
-The R code demonstrates how to create a scatter plot using the `ggplot2` library.
-1. `ggplot(data = mtcars, aes(x = wt, y = mpg))` initializes the plot with data.
-2. `geom_point()` adds points to the plot.
-3. `labs()` adds labels to the plot.
+# Sample code for Health Facilities (as an example, adjust as needed)
+r_code_health_facilities = """
+# Example R code for Health Facilities
+# Load necessary libraries
+library(ggplot2)
+
+# Sample data frame
+df <- data.frame(
+    Facility = c('Facility A', 'Facility B', 'Facility C'),
+    Cases = c(50, 100, 75)
+)
+
+# Plot the data
+ggplot(df, aes(x = Facility, y = Cases, fill = Facility)) +
+    geom_bar(stat = 'identity') +
+    labs(title = 'Health Facilities Cases') +
+    theme_minimal()
 """
 
-explanation_python = """
-The Python code demonstrates how to create a scatter plot using `seaborn` and `matplotlib`.
-1. `sns.scatterplot(x='Weight', y='MPG', data=df)` creates the scatter plot.
+python_code_health_facilities = """
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Sample data frame
+df = pd.DataFrame({
+    'Facility': ['Facility A', 'Facility B', 'Facility C'],
+    'Cases': [50, 100, 75]
+})
+
+# Plot the data
+plt.figure(figsize=(8, 6))
+plt.bar(df['Facility'], df['Cases'], color='skyblue')
+plt.title('Health Facilities Cases')
+plt.xlabel('Facility')
+plt.ylabel('Cases')
+plt.show()
+"""
+
+# Explanations
+explanation_r_shapefiles = """
+The R code demonstrates how to import and visualize shapefiles using the `sf` and `ggplot2` libraries.
+1. `st_read()` reads the shapefile data.
+2. `ggplot(data = shapefile_data) + geom_sf()` creates a plot of the shapefile geometries.
+3. `theme_minimal() + theme()` customizes the plot by removing grid lines and axis details.
+"""
+
+explanation_python_shapefiles = """
+The Python code demonstrates how to import and visualize shapefiles using `geopandas` and `matplotlib`.
+1. `gpd.read_file()` reads the shapefile data.
+2. `shapefile_data.plot()` creates a plot of the shapefile geometries.
+3. `ax.grid(False)` and `ax.set_axis_off()` customize the plot by removing grid lines and axis details.
+"""
+
+explanation_r_health_facilities = """
+The R code demonstrates how to create a bar plot for Health Facilities data using the `ggplot2` library.
+1. `ggplot(df, aes(x = Facility, y = Cases, fill = Facility))` initializes the plot with data.
+2. `geom_bar(stat = 'identity')` adds bars to the plot.
+3. `labs()` adds labels and titles.
+"""
+
+explanation_python_health_facilities = """
+The Python code demonstrates how to create a bar plot for Health Facilities data using `matplotlib`.
+1. `plt.bar(df['Facility'], df['Cases'], color='skyblue')` creates the bar plot.
 2. `plt.title()`, `plt.xlabel()`, and `plt.ylabel()` add labels and title.
 """
 
-# Sample Output URLs
-sample_output_r = "https://github.com/mohamedsillahkanu/si/blob/c6b5747886fb15b511fe99ac90afdbad64b0628f/image_10.png?raw=true"
-sample_output_python = "https://github.com/mohamedsillahkanu/si/blob/c6b5747886fb15b511fe99ac90afdbad64b0628f/image_10.png?raw=true"  # Replace with actual link
+# Sample Output URL
+sample_output = "https://github.com/mohamedsillahkanu/si/blob/c6b5747886fb15b511fe99ac90afdbad64b0628f/image_10.png?raw=true"  # Replace with actual link
 
 # Display content based on selected options
-if data_option != 'None':
-    st.subheader(f"Content for {data_option}")
+if data_option == 'Shapefiles':
+    st.subheader("Shapefiles Content")
     
     if content_option == 'See R Code':
-        st.code(r_code, language='r')
+        st.code(r_code_shapefiles, language='r')
     elif content_option == 'See Python Code':
-        st.code(python_code, language='python')
+        st.code(python_code_shapefiles, language='python')
     elif content_option == 'Explanation of R Code':
-        st.write(explanation_r)
+        st.write(explanation_r_shapefiles)
     elif content_option == 'Explanation of Python Code':
-        st.write(explanation_python)
+        st.write(explanation_python_shapefiles)
     elif content_option == 'Sample Output':
-        if 'R' in data_option:
-            st.image(sample_output_r, caption="Sample output of the R code")
-        else:
-            st.image(sample_output_python, caption="Sample output of the Python code")
+        st.image(sample_output, caption="Sample output of the code")
+
+elif data_option == 'Health Facilities':
+    st.subheader("Health Facilities Content")
+    
+    if content_option == 'See R Code':
+        st.code(r_code_health_facilities, language='r')
+    elif content_option == 'See Python Code':
+        st.code(python_code_health_facilities, language='python')
+    elif content_option == 'Explanation of R Code':
+        st.write(explanation_r_health_facilities)
+    elif content_option == 'Explanation of Python Code':
+        st.write(explanation_python_health_facilities)
+    # For sample output, you would add the relevant image or link for Health Facilities if available.
+
 else:
     st.write("Please select a data management option to view content.")
