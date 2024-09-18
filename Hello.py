@@ -4,6 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
 from matplotlib.colors import ListedColormap, to_hex
+import io
 
 st.image("icf_sl (1).jpg", caption="MAP GENERATOR", use_column_width=True)
 
@@ -142,13 +143,26 @@ if uploaded_file is not None:
                     # Normal legend without missing data
                     handles = [Patch(color=color_mapping[cat], label=f"{cat} ({category_counts.get(cat, 0)})") for cat in selected_categories]
 
-                # Create legend
+                # Create legend with bold text
                 legend = ax.legend(handles=handles, title=legend_title, fontsize=10, loc='lower left', bbox_to_anchor=(-0.5, 0), frameon=True)
                 plt.setp(legend.get_title(), fontsize=10, fontweight='bold')
+                plt.setp(legend.get_texts(), fontweight='bold')
 
-                # Save and display the map
-                plt.savefig(f"/tmp/{image_name}.png", dpi=300, bbox_inches='tight')
-                st.image(f"/tmp/{image_name}.png", caption="Generated Map", use_column_width=True)
+                # Save the map to a BytesIO object for downloading
+                img_bytes = io.BytesIO()
+                plt.savefig(img_bytes, format='png', dpi=300, bbox_inches='tight')
+                img_bytes.seek(0)
+
+                # Display the map in Streamlit
+                st.image(img_bytes, caption="Generated Map", use_column_width=True)
+
+                # Add download button
+                st.download_button(
+                    label="Download Map Image",
+                    data=img_bytes,
+                    file_name=f"{image_name}.png",
+                    mime="image/png"
+                )
 
         except Exception as e:
-            st.error(f"An error occurred: {str(e)}")
+            st.error(f"An error occurred while generating the map: {str(e)}")
