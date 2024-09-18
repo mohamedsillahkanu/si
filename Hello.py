@@ -9,7 +9,10 @@ from matplotlib.colors import ListedColormap, to_hex
 st.image("icf_sl (1).jpg", caption="MAP GENERATOR", use_column_width=True)
 
 # Load the shapefile
-gdf = gpd.read_file("https://raw.githubusercontent.com/mohamedsillahkanu/si/2b7f982174b609f9647933147dec2a59a33e736a/Chiefdom%202021.shp")
+try:
+    gdf = gpd.read_file("https://raw.githubusercontent.com/mohamedsillahkanu/si/2b7f982174b609f9647933147dec2a59a33e736a/Chiefdom%202021.shp")
+except Exception as e:
+    st.error(f"Error loading shapefile: {str(e)}")
 
 # Prompt the user to upload the Excel file
 uploaded_file = st.file_uploader("Upload your Excel file:", type=["xlsx"])
