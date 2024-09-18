@@ -31,13 +31,16 @@ if uploaded_file:
     image_name = st.text_input("Image Name:", value="")
     font_size = st.slider("Font Size (for Map Title):", min_value=8, max_value=24, value=15)
     color_palette_name = st.selectbox("Color Palette:", options=list(plt.colormaps()), index=list(plt.colormaps()).index('Set3'))
-    
-    # Line color and width settings
-    line_color = st.selectbox("Select Default Line Color:", options=["", "White", "Black", "Red"], index=1)
-    line_width = st.slider("Select Default Line Width:", min_value=0.5, max_value=5.0, value=2.5)
-    
+
+    # Line color and width settings for `FIRST_DNAM` and `FIRST_CHIE`
+    dn_line_color = st.selectbox("Select Line Color for FIRST_DNAM:", options=["White", "Black", "Red"])
+    dn_line_width = st.slider("Select Line Width for FIRST_DNAM:", min_value=0.5, max_value=5.0, value=2.5)
+
+    chie_line_color = st.selectbox("Select Line Color for FIRST_CHIE:", options=["White", "Black", "Red"])
+    chie_line_width = st.slider("Select Line Width for FIRST_CHIE:", min_value=0.5, max_value=5.0, value=2.5)
+
     # Missing value color and label
-    missing_value_color = st.selectbox("Select Color for Missing Values:", options=["", "White", "Gray", "Red"], index=1)
+    missing_value_color = st.selectbox("Select Color for Missing Values:", options=["White", "Gray", "Red"])
     missing_value_label = st.text_input("Label for Missing Values:", value="No Data")
 
     # Optional category counter selection
@@ -114,18 +117,22 @@ if uploaded_file:
 
                 # Apply custom colors
                 custom_cmap = ListedColormap([color_mapping[cat] for cat in selected_categories])
-                merged_gdf.plot(column=map_column, ax=ax, linewidth=line_width, edgecolor=line_color.lower(), cmap=custom_cmap, 
-                                legend=False, missing_kwds={'color': missing_value_color.lower(), 'edgecolor': line_color.lower(), 'label': missing_value_label})
+                merged_gdf.plot(column=map_column, ax=ax, linewidth=dn_line_width, edgecolor=dn_line_color.lower(), cmap=custom_cmap, 
+                                legend=False, missing_kwds={'color': missing_value_color.lower(), 'edgecolor': dn_line_color.lower(), 'label': missing_value_label})
+                
                 ax.set_title(map_title, fontsize=font_size, fontweight='bold')
                 ax.set_axis_off()
 
-                # Add the legend
+                # Add the legend without counters
+                handles = [Patch(color=color_mapping[cat], label=f"{cat}") for cat in selected_categories]
+                handles.append(Patch(color=missing_value_color.lower(), label=f"{missing_value_label}"))
+
+                # Add category counters if selected
                 if show_category_counter:
                     handles = [Patch(color=color_mapping[cat], label=f"{cat} ({category_counts.get(cat, 0)})") for cat in selected_categories]
-                    handles.append(Patch(color=missing_value_color.lower(), label=f"{missing_value_label} ({df[map_column].isna().sum()})"))
 
-                    ax.legend(handles=handles, title=legend_title, fontsize=10, loc='lower left', bbox_to_anchor=(-0.5, 0), 
-                              frameon=True, framealpha=1, edgecolor='black', fancybox=True)
+                ax.legend(handles=handles, title=legend_title, fontsize=10, loc='lower left', bbox_to_anchor=(-0.5, 0), 
+                          frameon=True, framealpha=1, edgecolor='black', fancybox=True)
 
                 # Save and display the map
                 plt.savefig(f"/tmp/{image_name}.png", dpi=300, bbox_inches='tight')
