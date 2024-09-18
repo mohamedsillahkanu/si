@@ -34,10 +34,10 @@ if uploaded_file:
 
     # Line width and color for FIRST_DNAM and FIRST_CHIE
     line_width_dnam = st.slider("Select Line Width for FIRST_DNAM:", min_value=0.5, max_value=5.0, value=2.5)
-    line_color_dnam = st.selectbox("Select Default Line Color:", options=["White", "Black", "Red"], index=1)
+    line_color_dnam = st.selectbox("Select Default Line Color:", options=["Blue","White", "Black", "Red"], index=1)
     
     line_width_chie = st.slider("Select Line Width for FIRST_CHIE:", min_value=0.5, max_value=5.0, value=2.5)
-    line_color_chie = st.selectbox("Select Default Line Color:", options=["White", "Black", "Red"], index=1)
+    line_color_chie = st.selectbox("Select Default Line Color:", options=["Blue","White", "Black", "Red"], index=1)
 
     # Missing value color and label
     missing_value_color = st.selectbox("Select Color for Missing Values:", options=["", "White", "Gray", "Red"], index=1)
