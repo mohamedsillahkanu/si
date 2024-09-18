@@ -36,12 +36,11 @@ if uploaded_file:
     color_palette_name = st.selectbox("Color Palette:", options=list(plt.colormaps()), index=list(plt.colormaps()).index('Set3'))
 
     # Line width and color for FIRST_DNAM and FIRST_CHIE
-    line_width_dnam = st.slider("Select Line Width for FIRST_DNAM:", min_value=0.5, max_value=5.0, value=2.5, key="line_width_dnam")
-    line_color_dnam = st.selectbox("Select Default Line Color for FIRST_DNAM:", options=["Blue", "White", "Black", "Red"], index=1, key="line_color_dnam")
-
-    line_width_chie = st.slider("Select Line Width for FIRST_CHIE:", min_value=0.5, max_value=5.0, value=2.5, key="line_width_chie")
-    line_color_chie = st.selectbox("Select Default Line Color for FIRST_CHIE:", options=["Blue", "White", "Black", "Red"], index=1, key="line_color_chie")
-
+    line_width_dnam = st.slider("Select Line Width for FIRST_DNAM:", min_value=0.5, max_value=5.0, value=2.5)
+    line_color_dnam = st.selectbox("Select Default Line Color:", options=["Blue","White", "Black", "Red"], index=1)
+    
+    line_width_chie = st.slider("Select Line Width for FIRST_CHIE:", min_value=0.5, max_value=5.0, value=2.5)
+    line_color_chie = st.selectbox("Select Default Line Color:", options=["Blue","White", "Black", "Red"], index=1)
 
     # Missing value color and label
     missing_value_color = st.selectbox("Select Color for Missing Values:", options=["", "White", "Gray", "Red"], index=1)
@@ -132,7 +131,7 @@ if uploaded_file:
                 # Add the legend
                 if show_category_counter:
                     handles = [Patch(color=color_mapping[cat], label=f"{cat} ({category_counts.get(cat, 0)})") for cat in selected_categories]
-                    handles.append(Patch(color=missing_value_color.lower(), label=f"{missing_value_label} ({df[map_column].isna().sum()})"))
+                    #handles.append(Patch(color=missing_value_color.lower(), label=f"{missing_value_label} ({df[map_column].isna().sum()})"))
 
                     ax.legend(handles=handles, title=legend_title, fontsize=10, loc='lower left', bbox_to_anchor=(-0.5, 0), 
                               frameon=True, framealpha=1, edgecolor='black', fancybox=True)
