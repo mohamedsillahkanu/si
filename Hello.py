@@ -31,14 +31,17 @@ if uploaded_file:
     image_name = st.text_input("Image Name:", value="")
     font_size = st.slider("Font Size (for Map Title):", min_value=8, max_value=24, value=15)
     color_palette_name = st.selectbox("Color Palette:", options=list(plt.colormaps()), index=list(plt.colormaps()).index('Set3'))
+
+    # Line width and color for FIRST_DNAM and FIRST_CHIE
+    line_width_dnam = st.slider("Select Line Width for FIRST_DNAM:", min_value=0.5, max_value=5.0, value=2.5)
+    line_color_dnam = st.color_picker("Select Line Color for FIRST_DNAM:", "#000000")
     
-    # Line color and width settings
-    line_color = st.selectbox("Select Default Line Color:", options=["", "White", "Black", "Red"], index=1)
-    line_width = st.slider("Select Default Line Width:", min_value=0.5, max_value=5.0, value=2.5)
-    
+    line_width_chie = st.slider("Select Line Width for FIRST_CHIE:", min_value=0.5, max_value=5.0, value=2.5)
+    line_color_chie = st.color_picker("Select Line Color for FIRST_CHIE:", "#000000")
+
     # Missing value color and label
     missing_value_color = st.selectbox("Select Color for Missing Values:", options=["", "White", "Gray", "Red"], index=1)
-    missing_value_label = st.text_input("Label for Missing Values:", value="No Data")
+    missing_value_label = st.text_input("Label for Missing Values:", value="")
 
     # Optional category counter selection
     show_category_counter = st.checkbox("Show Category Counts", value=False)
@@ -114,10 +117,13 @@ if uploaded_file:
 
                 # Apply custom colors
                 custom_cmap = ListedColormap([color_mapping[cat] for cat in selected_categories])
-                merged_gdf.plot(column=map_column, ax=ax, linewidth=line_width, edgecolor=line_color.lower(), cmap=custom_cmap, 
-                                legend=False, missing_kwds={'color': missing_value_color.lower(), 'edgecolor': line_color.lower(), 'label': missing_value_label})
+                merged_gdf.plot(column=map_column, ax=ax, linewidth=line_width_dnam, edgecolor=line_color_dnam, cmap=custom_cmap, 
+                                legend=False, missing_kwds={'color': missing_value_color.lower(), 'edgecolor': line_color_dnam, 'label': missing_value_label})
                 ax.set_title(map_title, fontsize=font_size, fontweight='bold')
                 ax.set_axis_off()
+
+                # Apply line style for FIRST_CHIE
+                merged_gdf.boundary.plot(ax=ax, linewidth=line_width_chie, edgecolor=line_color_chie)
 
                 # Add the legend
                 if show_category_counter:
