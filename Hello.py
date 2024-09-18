@@ -34,10 +34,10 @@ if uploaded_file:
 
     # Line width and color for FIRST_DNAM and FIRST_CHIE
     line_width_dnam = st.slider("Select Line Width for FIRST_DNAM:", min_value=0.5, max_value=5.0, value=2.5)
-    line_color_dnam = st.selectbox("Select Default Line Color:", options=["Blue","White", "Black", "Red"], index=1)
+    line_color_dnam = st.selectbox("Select Line Color for FIRST_DNAM:", options=["Blue","White", "Black", "Red"], index=1)
     
     line_width_chie = st.slider("Select Line Width for FIRST_CHIE:", min_value=0.5, max_value=5.0, value=2.5)
-    line_color_chie = st.selectbox("Select Default Line Color:", options=["Blue","White", "Black", "Red"], index=1)
+    line_color_chie = st.selectbox("Select Line Color for FIRST_CHIE:", options=["Blue","White", "Black", "Red"], index=1)
 
     # Missing value color and label
     missing_value_color = st.selectbox("Select Color for Missing Values:", options=["", "White", "Gray", "Red"], index=1)
@@ -137,4 +137,4 @@ if uploaded_file:
                 plt.savefig(f"/tmp/{image_name}.png", dpi=300, bbox_inches='tight')
                 st.image(f"/tmp/{image_name}.png", caption="Generated Map", use_column_width=True)
         except Exception as e:
-            st.error(f"An error occurred: {str(e)}") 
+            st.error(f"An error occurred: {str(e)}")
