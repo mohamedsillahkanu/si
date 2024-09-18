@@ -28,20 +28,19 @@ if uploaded_file:
     # Inputs for map title, legend title, etc.
     map_title = st.text_input("Map Title:")
     legend_title = st.text_input("Legend Title:")
-    image_name = st.text_input("Image Name:", value="")
     font_size = st.slider("Font Size (for Map Title):", min_value=8, max_value=24, value=15)
     color_palette_name = st.selectbox("Color Palette:", options=list(plt.colormaps()), index=list(plt.colormaps()).index('Set3'))
 
     # Line width and color for FIRST_DNAM and FIRST_CHIE
     line_width_dnam = st.slider("Select Line Width for FIRST_DNAM:", min_value=0.5, max_value=5.0, value=2.5)
-    line_color_dnam = st.selectbox("Select Default Line Color for District boundary:", options=["Blue","White", "Black", "Red"], index=1)
+    line_color_dnam = st.color_picker("Select Line Color for FIRST_DNAM:", "#000000")
     
     line_width_chie = st.slider("Select Line Width for FIRST_CHIE:", min_value=0.5, max_value=5.0, value=2.5)
-    line_color_chie = st.selectbox("Select Default Line Color for Chiefdom boundaries:", options=["Blue","White", "Black", "Red"], index=1)
+    line_color_chie = st.color_picker("Select Line Color for FIRST_CHIE:", "#000000")
 
     # Missing value color and label
     missing_value_color = st.selectbox("Select Color for Missing Values:", options=["", "White", "Gray", "Red"], index=1)
-    missing_value_label = st.text_input("Label for Missing Values:", value="")
+    missing_value_label = st.text_input("Label for Missing Values:", value="No Data")
 
     # Optional category counter selection
     show_category_counter = st.checkbox("Show Category Counts", value=False)
@@ -133,8 +132,7 @@ if uploaded_file:
                     ax.legend(handles=handles, title=legend_title, fontsize=10, loc='lower left', bbox_to_anchor=(-0.5, 0), 
                               frameon=True, framealpha=1, edgecolor='black', fancybox=True)
 
-                # Save and display the map
-                plt.savefig(f"/tmp/{image_name}.png", dpi=300, bbox_inches='tight')
-                st.image(f"/tmp/{image_name}.png", caption="Generated Map", use_column_width=True)
+                # Display the map using st.pyplot
+                st.pyplot(fig)
         except Exception as e:
             st.error(f"An error occurred: {str(e)}")
