@@ -36,23 +36,14 @@ if uploaded_file is not None:
     missing_value_color = st.selectbox("Select Color for Missing Values:", options=["White", "Gray", "Red"], index=1)
     missing_value_label = st.text_input("Label for Missing Values:", value="No Data")
 
-    # Initialize category_counts
-    category_counts = {}
-
     variable_type = st.radio("Select the variable type:", options=["Categorical", "Numeric"])
 
     if variable_type == "Categorical":
         unique_values = sorted(df[map_column].dropna().unique().tolist())
         selected_categories = st.multiselect(f"Select Categories for the Legend of {map_column}:", unique_values, default=unique_values)
-        category_counts = df[map_column].value_counts().to_dict()
 
         # Reorder the categories to match the selected categories order
         df[map_column] = pd.Categorical(df[map_column], categories=selected_categories, ordered=True)
-
-        # Ensure the counts for each category remain consistent
-        for category in selected_categories:
-            if category not in category_counts:
-                category_counts[category] = 0
 
     elif variable_type == "Numeric":
         try:
@@ -78,7 +69,6 @@ if uploaded_file is not None:
             df[map_column + "_bins"] = pd.cut(df[map_column], bins=bins, labels=bin_labels, include_lowest=True)
             map_column = map_column + "_bins"
             selected_categories = bin_labels
-            category_counts = df[map_column].value_counts().to_dict()
 
         except ValueError:
             st.error(f"Error: The column '{map_column}' contains non-numeric data or cannot be converted to numeric values.")
@@ -122,13 +112,12 @@ if uploaded_file is not None:
                 ax.set_title(f"{map_title} (General Map)", fontsize=font_size, fontweight='bold')
                 ax.set_axis_off()
 
-                # Create legend handles with category counts
+                # Create legend handles without category counts
                 handles = []
                 for cat in selected_categories:
-                    label_with_count = f"{cat} ({category_counts.get(cat, 0)})"
-                    handles.append(Patch(color=color_mapping.get(cat, missing_value_color.lower()), label=label_with_count))
+                    handles.append(Patch(color=color_mapping.get(cat, missing_value_color.lower()), label=cat))
 
-                handles.append(Patch(color=missing_value_color.lower(), label=f"{missing_value_label} ({df[map_column].isna().sum()})"))
+                handles.append(Patch(color=missing_value_color.lower(), label=missing_value_label))
 
                 ax.legend(handles=handles, title=legend_title, bbox_to_anchor=(1.05, 1), loc='upper left')
 
@@ -160,13 +149,12 @@ if uploaded_file is not None:
                     ax.set_title(f"{map_title} - {value}", fontsize=font_size, fontweight='bold')
                     ax.set_axis_off()
 
-                    # Create legend handles with category counts
+                    # Create legend handles without category counts
                     handles = []
                     for cat in selected_categories:
-                        label_with_count = f"{cat} ({category_counts.get(cat, 0)})"
-                        handles.append(Patch(color=color_mapping.get(cat, missing_value_color.lower()), label=label_with_count))
+                        handles.append(Patch(color=color_mapping.get(cat, missing_value_color.lower()), label=cat))
 
-                    handles.append(Patch(color=missing_value_color.lower(), label=f"{missing_value_label} ({subset_gdf[map_column].isna().sum()})"))
+                    handles.append(Patch(color=missing_value_color.lower(), label=missing_value_label))
 
                     ax.legend(handles=handles, title=legend_title, bbox_to_anchor=(1.05, 1), loc='upper left')
 
