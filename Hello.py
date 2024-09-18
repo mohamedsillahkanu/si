@@ -9,10 +9,7 @@ from matplotlib.colors import ListedColormap, to_hex
 st.image("icf_sl (1).jpg", caption="MAP GENERATOR", use_column_width=True)
 
 # Load the shapefile
-try:
-    gdf = gpd.read_file("https://raw.githubusercontent.com/mohamedsillahkanu/si/2b7f982174b609f9647933147dec2a59a33e736a/Chiefdom%202021.shp")
-except Exception as e:
-    st.error(f"Error loading shapefile: {str(e)}")
+gdf = gpd.read_file("https://raw.githubusercontent.com/mohamedsillahkanu/si/2b7f982174b609f9647933147dec2a59a33e736a/Chiefdom%202021.shp")
 
 # Prompt the user to upload the Excel file
 uploaded_file = st.file_uploader("Upload your Excel file:", type=["xlsx"])
@@ -131,7 +128,7 @@ if uploaded_file:
                 # Add the legend
                 if show_category_counter:
                     handles = [Patch(color=color_mapping[cat], label=f"{cat} ({category_counts.get(cat, 0)})") for cat in selected_categories]
-                    #handles.append(Patch(color=missing_value_color.lower(), label=f"{missing_value_label} ({df[map_column].isna().sum()})"))
+                    handles.append(Patch(color=missing_value_color.lower(), label=f"{missing_value_label} ({df[map_column].isna().sum()})"))
 
                     ax.legend(handles=handles, title=legend_title, fontsize=10, loc='lower left', bbox_to_anchor=(-0.5, 0), 
                               frameon=True, framealpha=1, edgecolor='black', fancybox=True)
@@ -140,4 +137,4 @@ if uploaded_file:
                 plt.savefig(f"/tmp/{image_name}.png", dpi=300, bbox_inches='tight')
                 st.image(f"/tmp/{image_name}.png", caption="Generated Map", use_column_width=True)
         except Exception as e:
-            st.error(f"An error occurred: {str(e)}")
+            st.error(f"An error occurred: {str(e)}") fix issues
