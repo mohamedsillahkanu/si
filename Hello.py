@@ -31,16 +31,9 @@ if uploaded_file:
     image_name = st.text_input("Image Name:", value="")
     font_size = st.slider("Font Size (for Map Title):", min_value=8, max_value=24, value=15)
     color_palette_name = st.selectbox("Color Palette:", options=list(plt.colormaps()), index=list(plt.colormaps()).index('Set3'))
-
-    # Line color and width settings for `FIRST_DNAM` and `FIRST_CHIE`
-    dn_line_color = st.selectbox("Select Line Color for FIRST_DNAM:", options=["White", "Black", "Red"])
-    dn_line_width = st.slider("Select Line Width for FIRST_DNAM:", min_value=0.5, max_value=5.0, value=2.5)
-
-    chie_line_color = st.selectbox("Select Line Color for FIRST_CHIE:", options=["White", "Black", "Red"])
-    chie_line_width = st.slider("Select Line Width for FIRST_CHIE:", min_value=0.5, max_value=5.0, value=2.5)
-
+    
     # Missing value color and label
-    missing_value_color = st.selectbox("Select Color for Missing Values:", options=["White", "Gray", "Red"])
+    missing_value_color = st.selectbox("Select Color for Missing Values:", options=["White", "Gray", "Red"], index=1)
     missing_value_label = st.text_input("Label for Missing Values:", value="No Data")
 
     # Optional category counter selection
@@ -93,16 +86,18 @@ if uploaded_file:
         except ValueError:
             st.error(f"Error: The column '{map_column}' contains non-numeric data or cannot be converted.")
 
+    # Line color and width settings for FIRST_DNAM and FIRST_CHIE
+    column1_line_color = st.selectbox(f"Select Line Color for '{shapefile_columns[0]}' boundaries:", options=["White", "Black", "Red"], index=1)
+    column1_line_width = st.slider(f"Select Line Width for '{shapefile_columns[0]}' boundaries:", min_value=0.5, max_value=10.0, value=2.5)
+    
+    column2_line_color = st.selectbox(f"Select Line Color for '{shapefile_columns[1]}' boundaries:", options=["White", "Black", "Red"], index=1)
+    column2_line_width = st.slider(f"Select Line Width for '{shapefile_columns[1]}' boundaries:", min_value=0.5, max_value=10.0, value=2.5)
+
     # Generate color mapping
     cmap = plt.get_cmap(color_palette_name)
     num_colors = min(9, cmap.N)
     colors = [to_hex(cmap(i / (num_colors - 1))) for i in range(num_colors)]
     color_mapping = {category: colors[i % num_colors] for i, category in enumerate(selected_categories)}
-
-    # Color selection option
-    if st.checkbox("Select Colors for Columns"):
-        for i, category in enumerate(selected_categories):
-            color_mapping[category] = st.selectbox(f"Select Color for '{category}' in {map_column}:", options=colors, index=i)
 
     # Generate the map
     if st.button("Generate Map"):
@@ -115,24 +110,22 @@ if uploaded_file:
             else:
                 fig, ax = plt.subplots(1, 1, figsize=(10, 10))
 
-                # Apply custom colors
+                # Plot with custom line settings
+                merged_gdf.boundary.plot(ax=ax, linewidth=column1_line_width, edgecolor=column1_line_color.lower(), label=shapefile_columns[0])
+                merged_gdf.boundary.plot(ax=ax, linewidth=column2_line_width, edgecolor=column2_line_color.lower(), label=shapefile_columns[1])
+                
+                # Apply custom colors for categorical/numeric data
                 custom_cmap = ListedColormap([color_mapping[cat] for cat in selected_categories])
-                merged_gdf.plot(column=map_column, ax=ax, linewidth=dn_line_width, edgecolor=dn_line_color.lower(), cmap=custom_cmap, 
-                                legend=False, missing_kwds={'color': missing_value_color.lower(), 'edgecolor': dn_line_color.lower(), 'label': missing_value_label})
+                merged_gdf.plot(column=map_column, ax=ax, cmap=custom_cmap, legend=False, 
+                                missing_kwds={'color': missing_value_color.lower(), 'label': missing_value_label})
                 
                 ax.set_title(map_title, fontsize=font_size, fontweight='bold')
                 ax.set_axis_off()
 
-                # Add the legend without counters
-                handles = [Patch(color=color_mapping[cat], label=f"{cat}") for cat in selected_categories]
-                handles.append(Patch(color=missing_value_color.lower(), label=f"{missing_value_label}"))
-
-                # Add category counters if selected
+                # Add the legend if required
                 if show_category_counter:
                     handles = [Patch(color=color_mapping[cat], label=f"{cat} ({category_counts.get(cat, 0)})") for cat in selected_categories]
-
-                ax.legend(handles=handles, title=legend_title, fontsize=10, loc='lower left', bbox_to_anchor=(-0.5, 0), 
-                          frameon=True, framealpha=1, edgecolor='black', fancybox=True)
+                    ax.legend(handles=handles, title=legend_title, fontsize=10, loc='lower left', bbox_to_anchor=(-0.5, 0), frameon=True)
 
                 # Save and display the map
                 plt.savefig(f"/tmp/{image_name}.png", dpi=300, bbox_inches='tight')
