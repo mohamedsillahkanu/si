@@ -133,8 +133,16 @@ if uploaded_file is not None:
                 dissolved_gdf2 = merged_gdf.dissolve(by=shapefile_columns[1])
                 dissolved_gdf2.boundary.plot(ax=ax, edgecolor=column2_line_color.lower(), linewidth=column2_line_width)
 
+                # Check for missing data in the map column
+                if merged_gdf[map_column].isnull().sum() > 0:
+                    # Add missing data to the legend
+                    handles = [Patch(color=color_mapping[cat], label=f"{cat} ({category_counts.get(cat, 0)})") for cat in selected_categories]
+                    handles.append(Patch(color=missing_value_color.lower(), label=f"{missing_value_label} ({merged_gdf[map_column].isnull().sum()})"))
+                else:
+                    # Normal legend without missing data
+                    handles = [Patch(color=color_mapping[cat], label=f"{cat} ({category_counts.get(cat, 0)})") for cat in selected_categories]
+
                 # Create legend
-                handles = [Patch(color=color_mapping[cat], label=f"{cat} ({category_counts.get(cat, 0)})") for cat in selected_categories]
                 legend = ax.legend(handles=handles, title=legend_title, fontsize=10, loc='lower left', bbox_to_anchor=(-0.5, 0), frameon=True)
                 plt.setp(legend.get_title(), fontsize=10, fontweight='bold')
 
