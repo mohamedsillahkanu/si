@@ -137,4 +137,4 @@ if uploaded_file:
                 plt.savefig(f"/tmp/{image_name}.png", dpi=300, bbox_inches='tight')
                 st.image(f"/tmp/{image_name}.png", caption="Generated Map", use_column_width=True)
         except Exception as e:
-            st.error(f"An error occurred: {str(e)}") fix issues
+            st.error(f"An error occurred: {str(e)}") 
