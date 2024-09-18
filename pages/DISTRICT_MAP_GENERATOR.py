@@ -18,6 +18,7 @@ shapefile_columns = ["FIRST_DNAM", "FIRST_CHIE"]
 df_columns_filtered = [col for col in df.columns if col not in ["FIRST_DNAM", "FIRST_CHIE", "adm3"]]
 
 # User input for the map column and settings
+excel_columns = st.multiselect("Select Excel Column(s):", df.columns)
 map_column = st.selectbox("Select Map Column:", df_columns_filtered)
 map_title = st.text_input("Map Title:")
 legend_title = st.text_input("Legend Title:")
