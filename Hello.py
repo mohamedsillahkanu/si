@@ -99,6 +99,13 @@ if uploaded_file is not None:
     shapefile_columns = ['FIRST_DNAM', 'FIRST_CHIE']
     excel_columns = ['FIRST_DNAM', 'FIRST_CHIE']
 
+    # Check if two columns are selected for merging
+    if len(shapefile_columns) == 2 and len(excel_columns) == 2:
+        column1_line_color = st.selectbox(f"Select Line Color for '{shapefile_columns[0]}' boundaries:", options=["White", "Black", "Red"], index=1)
+        column1_line_width = st.slider(f"Select Line Width for '{shapefile_columns[0]}' boundaries:", min_value=0.5, max_value=10.0, value=2.5)
+        column2_line_color = st.selectbox(f"Select Line Color for '{shapefile_columns[1]}' boundaries:", options=["White", "Black", "Red"], index=1)
+        column2_line_width = st.slider(f"Select Line Width for '{shapefile_columns[1]}' boundaries:", min_value=0.5, max_value=10.0, value=2.5)
+
     # Generate the map upon button click
     if st.button("Generate Map"):
         try:
@@ -120,8 +127,11 @@ if uploaded_file is not None:
                 ax.set_axis_off()
 
                 # Add boundaries for 'FIRST_DNAM' and 'FIRST_CHIE'
-                dissolved_gdf = merged_gdf.dissolve(by=shapefile_columns[0])
-                dissolved_gdf.boundary.plot(ax=ax, edgecolor=line_color.lower(), linewidth=line_width)
+                dissolved_gdf1 = merged_gdf.dissolve(by=shapefile_columns[0])
+                dissolved_gdf1.boundary.plot(ax=ax, edgecolor=column1_line_color.lower(), linewidth=column1_line_width)
+
+                dissolved_gdf2 = merged_gdf.dissolve(by=shapefile_columns[1])
+                dissolved_gdf2.boundary.plot(ax=ax, edgecolor=column2_line_color.lower(), linewidth=column2_line_width)
 
                 # Create legend
                 handles = [Patch(color=color_mapping[cat], label=f"{cat} ({category_counts.get(cat, 0)})") for cat in selected_categories]
