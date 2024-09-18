@@ -22,8 +22,8 @@ font_size = st.slider("Font Size (for Map Title):", min_value=8, max_value=24, v
 color_palette_name = st.selectbox("Color Palette:", options=list(plt.colormaps()), index=list(plt.colormaps()).index('Set3'))
 
 # Default line color and width settings
-line_color = st.selectbox("Select Default Line Color:", options=["White", "Black", "Red"], index=1)
-line_width = st.slider("Select Default Line Width:", min_value=0.5, max_value=5.0, value=2.5)
+#line_color = st.selectbox("Select Default Line Color:", options=["White", "Black", "Red"], index=1)
+#line_width = st.slider("Select Default Line Width:", min_value=0.5, max_value=5.0, value=2.5)
 
 # Missing value settings
 missing_value_color = st.selectbox("Select Color for Missing Values:", options=["White", "Gray", "Red"], index=1)
@@ -129,7 +129,7 @@ if st.button("Generate Map"):
 
             # Create legend
             handles = [Patch(color=color_mapping[cat], label=f"{cat} ({category_counts.get(cat, 0)})") for cat in selected_categories]
-            handles.append(Patch(color=missing_value_color.lower(), label=f"{missing_value_label} ({df[map_column].isna().sum()})"))
+            #handles.append(Patch(color=missing_value_color.lower(), label=f"{missing_value_label} ({df[map_column].isna().sum()})"))
             legend = ax.legend(handles=handles, title=legend_title, fontsize=10, loc='lower left', bbox_to_anchor=(-0.5, 0), frameon=True)
             plt.setp(legend.get_title(), fontsize=10, fontweight='bold')
 
