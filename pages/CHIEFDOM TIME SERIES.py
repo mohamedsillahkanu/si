@@ -12,7 +12,29 @@ from io import BytesIO
 from matplotlib import pyplot as plt
 import pandas as pd
 
+# Apply sky blue background using custom CSS
+st.markdown(
+    """
+    <style>
+    .stApp {
+        background-color:#ffffb3;
+    }
+    </style>
+    """, unsafe_allow_html=True
+)
 
+# Custom CSS for sidebar background and text color
+sidebar_bg_css = """
+<style>
+[data-testid="stSidebar"] {
+    background-color: #8dd3c7; /* Sky blue background */
+    color: #000000; /* Sidebar text color */
+}
+</style>
+"""
+
+# Apply the sidebar CSS
+st.markdown(sidebar_bg_css, unsafe_allow_html=True)
 
 
 
