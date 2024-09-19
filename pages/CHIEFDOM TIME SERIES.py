@@ -12,7 +12,18 @@ from io import BytesIO
 from matplotlib import pyplot as plt
 import pandas as pd
 
-st.set_page_config(layout="wide")
+
+
+# Set the browser tab title
+st.set_page_config(page_title="Home", layout="wide")
+
+# Title customization in the app
+st.markdown("<h1 style='color: red; font-weight: bold;'>Home</h1>", unsafe_allow_html=True)
+
+# Optionally, you can also add a background color
+st.markdown("<h1 style='background-color: yellow; color: red; font-weight: bold;'>Home</h1>", unsafe_allow_html=True)
+
+
 
 
 # Function to load and process the shapefile
