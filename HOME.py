@@ -24,6 +24,28 @@ sidebar_bg_css = """
 # Apply the sidebar CSS
 st.markdown(sidebar_bg_css, unsafe_allow_html=True)
 
+st.markdown("""
+    <style>
+    .big-font {
+        font-size:50px !important;
+    }
+    .bold-red {
+        color: red;
+        font-weight: bold;
+    }
+    .highlight {
+        background-color: yellow;
+        color: black;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# Applying custom classes
+st.markdown('<p class="big-font">This text is very large!</p>', unsafe_allow_html=True)
+st.markdown('<p class="bold-red">This text is bold and red!</p>', unsafe_allow_html=True)
+st.markdown('<p class="highlight">This text has a highlighted background!</p>', unsafe_allow_html=True)
+
+
 # Title of the app
 st.title("SNT Code Library Overview")
 
