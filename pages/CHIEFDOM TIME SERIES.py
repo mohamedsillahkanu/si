@@ -13,15 +13,26 @@ from matplotlib import pyplot as plt
 import pandas as pd
 
 
+# Set page title and layout
+st.set_page_config(page_title="CHIEFDOM TIME SERIES", layout="wide")
 
-# Set the browser tab title
-st.set_page_config(page_title="Home", layout="wide")
+# Inject custom CSS to style the sidebar
+st.markdown("""
+    <style>
+    .sidebar-title {
+        font-size: 24px;
+        font-weight: bold;
+        color: black;
+        background-color: white;
+        padding: 10px;
+        text-align: center;
+        border-radius: 5px;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
-# Title customization in the app
-st.markdown("<h1 style='color: red; font-weight: bold;'>Home</h1>", unsafe_allow_html=True)
-
-# Optionally, you can also add a background color
-st.markdown("<h1 style='background-color: yellow; color: red; font-weight: bold;'>Home</h1>", unsafe_allow_html=True)
+# Display the styled title in the sidebar
+st.sidebar.markdown('<div class="sidebar-title">CHIEFDOM TIME SERIES</div>', unsafe_allow_html=True)
 
 
 
