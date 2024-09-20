@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
 from matplotlib.colors import ListedColormap, to_hex
 
-st.image("icf_sl (1).jpg", caption="MAP GENERATOR", use_column_width=True)
+
 
 
 # Load shapefile and Excel data
