@@ -31,6 +31,7 @@ if uploaded_file is not None:
     legend_title = st.text_input("Legend Title:")
     image_name = st.text_input("Image Name:", value="Generated_Map")
     font_size = st.slider("Font Size (for Map Title):", min_value=8, max_value=24, value=15)
+    st.image("Color palette.png", caption="MAP GENERATOR", use_column_width=True)
     color_palette_name = st.selectbox("Color Palette:", options=list(plt.colormaps()), index=list(plt.colormaps()).index('Set3'))
 
     # Default line color and width settings
