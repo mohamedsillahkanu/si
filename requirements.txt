@@ -13,4 +13,5 @@ rasterio
 requests
 plotly
 statsmodels
+dataframe-image
 
