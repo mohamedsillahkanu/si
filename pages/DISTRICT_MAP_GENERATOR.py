@@ -6,6 +6,7 @@ from matplotlib.patches import Patch
 from matplotlib.colors import ListedColormap, to_hex
 
 st.image("icf_sl (1).jpg", caption="MAP GENERATOR", use_column_width=True)
+st.image("icf_sl (1).jpg", caption="MAP GENERATOR", use_column_width=True)
 
 # Load shapefile and Excel data
 gdf = gpd.read_file("https://raw.githubusercontent.com/mohamedsillahkanu/si/2b7f982174b609f9647933147dec2a59a33e736a/Chiefdom%202021.shp")
@@ -127,11 +128,6 @@ if st.button("Generate Map"):
             
             ax.legend(handles=handles, title=legend_title, bbox_to_anchor=(1.05, 1), loc='upper left')
             
-            # Save or display the general map
-            general_map_path = f"/tmp/{image_name}_general.png"
-            plt.savefig(general_map_path, dpi=300, bbox_inches='tight')
-            st.image(general_map_path, caption="General Map", use_column_width=True)
-            plt.close(fig)
 
             # Plot each unique `FIRST_DNAM` separately
             first_dnam_values = merged_gdf['FIRST_DNAM'].unique()
