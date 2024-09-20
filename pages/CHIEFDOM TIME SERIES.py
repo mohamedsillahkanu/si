@@ -12,6 +12,8 @@ from io import BytesIO
 from matplotlib import pyplot as plt
 import pandas as pd
 
+st.image("icf_sl (1).jpg", caption="MAP GENERATOR", use_column_width=True)
+
 # Function to load and process the shapefile
 def load_shapefile(shp_file, shx_file, dbf_file):
     with tempfile.TemporaryDirectory() as tmpdir:
