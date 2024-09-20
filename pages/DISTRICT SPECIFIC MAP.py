@@ -106,7 +106,7 @@ if uploaded_file is not None:
     if st.button("Generate Map"):
         try:
             # Merge the shapefile and Excel data
-            merged_gdf = gdf.merge(df, on=['FIRST_DNAM','FIRST_CHIE'], how='left')
+            merged_gdf = gdf.merge(df, on='FIRST_DNAM', how='left', validate="1:1")
 
             if map_column not in merged_gdf.columns:
                 st.error(f"The column '{map_column}' does not exist in the merged dataset.")
