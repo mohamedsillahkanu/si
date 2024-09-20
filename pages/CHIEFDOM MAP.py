@@ -1,144 +1,176 @@
-# -*- coding: utf-8 -*-
 import streamlit as st
 import geopandas as gpd
-import rasterio
-import rasterio.mask
-import numpy as np
-import os
-import requests
-import gzip
-import shutil
-import tempfile
-from io import BytesIO
-from matplotlib import pyplot as plt
+import pandas as pd
+import matplotlib.pyplot as plt
+from matplotlib.patches import Patch
+from matplotlib.colors import ListedColormap, to_hex
 
-# Function to load and process the shapefile
-def load_shapefile(shp_file, shx_file, dbf_file):
-    with tempfile.TemporaryDirectory() as tmpdir:
-        # Save the uploaded files to a temporary directory
-        for file, ext in zip([shp_file, shx_file, dbf_file], ['.shp', '.shx', '.dbf']):
-            with open(os.path.join(tmpdir, f"file{ext}"), "wb") as f:
-                f.write(file.getbuffer())
+st.image("icf_sl (1).jpg", caption="MAP GENERATOR", use_column_width=True)
 
-        # Load the shapefile using GeoPandas
-        shapefile_path = os.path.join(tmpdir, "file.shp")
-        gdf = gpd.read_file(shapefile_path)
 
-    # Check if the CRS is set, if not, set it manually
-    if gdf.crs is None:
-        gdf = gdf.set_crs("EPSG:4326")  # Assuming WGS84; replace with correct CRS if different
+# Load shapefile and Excel data
+gdf = gpd.read_file("https://raw.githubusercontent.com/mohamedsillahkanu/si/2b7f982174b609f9647933147dec2a59a33e736a/Chiefdom%202021.shp")
+df = pd.read_excel("/tmp/uploaded.xlsx")
 
-    return gdf
+# Automatically select the columns "FIRST_DNAM" and "FIRST_CHIE"
+shapefile_columns = ["FIRST_DNAM", "FIRST_CHIE"]
 
-# Function to download, unzip, and process CHIRPS data
-def process_chirps_data(gdf, year, month):
-    # Define the link for CHIRPS data
-    link = f"https://data.chc.ucsb.edu/products/CHIRPS-2.0/africa_monthly/tifs/chirps-v2.0.{year}.{month:02d}.tif.gz"
+# Filter out "FIRST_DNAM", "FIRST_CHIE", and "adm3" from df columns for the map_column selection
+df_columns_filtered = [col for col in df.columns if col not in ["FIRST_DNAM", "FIRST_CHIE", "adm3"]]
 
-    # Download the .tif.gz file
-    response = requests.get(link)
-    with tempfile.TemporaryDirectory() as tmpdir:
-        zipped_file_path = os.path.join(tmpdir, "chirps.tif.gz")
-        unzipped_file_path = os.path.join(tmpdir, "chirps.tif")
+# User input for the map column and settings
+map_column = st.selectbox("Select Map Column:", df_columns_filtered)
+map_title = st.text_input("Map Title:")
+legend_title = st.text_input("Legend Title:")
+image_name = st.text_input("Image Name:", value="map_image")
+font_size = st.slider("Font Size (for Map Title):", min_value=8, max_value=24, value=15)
+color_palette_name = st.selectbox("Color Palette:", options=list(plt.colormaps()), index=list(plt.colormaps()).index('Set3'))
 
-        with open(zipped_file_path, "wb") as f:
-            f.write(response.content)
+line_color = st.selectbox("Select Default Line Color:", options=["White", "Black", "Red"], index=1)
+line_width = st.slider("Select Default Line Width:", min_value=0.5, max_value=5.0, value=2.5)
 
-        # Unzip the file
-        with gzip.open(zipped_file_path, "rb") as f_in:
-            with open(unzipped_file_path, "wb") as f_out:
-                shutil.copyfileobj(f_in, f_out)
+missing_value_color = st.selectbox("Select Color for Missing Values:", options=["White", "Gray", "Red"], index=1)
+missing_value_label = st.text_input("Label for Missing Values:", value="No Data")
 
-        # Open the unzipped .tif file with Rasterio
-        with rasterio.open(unzipped_file_path) as src:
-            # Reproject shapefile to match CHIRPS data CRS
-            gdf = gdf.to_crs(src.crs)
+# Initialize category_counts
+category_counts = {}
 
-            # Mask the CHIRPS data using the shapefile geometry
-            out_image, out_transform = rasterio.mask.mask(src, gdf.geometry, crop=True)
+variable_type = st.radio("Select the variable type:", options=["Categorical", "Numeric"])
 
-            # Flatten the masked array and calculate mean excluding masked values
-            mean_rains = []
-            for geom in gdf.geometry:
-                masked_data, _ = rasterio.mask.mask(src, [geom], crop=True)
-                masked_data = masked_data.flatten()
-                masked_data = masked_data[masked_data != src.nodata]  # Exclude nodata values
-                mean_rains.append(masked_data.mean())
+if variable_type == "Categorical":
+    unique_values = sorted(df[map_column].dropna().unique().tolist())
+    selected_categories = st.multiselect(f"Select Categories for the Legend of {map_column}:", unique_values, default=unique_values)
+    category_counts = df[map_column].value_counts().to_dict()
 
-            gdf['mean_rain'] = mean_rains
+    # Reorder the categories to match the selected categories order
+    df[map_column] = pd.Categorical(df[map_column], categories=selected_categories, ordered=True)
 
-    return gdf
+    # Ensure the counts for each category remain consistent
+    for category in selected_categories:
+        if category not in category_counts:
+            category_counts[category] = 0
 
-# Streamlit app layout
-st.title("CHIRPS Data Analysis and Map Generation")
+elif variable_type == "Numeric":
+    try:
+        bin_labels_input = st.text_input("Enter labels for bins (comma-separated, e.g., '10-20.5, 20.6-30.1, >30.2'): ")
+        bin_labels = [label.strip() for label in bin_labels_input.split(',')]
 
-# Upload shapefile components
-uploaded_shp = st.file_uploader("Upload .shp file", type="shp")
-uploaded_shx = st.file_uploader("Upload .shx file", type="shx")
-uploaded_dbf = st.file_uploader("Upload .dbf file", type="dbf")
+        bins = []
+        for label in bin_labels:
+            if '>' in label:
+                lower = float(label.replace('>', '').strip())
+                bins.append(lower)
+            elif '-' in label:
+                lower, upper = map(float, label.split('-'))
+                bins.append(lower)
+                bins.append(upper)
+            else:
+                st.error("Incorrect format. Please enter ranges as 'lower-upper' or '>lower'.")
 
-# Year and month selection
-year = st.selectbox("Select Year", range(1981, 2025))
-month = st.selectbox("Select Month", range(1, 13))
+        bins = sorted(list(set(bins)))
+        if bins[-1] < df[map_column].max():
+            bins.append(df[map_column].max() + 1)  # Adjust the max bin to include the max value
 
-# Colormap selection
-cmap = st.selectbox("Select Colormap", ['Blues', 'Greens', 'Reds', 'Purples', 'Oranges', 'YlGnBu', 'cividis', 'plasma', 'viridis'])
+        df[map_column + "_bins"] = pd.cut(df[map_column], bins=bins, labels=bin_labels, include_lowest=True)
+        map_column = map_column + "_bins"
+        selected_categories = bin_labels
+        category_counts = df[map_column].value_counts().to_dict()
 
-if uploaded_shp and uploaded_shx and uploaded_dbf and year and month:
-    # Load and process the shapefile
-    with st.spinner("Loading and processing shapefile..."):
-        gdf = load_shapefile(uploaded_shp, uploaded_shx, uploaded_dbf)
+    except ValueError:
+        st.error(f"Error: The column '{map_column}' contains non-numeric data or cannot be converted to numeric values.")
 
-    st.success("Shapefile loaded successfully!")
+# Get colors from the selected palette (max 9 colors)
+cmap = plt.get_cmap(color_palette_name)
+num_colors = min(9, cmap.N)
+colors = [to_hex(cmap(i / (num_colors - 1))) for i in range(num_colors)]
 
-    # Process CHIRPS data
-    with st.spinner("Processing CHIRPS data..."):
-        gdf = process_chirps_data(gdf, year, month)
+color_mapping = {category: colors[i % num_colors] for i, category in enumerate(selected_categories)}
 
-    st.success("CHIRPS data processed successfully!")
+if st.checkbox("Select Colors for Columns"):
+    for i, category in enumerate(selected_categories):
+        color_mapping[category] = st.selectbox(f"Select Color for '{category}' in {map_column}:", options=colors, index=i)
 
-    # Check if 'FIRST_DNAM' and 'FIRST_CHIE' exist in the GeoDataFrame
-    if 'FIRST_DNAM' in gdf.columns and 'FIRST_CHIE' in gdf.columns:
-        # Display the relevant columns: geometry, mean_rain, FIRST_DNAM, FIRST_CHIE
-        st.write(gdf[['geometry', 'mean_rain', 'FIRST_DNAM', 'FIRST_CHIE']])
+if st.button("Generate Map"):
+    try:
+        # Merge the shapefile and Excel data based on the selected columns
+        merged_gdf = gdf.merge(df, left_on=shapefile_columns, right_on=shapefile_columns, how='left')
 
-        # Plot the map
-        fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+        if map_column not in merged_gdf.columns:
+            st.error(f"The column '{map_column}' does not exist in the merged dataset.")
+        else:
+            # Plot the general map with the legend
+            fig, ax = plt.subplots(1, 1, figsize=(12, 12))
+            
+            # Set default line color and width
+            boundary_color = line_color.lower()
+            boundary_width = line_width
+            
+            # Plot boundaries with the selected line width
+            merged_gdf.boundary.plot(ax=ax, edgecolor=boundary_color, linewidth=boundary_width)
+            
+            # Apply custom colors if specified
+            custom_cmap = ListedColormap([color_mapping.get(cat, missing_value_color.lower()) for cat in selected_categories])
+            
+            # Plot the map data with categories
+            merged_gdf.plot(column=map_column, ax=ax, linewidth=boundary_width, edgecolor=boundary_color, cmap=custom_cmap,
+                            legend=False, missing_kwds={'color': missing_value_color.lower(), 'edgecolor': boundary_color, 'label': missing_value_label})
+            
+            ax.set_title(f"{map_title} (General Map)", fontsize=font_size, fontweight='bold')
+            ax.set_axis_off()
+            
+            # Create legend handles with category counts
+            handles = []
+            for cat in selected_categories:
+                label_with_count = f"{cat} ({category_counts.get(cat, 0)})"
+                handles.append(Patch(color=color_mapping.get(cat, missing_value_color.lower()), label=label_with_count))
+            
+            handles.append(Patch(color=missing_value_color.lower(), label=f"{missing_value_label} ({df[map_column].isna().sum()})"))
+            
+            ax.legend(handles=handles, title=legend_title, bbox_to_anchor=(1.05, 1), loc='upper left')
+            
+            # Save or display the general map
+            general_map_path = f"/tmp/{image_name}_general.png"
+            plt.savefig(general_map_path, dpi=300, bbox_inches='tight')
+            st.image(general_map_path, caption="General Map", use_column_width=True)
+            plt.close(fig)
 
-        # Plotting the GeoDataFrame with mean rainfall
-        gdf.plot(column='mean_rain', ax=ax, legend=True, cmap=cmap, edgecolor="black", legend_kwds={'shrink': 0.5})
+            # Plot each unique `FIRST_DNAM` separately
+            first_dnam_values = merged_gdf['FIRST_DNAM'].unique()
 
-        # Add labels for FIRST_DNAM and FIRST_CHIE on the map
-        for idx, row in gdf.iterrows():
-            # Calculate centroid of each geometry for label positioning
-            centroid = row['geometry'].centroid
-            label = f"{row['FIRST_DNAM']}, {row['FIRST_CHIE']}"
-            ax.text(centroid.x, centroid.y, label, fontsize=8, ha='center', color='black')
+            for value in first_dnam_values:
+                fig, ax = plt.subplots(1, 1, figsize=(12, 12))
+                subset_gdf = merged_gdf[merged_gdf['FIRST_DNAM'] == value]
 
-        # Remove axis boxes
-        ax.set_axis_off()
+                # Set default line color and width for subset
+                subset_boundary_color = line_color.lower()
+                subset_boundary_width = line_width
 
-        # Add a title to the plot
-        plt.title(f"Mean Rainfall with Labels for {year}-{month:02d}", fontsize=16)
+                subset_gdf.boundary.plot(ax=ax, edgecolor=subset_boundary_color, linewidth=subset_boundary_width)
+                subset_gdf.plot(column=map_column, ax=ax, linewidth=subset_boundary_width, edgecolor=subset_boundary_color, cmap=custom_cmap,
+                                legend=False, missing_kwds={'color': missing_value_color.lower(), 'edgecolor': subset_boundary_color, 'label': missing_value_label})
 
-        # Display the map in Streamlit
-        st.pyplot(fig)
+                # Add text labels for each `FIRST_CHIE`
+                for idx, row in subset_gdf.iterrows():
+                    ax.text(row.geometry.centroid.x, row.geometry.centroid.y, row['FIRST_CHIE'], fontsize=10, ha='center', color='black')
 
-        # Download button for the processed data
-        output_csv = BytesIO()
-        gdf[['FIRST_DNAM', 'FIRST_CHIE', 'mean_rain']].to_csv(output_csv)
-        st.download_button(label="Download Mean Rainfall Data with FIRST_DNAM and FIRST_CHIE",
-                           data=output_csv.getvalue(),
-                           file_name=f"mean_rainfall_{year}_{month:02d}.csv",
-                           mime="text/csv")
+                ax.set_title(f"{map_title} - {value}", fontsize=font_size, fontweight='bold')
+                ax.set_axis_off()
 
-        # Download button for the image
-        image_output = BytesIO()
-        fig.savefig(image_output, format='png')
-        st.download_button(label="Download Map Image",
-                           data=image_output.getvalue(),
-                           file_name=f"mean_rainfall_{year}_{month:02d}.png",
-                           mime="image/png")
+                # Create legend handles with category counts
+                handles = []
+                for cat in selected_categories:
+                    label_with_count = f"{cat} ({category_counts.get(cat, 0)})"
+                    handles.append(Patch(color=color_mapping.get(cat, missing_value_color.lower()), label=label_with_count))
 
-    else:
-        st.error("Columns 'FIRST_DNAM' and 'FIRST_CHIE' not found in the shapefile.")
+                handles.append(Patch(color=missing_value_color.lower(), label=f"{missing_value_label} ({subset_gdf[map_column].isna().sum()})"))
+
+                ax.legend(handles=handles, title=legend_title, bbox_to_anchor=(1.05, 1), loc='upper left')
+
+                # Save or display each subplot
+                subplot_path = f"/tmp/{image_name}_{value}.png"
+                plt.savefig(subplot_path, dpi=300, bbox_inches='tight')
+                st.image(subplot_path, caption=f"Map for {value}", use_column_width=True)
+                plt.close(fig)
+
+    except Exception as e:
+        st.error(f"Error: {str(e)}")
