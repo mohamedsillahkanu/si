@@ -38,9 +38,9 @@ if uploaded_file is not None:
         st.image('Color palette.png', caption='Color Palette')
     color_palette_name = st.selectbox("Color Palette:", options=list(plt.colormaps()), index=list(plt.colormaps()).index('Set3'))
 
-    # Default line color and width settings for FIRST_DNAM boundaries
-    line_color = st.selectbox("Select Default Line Color for FIRST_DNAM Boundaries:", options=["White", "Black", "Red"], index=1)
-    line_width = st.slider("Select Default Line Width for FIRST_DNAM Boundaries:", min_value=0.5, max_value=5.0, value=2.5)
+    # Default line color and width settings
+    line_color = st.selectbox("Select Default Line Color:", options=["White", "Black", "Red"], index=1)
+    line_width = st.slider("Select Default Line Width:", min_value=0.5, max_value=5.0, value=2.5)
 
     # Missing value settings
     missing_value_color = st.selectbox("Select Color for Missing Values:", options=["White", "Gray", "Red"], index=1)
@@ -102,11 +102,20 @@ if uploaded_file is not None:
         for i, category in enumerate(selected_categories):
             color_mapping[category] = st.selectbox(f"Select Color for '{category}' in {map_column}:", options=colors, index=i)
 
+    # Column1 and Column2 are selected automatically in the background
+    shapefile_columns = ['FIRST_DNAM']
+    excel_columns = ['FIRST_DNAM']
+
+    # Check if two columns are selected for merging
+    if len(shapefile_columns) == 2 and len(excel_columns) == 2:
+        column1_line_color = st.selectbox(f"Select Line Color for '{shapefile_columns[0]}' boundaries:", options=["White", "Black", "Red"], index=1)
+        column1_line_width = st.slider(f"Select Line Width for '{shapefile_columns[0]}' boundaries:", min_value=0.5, max_value=10.0, value=2.5)
+
     # Generate the map upon button click
     if st.button("Generate Map"):
         try:
             # Merge the shapefile and Excel data
-            merged_gdf = gdf.merge(df, on='FIRST_DNAM', how='left', validate="1:1")
+            merged_gdf = gdf.merge(df, left_on=shapefile_columns, right_on=excel_columns, how='left')
 
             if map_column not in merged_gdf.columns:
                 st.error(f"The column '{map_column}' does not exist in the merged dataset.")
@@ -116,20 +125,40 @@ if uploaded_file is not None:
                 # Apply custom colors
                 custom_cmap = ListedColormap([color_mapping[cat] for cat in selected_categories])
 
-                # Plot the merged data without boundaries
-                merged_gdf.plot(column=map_column, ax=ax, cmap=custom_cmap,
-                                legend=False, missing_kwds={'color': missing_value_color.lower(), 
-                                                            'edgecolor': 'none', 'label': missing_value_label})
-
-                # Dissolve and plot only the `FIRST_DNAM` boundaries
-                dissolved_gdf1 = gdf.dissolve(by='FIRST_DNAM')  # Dissolve based on FIRST_DNAM
-                dissolved_gdf1.boundary.plot(ax=ax, edgecolor=line_color.lower(), linewidth=line_width)  # Plot the dissolved boundaries
-
-                # Set map title and remove axes
+                # Plot the map
+                merged_gdf.plot(column=map_column, ax=ax, linewidth=line_width, edgecolor=line_color.lower(), cmap=custom_cmap,
+                                legend=False, missing_kwds={'color': missing_value_color.lower(), 'edgecolor': line_color.lower(), 'label': missing_value_label})
                 ax.set_title(map_title, fontsize=font_size, fontweight='bold')
                 ax.set_axis_off()
 
-                # Add legend with category colors and missing values if necessary
+                # Add boundaries for 'FIRST_DNAM' and display names
+                dissolved_gdf1 = merged_gdf.dissolve(by=shapefile_columns[0])
+                dissolved_gdf1.boundary.plot(ax=ax, edgecolor=column1_line_color.lower(), linewidth=column1_line_width)
+
+                # Annotate with FIRST_DNAM values
+                for idx, row in dissolved_gdf1.iterrows():
+                    ax.annotate(text=row['FIRST_DNAM'], 
+                                xy=row.geometry.centroid.coords[0], 
+                                horizontalalignment='center', 
+                                fontsize=8, 
+                                color='black', 
+                                weight='bold')
+
+                # Add boundaries for 'FIRST_CHIE' if applicable
+                if len(shapefile_columns) > 1:
+                    dissolved_gdf2 = merged_gdf.dissolve(by=shapefile_columns[1])
+                    dissolved_gdf2.boundary.plot(ax=ax, edgecolor=column1_line_color.lower(), linewidth=column1_line_width)
+
+                    # Annotate with FIRST_CHIE values
+                    for idx, row in dissolved_gdf2.iterrows():
+                        ax.annotate(text=row['FIRST_CHIE'], 
+                                    xy=row.geometry.centroid.coords[0], 
+                                    horizontalalignment='center', 
+                                    fontsize=8, 
+                                    color='black', 
+                                    weight='bold')
+
+                # Check for missing data in the map column
                 if merged_gdf[map_column].isnull().sum() > 0:
                     # Add missing data to the legend
                     handles = [Patch(color=color_mapping[cat], label=f"{cat} ({category_counts.get(cat, 0)})") for cat in selected_categories]
@@ -147,17 +176,10 @@ if uploaded_file is not None:
                 img_bytes = io.BytesIO()
                 plt.savefig(img_bytes, format='png', dpi=300, bbox_inches='tight')
                 img_bytes.seek(0)
+                st.image(img_bytes, caption=map_title)
 
-                # Display the map in Streamlit
-                st.image(img_bytes, caption="Generated Map", use_column_width=True)
-
-                # Add download button
-                st.download_button(
-                    label="Download Map Image",
-                    data=img_bytes,
-                    file_name=f"{image_name}.png",
-                    mime="image/png"
-                )
+                # Allow user to download the map
+                st.download_button("Download Map", img_bytes, file_name=f"{image_name}.png", mime="image/png")
 
         except Exception as e:
-            st.error(f"An error occurred while generating the map: {str(e)}")
+            st.error(f"An error occurred while generating the map: {e}")
