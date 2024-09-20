@@ -1,91 +1,32 @@
-import streamlit as st
+### Overview
 
-# Apply sky blue background using custom CSS
-st.markdown(
-    """
-    <style>
-    .stApp {
-        background-color:#ffffb3;
-    }
-    </style>
-    """, unsafe_allow_html=True
-)
+The integration of automation in geospatial analysis significantly enhances the efficiency and effectiveness of data management and visualization tasks. Currently, many organizations, including those involved in National Malaria Control Programs (NMCPs), struggle with the complexity and time-consuming nature of traditional mapping tools like QGIS. Analysts often spend hours or even days creating maps, which delays critical decision-making processes. However, with the introduction of automated mapping systems, such as the Map Generator, this time can be drastically reduced to mere minutes. This shift not only streamlines operations but also allows analysts to focus on interpreting results rather than being bogged down by technical complexities.
 
-# Custom CSS for sidebar background and text color
-sidebar_bg_css = """
-<style>
-[data-testid="stSidebar"] {
-    background-color: #8dd3c7; /* Sky blue background */
-    color: #000000; /* Sidebar text color */
-}
-</style>
-"""
+### Objectives
 
-# Apply the sidebar CSS
-st.markdown(sidebar_bg_css, unsafe_allow_html=True)
+The main objectives of implementing automated systems for geospatial analysis and data management are:
 
-st.markdown("""
-    <style>
-    .big-font {
-        font-size:50px !important;
-    }
-    .bold-red {
-        color: red;
-        font-weight: bold;
-    }
-    .highlight {
-        background-color: yellow;
-        color: black;
-    }
-    </style>
-""", unsafe_allow_html=True)
+1. **Reduce Time and Effort**: Significantly decrease the time required to create maps and analyze data, enabling quicker decision-making.
+2. **Enhance Skill Accessibility**: Provide tools that can be used effectively by individuals without extensive training in geospatial analysis.
+3. **Improve Data Management Efficiency**: Streamline data management processes that currently can take days to complete, allowing for more timely implementation of programs.
+4. **Facilitate Rapid Analysis**: Enable automated analysis of uploaded datasets within minutes, transforming how organizations approach data-driven decisions.
 
-# Applying custom classes
-st.markdown('<p class="big-font">This text is very large!</p>', unsafe_allow_html=True)
-st.markdown('<p class="bold-red">This text is bold and red!</p>', unsafe_allow_html=True)
-st.markdown('<p class="highlight">This text has a highlighted background!</p>', unsafe_allow_html=True)
+### Scope
 
+The scope of this project encompasses:
 
-# Title of the app
-st.title("SNT Code Library Overview")
+- The development and implementation of an automated Map Generator that simplifies the creation of geospatial visualizations.
+- A comprehensive automated data analysis tool that processes datasets quickly and efficiently, enabling analysts to obtain insights in less than 20 minutes.
+- Training and support for users to maximize the benefits of these tools, ensuring that even those with limited technical skills can leverage automation for their analytical needs.
 
-# Overview Section
-st.header("Overview")
+### Target Audience
 
-st.subheader("Version: 16 September 2024")
-st.subheader("Authors: Mohamed Sillah Kanu, Sammy Oppong, Jaline Gerardin")
+The target audience includes:
 
-# Motivation Section
-st.subheader("Motivation")
-st.write("""
-SNT is here to stay: many NMCPs have found it useful and are continuing to embrace it and further develop it for their analytical needs. Since 2019, multiple individuals have supported the analysis portions of SNT. In most cases, individuals have built their own code in a variety of languages (Stata, R, and Python), sometimes building on others’ previous code and sometimes re-developing independently.
+- Public health officials and analysts working within NMCPs and similar organizations who require efficient mapping and data analysis solutions.
+- Data managers and decision-makers seeking to improve operational efficiency and responsiveness to health challenges.
+- Organizations interested in integrating automation into their workflows to enhance data-driven decision-making capabilities.
 
-As SNT matures, more quality assurance is needed so that NMCPs can be confident that the analysis used to inform their decisions is of high quality, regardless of the individual supporting the analyst. Continued rollout also means that analysis can become more efficient if analysts are better able to build on each other’s work, rather than tempted to reinvent what has already been developed. Lastly, SNT analysis can become much more accessible if there is a common resource available to help those with intermediate coding skills quickly access the collective knowledge of the SNT analyst community.
-""")
+### Conclusion
 
-# Objectives Section
-st.subheader("Objectives")
-st.write("""
-We will build a code library for SNT analysis to:
-- Ensure that SNT analysts are using similar, correct approaches
-- Improve efficiency of SNT analysis by minimizing duplication of effort
-- Promote accessibility of SNT analysis by lowering barriers to entry
-""")
-
-# Target Audience Section
-st.subheader("Target Audience")
-st.write("""
-Anyone doing this kind of work. We assume some basic knowledge of R, some understanding of the data, and a strong connection to the NMCP.
-""")
-
-# Scope Section
-st.subheader("Scope")
-st.write("""
-All analysis steps of SNT up to but not including mathematical modeling; some related analysis.
-
-The code library will be in R and publicly available. It will be quality-assured and well-commented.
-
-When multiple algorithmic options could be used, strengths and limitations of each one, along with discussion of when to use each option, as possible.
-
-Framing text, and when possible the code comments, will be available in both English and French.
-""")
+The adoption of automated systems for geospatial analysis and data management represents a transformative opportunity for organizations struggling with traditional methods. By significantly reducing the time and effort required for these tasks, programs can enhance their efficiency, improve the quality of their analyses, and ultimately lead to more timely and informed decision-making. Investing in automation not only addresses existing skill gaps but also empowers analysts to focus on deriving insights rather than getting lost in technical details. Therefore, organizations should prioritize the adoption of these automated tools to streamline operations and enhance their overall impact.
