@@ -32,6 +32,11 @@ if uploaded_file is not None:
     image_name = st.text_input("Image Name:", value="Generated_Map")
     font_size = st.slider("Font Size (for Map Title):", min_value=8, max_value=24, value=15)
     st.image("Color palette.png", caption="MAP GENERATOR", use_column_width=True)
+    show_image = st.checkbox('Show Image')
+
+# Display the image when the checkbox is checked
+    if show_image:
+       st.image('path_to_your_image.jpg', caption='Sample Image')
     color_palette_name = st.selectbox("Color Palette:", options=list(plt.colormaps()), index=list(plt.colormaps()).index('Set3'))
 
     # Default line color and width settings
