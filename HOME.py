@@ -1,28 +1,5 @@
 import streamlit as st
 
-# Apply custom background color
-st.markdown(
-    """
-    <style>
-    .stApp {
-        background-color: #ffffb3; /* Light yellow background */
-    }
-    </style>
-    """, unsafe_allow_html=True
-)
-
-# Custom CSS for sidebar background and text color
-sidebar_bg_css = """
-<style>
-[data-testid="stSidebar"] {
-    background-color: #8dd3c7; /* Sky blue background */
-    color: #000000; /* Sidebar text color */
-}
-</style>
-"""
-
-# Apply the sidebar CSS
-st.markdown(sidebar_bg_css, unsafe_allow_html=True)
 
 # Title of the app
 st.title("Automated Geospatial Analysis and Data Management")
@@ -67,5 +44,3 @@ st.write("""
 The adoption of automated systems for geospatial analysis and data management represents a transformative opportunity for organizations struggling with traditional methods. By significantly reducing the time and effort required for these tasks, programs can enhance their efficiency, improve the quality of their analyses, and ultimately lead to more timely and informed decision-making. Investing in automation not only addresses existing skill gaps but also empowers analysts to focus on deriving insights rather than getting lost in technical details. Therefore, organizations should prioritize the adoption of these automated tools to streamline operations and enhance their overall impact.
 """)
 
-# Optionally, you can print or log the content if needed
-st.write("Project Overview loaded.")
