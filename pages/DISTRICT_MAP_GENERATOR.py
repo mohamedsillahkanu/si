@@ -5,26 +5,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
 from matplotlib.colors import ListedColormap, to_hex
 
-# Apply sky blue background using custom CSS
-st.markdown(
-    """
-    <style>
-    .stApp {
-        background-color:#ffffb3;
-    }
-    </style>
-    """, unsafe_allow_html=True
-)
 
-# Custom CSS for sidebar background and text color
-sidebar_bg_css = """
-<style>
-[data-testid="stSidebar"] {
-    background-color: #8dd3c7; /* Sky blue background */
-    color: #000000; /* Sidebar text color */
-}
-</style>
-"""
 
 # Apply the sidebar CSS
 st.markdown(sidebar_bg_css, unsafe_allow_html=True)
@@ -52,6 +33,8 @@ if uploaded_file is not None:
     legend_title = st.text_input("Legend Title:")
     image_name = st.text_input("Image Name:", value="map_image")
     font_size = st.slider("Font Size (for Map Title):", min_value=8, max_value=24, value=15)
+
+    st.image("icf_sl (1).jpg", caption="MAP GENERATOR", use_column_width=True)
     color_palette_name = st.selectbox("Color Palette:", options=list(plt.colormaps()), index=list(plt.colormaps()).index('Set3'))
 
     line_color = st.selectbox("Select Default Line Color:", options=["White", "Black", "Red"], index=1)
