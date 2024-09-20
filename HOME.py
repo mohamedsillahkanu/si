@@ -1,6 +1,10 @@
 ### Overview
 
-The integration of automation in geospatial analysis significantly enhances the efficiency and effectiveness of data management and visualization tasks. Currently, many organizations, including those involved in National Malaria Control Programs (NMCPs), struggle with the complexity and time-consuming nature of traditional mapping tools like QGIS. Analysts often spend hours or even days creating maps, which delays critical decision-making processes. However, with the introduction of automated mapping systems, such as the Map Generator, this time can be drastically reduced to mere minutes. This shift not only streamlines operations but also allows analysts to focus on interpreting results rather than being bogged down by technical complexities.
+The integration of automation in geospatial analysis significantly enhances the efficiency and effectiveness of data management and visualization tasks.
+Currently, many organizations, including those involved in National Malaria Control Programs (NMCPs), struggle with the complexity and time-consuming nature of 
+  traditional mapping tools like QGIS. Analysts often spend hours or even days creating maps, which delays critical decision-making processes. However, with 
+the introduction of automated mapping systems, such as the Map Generator, this time can be drastically reduced to mere minutes. This shift not only streamlines operations but 
+also allows analysts to focus on interpreting results rather than being bogged down by technical complexities.
 
 ### Objectives
 
