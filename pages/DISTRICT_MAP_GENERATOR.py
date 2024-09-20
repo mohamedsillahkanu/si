@@ -7,12 +7,10 @@ from matplotlib.colors import ListedColormap, to_hex
 
 
 
-# Apply the sidebar CSS
-st.markdown(sidebar_bg_css, unsafe_allow_html=True)
 
 st.image("icf_sl (1).jpg", caption="MAP GENERATOR", use_column_width=True)
 
-st.image("https://raw.githubusercontent.com/mohamedsillahkanu/si/05171f9f2e9969d8386bbc77358b4821727f07c4/Color%20palette.png", caption="COLOR PALETTE", use_column_width=True)
+st.image("icf_sl (1).jpg", caption="MAP GENERATOR", use_column_width=True)
 
 # Load shapefile
 gdf = gpd.read_file("https://raw.githubusercontent.com/mohamedsillahkanu/si/2b7f982174b609f9647933147dec2a59a33e736a/Chiefdom%202021.shp")
