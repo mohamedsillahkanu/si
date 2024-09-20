@@ -35,7 +35,7 @@ if uploaded_file is not None:
     font_size = st.slider("Font Size (for Map Title):", min_value=8, max_value=24, value=15)
 
     if st.checkbox("Display Color Palette"):
-        st.image("https://github.com/mohamedsillahkanu/si/blob/05171f9f2e9969d8386bbc77358b4821727f07c4/Color%20palette.png", caption="COLOR PALETTE", use_column_width=True)
+        st.image("icf_sl (1).jpg")
 
     color_palette_name = st.selectbox("Color Palette:", options=list(plt.colormaps()), index=list(plt.colormaps()).index('Set3'))
 
