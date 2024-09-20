@@ -79,12 +79,14 @@ if uploaded_file is not None:
     # Define a colormap
     cmap = plt.get_cmap(color_palette_name, len(selected_categories))
 
-    # Create a plot
+    # Create a plot when the button is pressed
     if st.button("Generate Map"):
         fig, ax = plt.subplots(figsize=(10, 10))
-        
+
         # Plot the GeoDataFrame with the categorical column
-        adm2_gdf.plot(column=map_column, ax=ax, legend=True, cmap=cmap, legend_kwds={'bbox_to_anchor': (1, 1)}, edgecolor=line_color, linewidth=line_width)
+        adm2_gdf.plot(column=map_column, ax=ax, legend=True, cmap=cmap, 
+                      legend_kwds={'bbox_to_anchor': (1, 1)}, 
+                      edgecolor=line_color, linewidth=line_width)
 
         # Add FIRST_DNAM names on the map
         for idx, row in adm2_gdf.iterrows():
