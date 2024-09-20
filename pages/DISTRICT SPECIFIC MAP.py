@@ -107,7 +107,7 @@ if uploaded_file is not None:
     excel_columns = ['FIRST_DNAM']
 
     # Check if two columns are selected for merging
-    if len(shapefile_columns) == 2 and len(excel_columns) == 2:
+    if len(shapefile_columns) == 1 and len(excel_columns) == 1:
         column1_line_color = st.selectbox(f"Select Line Color for '{shapefile_columns[0]}' boundaries:", options=["White", "Black", "Red"], index=1)
         column1_line_width = st.slider(f"Select Line Width for '{shapefile_columns[0]}' boundaries:", min_value=0.5, max_value=10.0, value=2.5)
 
