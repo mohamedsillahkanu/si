@@ -128,7 +128,11 @@ if st.button("Generate Map"):
             
             ax.legend(handles=handles, title=legend_title, bbox_to_anchor=(1.05, 1), loc='upper left')
             
-
+            # Save or display the general map
+            general_map_path = f"/tmp/{image_name}_general.png"
+            plt.savefig(general_map_path, dpi=300, bbox_inches='tight')
+            st.image(general_map_path, caption="General Map", use_column_width=True)
+            plt.close(fig)
 
             # Plot each unique `FIRST_DNAM` separately
             first_dnam_values = merged_gdf['FIRST_DNAM'].unique()
