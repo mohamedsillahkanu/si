@@ -80,7 +80,7 @@ def process_chirps_data(gdf, year, month):
 # Streamlit app layout
 st.title("CHIRPS Data Analysis and Map Generation")
 st.image(""https://raw.githubusercontent.com/mohamedsillahkanu/si/05171f9f2e9969d8386bbc77358b4821727f07c4/Color%20palette.png", caption="COLOR PALETTE", use_column_width=True)
-
+st.title("CHIRPS Data Analysis and Map Generation")
 # Upload shapefile components
 uploaded_shp = st.file_uploader("Upload .shp file", type="shp")
 uploaded_shx = st.file_uploader("Upload .shx file", type="shx")
