@@ -5,6 +5,7 @@ import rasterio.mask
 import numpy as np
 import os
 import requests
+import gzip
 import shutil
 import tempfile
 from io import BytesIO
@@ -31,8 +32,8 @@ def load_shapefile(shp_file, shx_file, dbf_file):
 
 # Function to download and process CHIRPS data for a specific day
 def process_chirps_data_daily(gdf, year, month, day):
-    # Define the link for CHIRPS daily data
-    link = f"https://data.chc.ucsb.edu/products/CHIRPS-2.0/africa_daily/tifs/p25/{year}/{month:02d}.{day:02d}.tif.gz"
+    # Define the link for CHIRPS daily data with the correct date format (chirps-v2.0.YYYY.MM.DD.tif.gz)
+    link = f"https://data.chc.ucsb.edu/products/CHIRPS-2.0/africa_daily/tifs/p25/{year}/chirps-v2.0.{year}.{month:02d}.{day:02d}.tif.gz"
 
     # Download the .tif or .tif.gz file
     response = requests.get(link)
@@ -75,7 +76,7 @@ def process_chirps_data_daily(gdf, year, month, day):
 
         return gdf
     else:
-        st.error(f"Failed to download data for {year}-{month:02d}-{day:02d}. Please check the availability of CHIRPS data.")
+        st.error(f"Failed to download data for {year}.{month:02d}.{day:02d}. Please check the availability of CHIRPS data.")
         return None
 
 # Streamlit app layout
@@ -111,7 +112,7 @@ if uploaded_shp and uploaded_shx and uploaded_dbf and years and months and varia
             days_in_month = 31 if month in [1, 3, 5, 7, 8, 10, 12] else (30 if month in [4, 6, 9, 11] else (29 if year % 4 == 0 else 28))
 
             for day in range(1, days_in_month + 1):
-                with st.spinner(f"Processing CHIRPS data for {year}-{month:02d}-{day:02d}..."):
+                with st.spinner(f"Processing CHIRPS data for {year}.{month:02d}.{day:02d}..."):
                     df = process_chirps_data_daily(gdf, year, month, day)
                     if df is not None:
                         df['Year'] = year
