@@ -5,7 +5,6 @@ import rasterio.mask
 import numpy as np
 import os
 import requests
-import gzip
 import shutil
 import tempfile
 from io import BytesIO
@@ -30,44 +29,54 @@ def load_shapefile(shp_file, shx_file, dbf_file):
 
     return gdf
 
-# Function to download, unzip, and process CHIRPS data for a specific day
+# Function to download and process CHIRPS data for a specific day
 def process_chirps_data_daily(gdf, year, month, day):
     # Define the link for CHIRPS daily data
     link = f"https://data.chc.ucsb.edu/products/CHIRPS-2.0/africa_daily/tifs/p25/{year}/{month:02d}.{day:02d}.tif.gz"
 
-    # Download the .tif.gz file
+    # Download the .tif or .tif.gz file
     response = requests.get(link)
-    with tempfile.TemporaryDirectory() as tmpdir:
-        zipped_file_path = os.path.join(tmpdir, "chirps_daily.tif.gz")
-        unzipped_file_path = os.path.join(tmpdir, "chirps_daily.tif")
+    if response.status_code == 200:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tif_file_path = os.path.join(tmpdir, "chirps_daily.tif")
+            
+            # Try to treat it as a .tif.gz file first
+            try:
+                zipped_file_path = os.path.join(tmpdir, "chirps_daily.tif.gz")
+                with open(zipped_file_path, "wb") as f:
+                    f.write(response.content)
 
-        with open(zipped_file_path, "wb") as f:
-            f.write(response.content)
+                # Unzip the file if it's a valid gzip
+                with gzip.open(zipped_file_path, "rb") as f_in:
+                    with open(tif_file_path, "wb") as f_out:
+                        shutil.copyfileobj(f_in, f_out)
+            except (gzip.BadGzipFile, OSError):
+                # If it's not a gzip file, treat it as a normal .tif file
+                with open(tif_file_path, "wb") as f:
+                    f.write(response.content)
 
-        # Unzip the file
-        with gzip.open(zipped_file_path, "rb") as f_in:
-            with open(unzipped_file_path, "wb") as f_out:
-                shutil.copyfileobj(f_in, f_out)
+            # Open the .tif file with Rasterio
+            with rasterio.open(tif_file_path) as src:
+                # Reproject shapefile to match CHIRPS data CRS
+                gdf = gdf.to_crs(src.crs)
 
-        # Open the unzipped .tif file with Rasterio
-        with rasterio.open(unzipped_file_path) as src:
-            # Reproject shapefile to match CHIRPS data CRS
-            gdf = gdf.to_crs(src.crs)
+                # Mask the CHIRPS data using the shapefile geometry
+                out_image, out_transform = rasterio.mask.mask(src, gdf.geometry, crop=True)
 
-            # Mask the CHIRPS data using the shapefile geometry
-            out_image, out_transform = rasterio.mask.mask(src, gdf.geometry, crop=True)
+                # Flatten the masked array and calculate mean excluding masked values
+                daily_rains = []
+                for geom in gdf.geometry:
+                    masked_data, _ = rasterio.mask.mask(src, [geom], crop=True)
+                    masked_data = masked_data.flatten()
+                    masked_data = masked_data[masked_data != src.nodata]  # Exclude nodata values
+                    daily_rains.append(masked_data.mean())
 
-            # Flatten the masked array and calculate mean excluding masked values
-            daily_rains = []
-            for geom in gdf.geometry:
-                masked_data, _ = rasterio.mask.mask(src, [geom], crop=True)
-                masked_data = masked_data.flatten()
-                masked_data = masked_data[masked_data != src.nodata]  # Exclude nodata values
-                daily_rains.append(masked_data.mean())
+                gdf['daily_rain'] = daily_rains
 
-            gdf['daily_rain'] = daily_rains
-
-    return gdf
+        return gdf
+    else:
+        st.error(f"Failed to download data for {year}-{month:02d}-{day:02d}. Please check the availability of CHIRPS data.")
+        return None
 
 # Streamlit app layout
 st.title("CHIRPS Daily Data Analysis and Map Generation")
@@ -104,51 +113,53 @@ if uploaded_shp and uploaded_shx and uploaded_dbf and years and months and varia
             for day in range(1, days_in_month + 1):
                 with st.spinner(f"Processing CHIRPS data for {year}-{month:02d}-{day:02d}..."):
                     df = process_chirps_data_daily(gdf, year, month, day)
-                    df['Year'] = year
-                    df['Month'] = month
-                    df['Day'] = day
-                    all_data.append(df)
+                    if df is not None:
+                        df['Year'] = year
+                        df['Month'] = month
+                        df['Day'] = day
+                        all_data.append(df)
 
     # Concatenate all DataFrames into a single DataFrame
-    combined_df = pd.concat(all_data, ignore_index=True)
+    if all_data:
+        combined_df = pd.concat(all_data, ignore_index=True)
 
-    st.success("CHIRPS daily data processed successfully!")
+        st.success("CHIRPS daily data processed successfully!")
 
-    # Display the daily rainfall data
-    st.write(combined_df[['geometry', 'daily_rain', 'Year', 'Month', 'Day', 'FIRST_DNAM', 'FIRST_CHIE']])
+        # Display the daily rainfall data
+        st.write(combined_df[['geometry', 'daily_rain', 'Year', 'Month', 'Day', 'FIRST_DNAM', 'FIRST_CHIE']])
 
-    # Line plot for each FIRST_DNAM and its corresponding FIRST_CHIE
-    st.subheader("Line Plots for Each FIRST_CHIE under FIRST_DNAM")
+        # Line plot for each FIRST_DNAM and its corresponding FIRST_CHIE
+        st.subheader("Line Plots for Each FIRST_CHIE under FIRST_DNAM")
 
-    # Create separate figures for each unique FIRST_DNAM and plot each associated FIRST_CHIE
-    for dnam in combined_df['FIRST_DNAM'].unique():
-        # Filter data for the current FIRST_DNAM
-        dnam_data = combined_df[combined_df['FIRST_DNAM'] == dnam]
-        
-        # For each FIRST_DNAM, plot each associated FIRST_CHIE
-        for chie in dnam_data['FIRST_CHIE'].unique():
-            chie_data = dnam_data[dnam_data['FIRST_CHIE'] == chie]
-            daily_rain_by_day = chie_data.groupby(['Year', 'Month', 'Day'])[variable].mean().reset_index()
+        # Create separate figures for each unique FIRST_DNAM and plot each associated FIRST_CHIE
+        for dnam in combined_df['FIRST_DNAM'].unique():
+            # Filter data for the current FIRST_DNAM
+            dnam_data = combined_df[combined_df['FIRST_DNAM'] == dnam]
 
-            # Create plot for each FIRST_CHIE under its respective FIRST_DNAM
-            fig, ax = plt.subplots(figsize=(12, 8))
-            for year in years:
-                year_data = daily_rain_by_day[daily_rain_by_day['Year'] == year]
-                ax.plot(year_data['Day'], year_data[variable], marker='o', label=f'Year {year}')
-            
-            ax.set_title(f"{chie} in {dnam}: {variable} over Days in Months")
-            ax.set_xlabel('Day')
-            ax.set_ylabel(variable)
-            ax.legend(loc='best')
-            ax.annotate(chie, xy=(0.5, 1.05), xycoords='axes fraction', ha='center', fontsize=14, fontweight='bold')
+            # For each FIRST_DNAM, plot each associated FIRST_CHIE
+            for chie in dnam_data['FIRST_CHIE'].unique():
+                chie_data = dnam_data[dnam_data['FIRST_CHIE'] == chie]
+                daily_rain_by_day = chie_data.groupby(['Year', 'Month', 'Day'])[variable].mean().reset_index()
 
-            # Display the plot
-            st.pyplot(fig)
-            
-            # Optionally, add download functionality for each line plot
-            line_plot_output = BytesIO()
-            fig.savefig(line_plot_output, format='png')
-            st.download_button(label=f"Download Line Plot for {chie} in {dnam}",
-                               data=line_plot_output.getvalue(),
-                               file_name=f"line_plot_{chie}_in_{dnam}.png",
-                               mime="image/png")
+                # Create plot for each FIRST_CHIE under its respective FIRST_DNAM
+                fig, ax = plt.subplots(figsize=(12, 8))
+                for year in years:
+                    year_data = daily_rain_by_day[daily_rain_by_day['Year'] == year]
+                    ax.plot(year_data['Day'], year_data[variable], marker='o', label=f'Year {year}')
+
+                ax.set_title(f"{chie} in {dnam}: {variable} over Days in Months")
+                ax.set_xlabel('Day')
+                ax.set_ylabel(variable)
+                ax.legend(loc='best')
+                ax.annotate(chie, xy=(0.5, 1.05), xycoords='axes fraction', ha='center', fontsize=14, fontweight='bold')
+
+                # Display the plot
+                st.pyplot(fig)
+
+                # Optionally, add download functionality for each line plot
+                line_plot_output = BytesIO()
+                fig.savefig(line_plot_output, format='png')
+                st.download_button(label=f"Download Line Plot for {chie} in {dnam}",
+                                   data=line_plot_output.getvalue(),
+                                   file_name=f"line_plot_{chie}_in_{dnam}.png",
+                                   mime="image/png")
