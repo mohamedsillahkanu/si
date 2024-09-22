@@ -33,7 +33,7 @@ def load_shapefile(shp_file, shx_file, dbf_file):
 # Function to download and process CHIRPS data for a specific day
 def process_chirps_data_daily(gdf, year, month, day):
     # Define the link for CHIRPS daily data with the correct date format (chirps-v2.0.YYYY.MM.DD.tif.gz)
-    link = f"https://data.chc.ucsb.edu/products/CHIRPS-2.0/africa_daily/tifs/p25/{year}/chirps-v2.0.{year}.{month:02d}.{day:02d}.tif.gz"
+    link = f"https://data.chc.ucsb.edu/products/CHIRPS-2.0/africa_daily/tifs/p05/{year}/chirps-v2.0.{year}.{month:02d}.{day:02d}.tif.gz"
 
     # Download the .tif or .tif.gz file
     response = requests.get(link)
