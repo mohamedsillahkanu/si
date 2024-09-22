@@ -11,13 +11,12 @@ import tempfile
 from io import BytesIO
 from matplotlib import pyplot as plt
 import pandas as pd
-from datetime import datetime
 
 # Function to load and process the shapefile
 def load_shapefile(shp_file, shx_file, dbf_file):
     with tempfile.TemporaryDirectory() as tmpdir:
         # Save the uploaded files to a temporary directory
-        for file, ext in zip([shp_file, shx_file, dbf_file], ['.shp', '.shx', '.dbf']):
+        for file, ext in zip([shp_file, shx_file, dbf_file], ['.shp', '.shx', '.dbf']): 
             with open(os.path.join(tmpdir, f"file{ext}"), "wb") as f:
                 f.write(file.getbuffer())
 
@@ -34,7 +33,7 @@ def load_shapefile(shp_file, shx_file, dbf_file):
 # Function to download, unzip, and process CHIRPS data for a specific day
 def process_chirps_data_daily(gdf, year, month, day):
     # Define the link for CHIRPS daily data
-    link = f"https://data.chc.ucsb.edu/products/CHIRPS-2.0/global_daily/tifs/p05/chirps-v2.0.{year}.{month:02d}.{day:02d}.tif.gz"
+    link = f"https://data.chc.ucsb.edu/products/CHIRPS-2.0/africa_daily/tifs/p25/{year}/{month:02d}.{day:02d}.tif.gz"
 
     # Download the .tif.gz file
     response = requests.get(link)
@@ -70,18 +69,6 @@ def process_chirps_data_daily(gdf, year, month, day):
 
     return gdf
 
-# Function to handle leap years
-def days_in_month(year, month):
-    if month == 2:
-        if (year % 4 == 0 and year % 100 != 0) or (year % 400 == 0):
-            return 29
-        else:
-            return 28
-    elif month in [4, 6, 9, 11]:
-        return 30
-    else:
-        return 31
-
 # Streamlit app layout
 st.title("CHIRPS Daily Data Analysis and Map Generation")
 st.image("icf_sl (1).jpg", caption="MAP GENERATOR", use_column_width=True)
@@ -96,7 +83,7 @@ years = st.multiselect("Select Years", range(1981, 2025))
 months = st.multiselect("Select Months", range(1, 13))
 
 # Variable selection for line plot
-variable = st.selectbox("Select Variable for Line Plot", ["daily_rain"])
+variable = st.selectbox("Select Variable for Line Plot", ["daily_rain"])  # Add more variables as needed
 
 # Ensure that the shapefile and other inputs are provided
 if uploaded_shp and uploaded_shx and uploaded_dbf and years and months and variable:
@@ -109,11 +96,12 @@ if uploaded_shp and uploaded_shx and uploaded_dbf and years and months and varia
     # Initialize a list to collect DataFrames
     all_data = []
 
-    # Process CHIRPS daily data for each year and month
+    # Process CHIRPS data for each year, month, and day
     for year in years:
         for month in months:
-            days = days_in_month(year, month)
-            for day in range(1, days + 1):
+            days_in_month = 31 if month in [1, 3, 5, 7, 8, 10, 12] else (30 if month in [4, 6, 9, 11] else (29 if year % 4 == 0 else 28))
+
+            for day in range(1, days_in_month + 1):
                 with st.spinner(f"Processing CHIRPS data for {year}-{month:02d}-{day:02d}..."):
                     df = process_chirps_data_daily(gdf, year, month, day)
                     df['Year'] = year
@@ -124,13 +112,13 @@ if uploaded_shp and uploaded_shx and uploaded_dbf and years and months and varia
     # Concatenate all DataFrames into a single DataFrame
     combined_df = pd.concat(all_data, ignore_index=True)
 
-    st.success("CHIRPS data processed successfully!")
+    st.success("CHIRPS daily data processed successfully!")
 
     # Display the daily rainfall data
     st.write(combined_df[['geometry', 'daily_rain', 'Year', 'Month', 'Day', 'FIRST_DNAM', 'FIRST_CHIE']])
 
     # Line plot for each FIRST_DNAM and its corresponding FIRST_CHIE
-    st.subheader("Daily Rainfall Line Plots for Each FIRST_CHIE under FIRST_DNAM")
+    st.subheader("Line Plots for Each FIRST_CHIE under FIRST_DNAM")
 
     # Create separate figures for each unique FIRST_DNAM and plot each associated FIRST_CHIE
     for dnam in combined_df['FIRST_DNAM'].unique():
@@ -148,7 +136,7 @@ if uploaded_shp and uploaded_shx and uploaded_dbf and years and months and varia
                 year_data = daily_rain_by_day[daily_rain_by_day['Year'] == year]
                 ax.plot(year_data['Day'], year_data[variable], marker='o', label=f'Year {year}')
             
-            ax.set_title(f"{chie} in {dnam}: {variable} for Each Day of the Month")
+            ax.set_title(f"{chie} in {dnam}: {variable} over Days in Months")
             ax.set_xlabel('Day')
             ax.set_ylabel(variable)
             ax.legend(loc='best')
