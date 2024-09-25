@@ -61,40 +61,40 @@ if uploaded_file is not None:
         df[map_column] = pd.Categorical(df[map_column], categories=selected_categories, ordered=True)
 
     elif variable_type == "Numeric":
-        # Custom labels for bins
+        # Select number of bins
+        num_bins = st.selectbox("Select Number of Bins:", options=[2, 3, 4, 5, 6, 7])
+
+        # Create custom labels for bins
         bin_labels_input = st.text_input("Enter labels for bins (comma-separated):")
         bin_labels = [label.strip() for label in bin_labels_input.split(',')] if bin_labels_input else []
 
-        # Create bin ranges from labels
-        bins = []
-        if bin_labels:  # Ensure there are labels entered
-            for label in bin_labels:
-                if '>' in label:
-                    lower = float(label.replace('>', '').strip())
-                    bins.append(lower)
-                elif '-' in label:
-                    lower, upper = map(float, label.split('-'))
-                    bins.append(lower)
-                    bins.append(upper)
-
-        # Sort bins and ensure the last bin covers the max value
-        if bins:  # Ensure bins is not empty
-            bins = sorted(list(set(bins)))
-            if bins[-1] < df[map_column].max():
-                bins.append(df[map_column].max() + 1)
+        # Validate the number of bin labels
+        if len(bin_labels) != num_bins - 1:
+            st.error(f"The number of valid bin labels must match {num_bins - 1}. You provided {len(bin_labels)} labels.")
         else:
-            st.error("No valid bin labels were provided. Please enter valid bin ranges.")
+            # Create bin edges based on user-defined labels
+            bins = [df[map_column].min()]  # Start with the minimum value
+            
+            # Generate bins dynamically based on user input
+            for i in range(num_bins - 1):
+                lower_limit = df[map_column].min() + (i * (df[map_column].max() - df[map_column].min()) / (num_bins - 1))
+                upper_limit = df[map_column].min() + ((i + 1) * (df[map_column].max() - df[map_column].min()) / (num_bins - 1))
+                bins.append(lower_limit)
+                bins.append(upper_limit)
 
-        # Perform binning
-        if bins:
-            df[map_column + "_bins"] = pd.cut(df[map_column], bins=bins, labels=bin_labels, include_lowest=True)
-            map_column = map_column + "_bins"
-            selected_categories = bin_labels  # Update selected categories from bin labels
-            category_counts = df[map_column].value_counts().to_dict()
+            bins.append(df[map_column].max())  # End with the maximum value
 
-    # Check if there are selected categories to proceed with color mapping
+            # Perform binning
+            if bins:
+                bins = sorted(set(bins))  # Ensure bins are unique and sorted
+                df[map_column + "_bins"] = pd.cut(df[map_column], bins=bins, labels=bin_labels, include_lowest=True)
+                map_column += "_bins"
+                selected_categories = bin_labels
+                category_counts = df[map_column].value_counts().to_dict()
+
+    # Proceed with map generation if categories are selected
     if selected_categories:
-        # Color palette mapping
+        # Color mapping
         cmap = plt.get_cmap(color_palette_name)
         num_colors = min(9, cmap.N)
         colors = [to_hex(cmap(i / (num_colors - 1))) for i in range(num_colors)]
