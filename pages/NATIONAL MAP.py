@@ -33,7 +33,11 @@ if uploaded_file is not None:
     image_name = st.text_input("Image Name:", value="Generated_Map")
     font_size = st.slider("Font Size (for Map Title):", min_value=8, max_value=24, value=15)
 
-    show_image = st.checkbox('Check this box to display the Color Palette')
+     show_image = st.checkbox('Check this box to display the Color Palette')
+
+    # Display the image when the checkbox is checked
+    if show_image:
+        st.image('Color palette.png', caption='Color Palette')
 
     color_palette_name = st.selectbox("Color Palette:", options=list(plt.colormaps()), index=list(plt.colormaps()).index('Set3'))
 
