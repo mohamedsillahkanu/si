@@ -1,16 +1,23 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
 
-# Add custom CSS to increase sidebar width
+# Add custom CSS to increase sidebar width and style section headers
 st.markdown(
     """
     <style>
     /* Increase the width of the sidebar */
     [data-testid="stSidebar"] {
-        width: 600px;  /* Adjust the width as needed */
+        width: 400px;
     }
     [data-testid="stSidebarNav"] {
-        width: 400px;  /* Keep the navigation width consistent */
+        width: 400px;
+    }
+    /* Styling for section headers */
+    .section-header {
+        font-weight: bold;
+        color: blue;
+        font-size: 18px;
+        margin-top: 20px;
     }
     </style>
     """,
@@ -25,11 +32,11 @@ if "selected_toc" not in st.session_state:
 with st.sidebar:
     st.title("Table of Contents")
 
-    # All sections under one unified ToC
+    # All sections and subsections in one option_menu
     selected_toc = option_menu(
         menu_title=None,  # No title
         options=[
-            "A. Data Assembly and Management",  # Section A
+            "A. DATA ASSEMBLY AND MANAGEMENT",  # Section A as non-clickable text
             "A.1 Shapefiles",
             "A.2 Health Facilities",
             "A.3 Routine case data from DHIS2",
@@ -38,17 +45,17 @@ with st.sidebar:
             "A.6 Climate data",
             "A.7 LMIS data",
             "A.8 Modeled data",
-            "B. Epidemiological Stratification",  # Section B
+            "B. Epidemiological Stratification",  # Section B as non-clickable text
             "B.1 Reporting Rate per Variable",
             "B.2 Group and merge data frame",
             "B.3 Crude Incidence by Year",
             "B.4 Adjusted Incidence by Year",
             "B.5 Option to Select Incidence",
             "B.6 Risk Categorization",
-            "C. Stratification of Other Determinants",  # Section C
+            "C. Stratification of Other Determinants",  # Section C as non-clickable text
             "C.1 Access to Care",
             "C.2 Seasonality",
-            "D. Review of Past Interventions",  # Section D
+            "D. Review of Past Interventions",  # Section D as non-clickable text
             "D.1 EPI Coverage and Dropout Rate",
             "D.2 IPTp and ANC Coverage",
             "D.3 PMC (Perennial Malaria Chemoprevention)",
@@ -62,7 +69,7 @@ with st.sidebar:
             "D.11 LSM",
             "D.12 Assessing the Quality of Case Management"
         ],
-        icons=[""] * 30,  # Empty icons for all options
+        icons=[""] * 34,  # Empty icons for all options
         menu_icon="cast",  # Icon for the menu itself
         default_index=-1,  # No default selection
         styles={
@@ -84,9 +91,26 @@ with st.sidebar:
         }
     )
 
-    # Update session state to track the selected option
-    st.session_state.selected_toc = selected_toc
+    # Add section header styling with st.markdown
+    st.markdown(
+        """
+        <style>
+        /* Apply blue color and bold style to section headings in the menu */
+        li[data-option="A. Data Assembly and Management"],
+        li[data-option="B. Epidemiological Stratification"],
+        li[data-option="C. Stratification of Other Determinants"],
+        li[data-option="D. Review of Past Interventions"] {
+            font-weight: bold;
+            color: blue;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
 
 # Display the selected ToC option
-if st.session_state.selected_toc:
-    st.write(f"Selected option: {st.session_state.selected_toc}")
+if selected_toc:
+    if selected_toc == "A. DATA ASSEMBLY AND MANAGEMENT":
+        st.markdown('<p style="color:blue; font-weight:bold;">A. DATA ASSEMBLY AND MANAGEMENT</p>', unsafe_allow_html=True)
+    else:
+        st.write(f"Selected option: {selected_toc}")
