@@ -59,7 +59,7 @@ elif section == "Test Illustration":
                 df = pd.read_excel(uploaded_file)
                 
             st.write("Here is a preview of your data:")
-            st.write(df.head())
+            st.write(df)
             
             # Ask user to select the observed categorical column and expected frequencies
             categorical_column = st.selectbox("Select the categorical column", df.columns)
