@@ -47,39 +47,47 @@ if section == "Test Overview":
 elif section == "Test Illustration":
     st.header("Test Illustration: Exact Goodness-of-Fit Test")
     
-    st.subheader("Upload your dataset")
-    uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
+    st.subheader("Upload your dataset (CSV or XLSX)")
+    uploaded_file = st.file_uploader("Choose a CSV or XLSX file", type=["csv", "xlsx"])
     
     if uploaded_file is not None:
-        # Load the dataset
-        df = pd.read_csv(uploaded_file)
-        st.write("Here is a preview of your data:")
-        st.write(df.head())
-        
-        # Ask user to select the observed categorical column and expected frequencies
-        categorical_column = st.selectbox("Select the categorical column", df.columns)
-        st.write(f"You selected: {categorical_column}")
-        
-        # User input expected frequencies
-        categories = df[categorical_column].unique()
-        st.write(f"Unique categories in {categorical_column}: {categories}")
-        
-        expected_frequencies = []
-        for category in categories:
-            freq = st.number_input(f"Enter expected frequency for {category}", min_value=0.0, step=0.01)
-            expected_frequencies.append(freq)
-        
-        # Calculate observed frequencies
-        observed_frequencies = df[categorical_column].value_counts().sort_index().values
-        
-        # Perform the goodness-of-fit test
-        if st.button("Run Test"):
-            result = chisquare(f_obs=observed_frequencies, f_exp=expected_frequencies)
-            st.write("Test Result:")
-            st.write(result)
+        # Load the dataset based on file type
+        try:
+            if uploaded_file.name.endswith('.csv'):
+                df = pd.read_csv(uploaded_file)
+            elif uploaded_file.name.endswith('.xlsx'):
+                df = pd.read_excel(uploaded_file)
+                
+            st.write("Here is a preview of your data:")
+            st.write(df.head())
             
-            # Conclusion
-            if result.pvalue < 0.05:
-                st.write("The observed distribution does not match the expected distribution (Reject H0).")
-            else:
-                st.write("The observed distribution matches the expected distribution (Fail to reject H0).")
+            # Ask user to select the observed categorical column and expected frequencies
+            categorical_column = st.selectbox("Select the categorical column", df.columns)
+            st.write(f"You selected: {categorical_column}")
+            
+            # User input expected frequencies
+            categories = df[categorical_column].unique()
+            st.write(f"Unique categories in {categorical_column}: {categories}")
+            
+            expected_frequencies = []
+            for category in categories:
+                freq = st.number_input(f"Enter expected frequency for {category}", min_value=0.0, step=0.01)
+                expected_frequencies.append(freq)
+            
+            # Calculate observed frequencies
+            observed_frequencies = df[categorical_column].value_counts().sort_index().values
+            
+            # Perform the goodness-of-fit test
+            if st.button("Run Test"):
+                result = chisquare(f_obs=observed_frequencies, f_exp=expected_frequencies)
+                st.write("Test Result:")
+                st.write(result)
+                
+                # Conclusion
+                if result.pvalue < 0.05:
+                    st.write("The observed distribution does not match the expected distribution (Reject H0).")
+                else:
+                    st.write("The observed distribution matches the expected distribution (Fail to reject H0).")
+        
+        except Exception as e:
+            st.error(f"Error loading file: {e}")
