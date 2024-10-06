@@ -3,10 +3,17 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from statsmodels.tsa.arima.model import ARIMA
+from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
+from statsmodels.tsa.stattools import adfuller
 import warnings
 
 # Suppress warnings
 warnings.filterwarnings("ignore")
+
+# Function to check stationarity
+def test_stationarity(timeseries):
+    result = adfuller(timeseries)
+    return result[1]  # Return the p-value
 
 # App title
 st.title("Time Series Prediction Using ARIMA")
@@ -79,6 +86,13 @@ elif section == "Test Illustration":
             # Resample to monthly data if not already
             df = df.resample('M').sum()
 
+            # Test for stationarity
+            p_value = test_stationarity(df[value_column])
+            if p_value < 0.05:
+                st.success("The time series is stationary.")
+            else:
+                st.warning("The time series is not stationary. Consider differencing or transforming your data.")
+
             # Define the forecast period in months
             forecast_period = st.number_input("Select the forecast period (number of months to forecast)", min_value=1, value=5)
 
@@ -94,12 +108,16 @@ elif section == "Test Illustration":
                 model_fit = model.fit()
 
                 # Forecast the values
-                forecast = model_fit.forecast(steps=forecast_period)
-
-                # Create a DataFrame for the forecast values
+                forecast = model_fit.get_forecast(steps=forecast_period)
+                forecast_values = forecast.predicted_mean
                 forecast_index = pd.date_range(start=df.index[-1] + pd.DateOffset(months=1), 
                                                 periods=forecast_period, freq='M')
-                forecast_df = pd.DataFrame(forecast, index=forecast_index, columns=['Forecast'])
+                forecast_df = pd.DataFrame(forecast_values, index=forecast_index, columns=['Forecast'])
+
+                # Confidence intervals
+                conf_int = forecast.conf_int()
+                lower_conf = conf_int.iloc[:, 0]
+                upper_conf = conf_int.iloc[:, 1]
 
                 # Combine original data and forecast
                 combined_df = pd.concat([df[value_column], forecast_df])
@@ -108,6 +126,7 @@ elif section == "Test Illustration":
                 plt.figure(figsize=(12, 6))
                 plt.plot(df[value_column], label='Observed', color='blue', marker='o')
                 plt.plot(forecast_df.index, forecast_df['Forecast'], label='Forecast', color='red', linestyle='--', marker='x')
+                plt.fill_between(forecast_df.index, lower_conf, upper_conf, color='pink', alpha=0.3, label='Confidence Interval')
                 plt.title('ARIMA Forecast')
                 plt.xlabel('Date')
                 plt.ylabel('Values')
