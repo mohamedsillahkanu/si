@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 from statsmodels.tsa.holtwinters import ExponentialSmoothing
 import matplotlib.pyplot as plt
 
@@ -73,26 +72,27 @@ elif section == "Test Illustration":
             df[date_column] = pd.to_datetime(df[date_column])
             df.set_index(date_column, inplace=True)
 
-            # Forecasting period
-            forecast_period = st.number_input("Enter the number of periods to forecast", min_value=1, value=12)
-
             # Apply Holt-Winters Exponential Smoothing
             if st.button("Run Holt-Winters Forecast"):
                 model = ExponentialSmoothing(df[value_column], 
                                               seasonal='add', 
                                               seasonal_periods=12).fit()
-                forecast = model.forecast(forecast_period)
 
-                # Combine the forecast with the original DataFrame
-                forecast_index = pd.date_range(start=df.index[-1] + pd.DateOffset(months=1), 
-                                                periods=forecast_period, 
-                                                freq='M')
-                forecast_series = pd.Series(forecast, index=forecast_index)
+                # Forecast values for the same length as the observed data
+                forecast = model.fittedvalues  # This gives the fitted values (both historical and forecast)
+                
+                # Extend the forecast for the specified future period
+                forecast_period = st.number_input("Enter the number of future periods to forecast", min_value=1, value=12)
+                future_forecast = model.forecast(forecast_period)
+                
+                # Create a combined DataFrame for plotting
+                combined_series = pd.concat([df[value_column], future_forecast])
 
                 # Plot the results
                 plt.figure(figsize=(10, 6))
                 plt.plot(df[value_column], label='Observed', color='blue')
-                plt.plot(forecast_series, label='Forecast', color='orange', linestyle='--')
+                plt.plot(forecast.index, forecast, label='Fitted', color='green', linestyle='--')
+                plt.plot(future_forecast.index, future_forecast, label='Forecast', color='orange', linestyle='--')
                 plt.title('Holt-Winters Forecast')
                 plt.xlabel('Date')
                 plt.ylabel('Values')
@@ -100,7 +100,7 @@ elif section == "Test Illustration":
                 st.pyplot(plt)
 
                 st.write("Forecasted Values:")
-                st.write(forecast_series)
+                st.write(future_forecast)
         
         except Exception as e:
             st.error(f"Error loading file: {e}")
