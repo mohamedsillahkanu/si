@@ -16,11 +16,11 @@ if section == "Test Overview":
     st.subheader("When to Use It")
     st.write("""
         The Exact Test for Goodness-of-Fit is used to determine if an observed categorical distribution matches a theoretical or expected distribution.
-        This test is ideal for small sample sizes (e.g., less than 20) where assumptions of other tests, such as the chi-square test, might not hold.
+        This test is ideal for small sample sizes (e.g., less than 1000) where assumptions of other tests, such as the chi-square test, might not hold.
     """)
     
     st.subheader("Number of Samples Required")
-    st.write("Typically small (e.g., less than 20 samples). For larger sample sizes, consider using the chi-square goodness-of-fit test.")
+    st.write("Typically small (e.g., less than 1000 samples). For larger sample sizes, consider using the chi-square goodness-of-fit test.")
     
     st.subheader("Number of Categorical Variables")
     st.write("The test is applied to a single categorical variable with multiple categories.")
