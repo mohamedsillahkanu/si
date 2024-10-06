@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 
 # App title
@@ -76,14 +77,27 @@ elif section == "Test Illustration":
             # Define the moving average window size
             window_size = st.number_input("Select the moving average window size", min_value=1, value=3)
 
+            # Define the forecast period
+            forecast_period = st.number_input("Select the forecast period (number of periods to forecast)", min_value=1, value=5)
+
             # Apply Moving Average
             if st.button("Run Moving Average Forecast"):
                 moving_average = df[value_column].rolling(window=window_size).mean()
+
+                # Forecasting using Moving Average
+                forecast = moving_average.iloc[-1]  # Last value of moving average
+                forecast_values = [forecast] * forecast_period
+                forecast_index = pd.date_range(start=moving_average.index[-1] + pd.Timedelta(days=1), 
+                                                periods=forecast_period, freq='D')
+
+                # Create a DataFrame for forecast values
+                forecast_df = pd.DataFrame(forecast_values, index=forecast_index, columns=['Forecast'])
 
                 # Plot the results
                 plt.figure(figsize=(10, 6))
                 plt.plot(df[value_column], label='Observed', color='blue')
                 plt.plot(moving_average.index, moving_average, label=f'Moving Average (window={window_size})', color='orange')
+                plt.plot(forecast_df.index, forecast_df['Forecast'], label='Forecast', color='red', linestyle='--')
                 plt.title('Moving Average Forecast')
                 plt.xlabel('Date')
                 plt.ylabel('Values')
@@ -92,6 +106,8 @@ elif section == "Test Illustration":
 
                 st.write("Moving Average Values:")
                 st.write(moving_average)
+                st.write("Forecast Values:")
+                st.write(forecast_df)
 
         except Exception as e:
             st.error(f"Error loading file: {e}")
