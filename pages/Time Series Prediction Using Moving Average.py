@@ -84,12 +84,15 @@ elif section == "Test Illustration":
             if st.button("Run Moving Average Forecast"):
                 moving_average = df[value_column].rolling(window=window_size).mean()
 
-                # Create forecast values by repeating the last moving average value
+                # Create forecast values
                 forecast_values = []
                 last_moving_average_value = moving_average.iloc[-1]  # Last moving average value
                 
+                # Generate unique forecast values based on a simple growth model
                 for i in range(forecast_period):
-                    forecast_values.append(last_moving_average_value)
+                    # Example: Increasing forecast value based on a fixed rate (you can adjust this logic)
+                    new_forecast_value = last_moving_average_value * (1 + (0.05 * (i + 1)))  # 5% increase for each period
+                    forecast_values.append(new_forecast_value)
 
                 # Create future dates for the forecast period
                 forecast_index = pd.date_range(start=moving_average.index[-1] + pd.Timedelta(days=1), 
