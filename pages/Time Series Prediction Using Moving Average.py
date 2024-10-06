@@ -87,9 +87,15 @@ elif section == "Test Illustration":
             if st.button("Run Moving Average Forecast"):
                 moving_average = df[value_column].rolling(window=window_size).mean()
 
-                # Forecasting future values
+                # Calculate the average change from the moving average values
+                moving_average_change = moving_average.diff().dropna()
+
+                # Calculate the average of changes to project into the future
+                average_change = moving_average_change.mean() if not moving_average_change.empty else 0
+                
+                # Create forecast values
                 last_moving_average_value = moving_average.iloc[-1]  # Last moving average value
-                forecast_values = [last_moving_average_value] * forecast_period  # Repeat the last value
+                forecast_values = [last_moving_average_value + (average_change * (i + 1)) for i in range(forecast_period)]
 
                 # Create future dates for the forecast period
                 forecast_index = pd.date_range(start=moving_average.index[-1] + pd.DateOffset(months=1), 
