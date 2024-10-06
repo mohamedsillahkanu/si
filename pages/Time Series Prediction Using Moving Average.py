@@ -103,13 +103,14 @@ elif section == "Test Illustration":
 
                 # Plot the results
                 plt.figure(figsize=(12, 6))
-                plt.plot(df[value_column], label='Observed', color='blue')
+                plt.plot(df[value_column], label='Observed', color='blue', marker='o')
                 plt.plot(moving_average.index, moving_average, label=f'Moving Average (window={window_size})', color='orange')
-                plt.plot(forecast_df.index, forecast_df['Forecast'], label='Forecast', color='red', linestyle='--')
+                plt.plot(forecast_df.index, forecast_df['Forecast'], label='Forecast', color='red', linestyle='--', marker='x')
                 plt.title('Moving Average Forecast')
                 plt.xlabel('Date')
                 plt.ylabel('Values')
                 plt.legend()
+                plt.xticks(rotation=45)
                 st.pyplot(plt)
 
                 st.write("Moving Average Values:")
