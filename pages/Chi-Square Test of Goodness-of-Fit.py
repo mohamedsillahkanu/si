@@ -85,6 +85,21 @@ elif section == "Test Illustration":
                 st.write("Test Result:")
                 st.write(result)
                 
+                # Display which categories do not meet the expected frequency
+                expected_frequencies_dict = dict(zip(categories, expected_frequencies))
+                categories_not_meeting_expectation = []
+                
+                for i, category in enumerate(categories):
+                    if observed_frequencies[i] < expected_frequencies[i]:
+                        categories_not_meeting_expectation.append((category, observed_frequencies[i], expected_frequencies[i]))
+
+                if categories_not_meeting_expectation:
+                    st.write("Categories not meeting expected frequency:")
+                    for category, observed, expected in categories_not_meeting_expectation:
+                        st.write(f" - {category}: Observed = {observed}, Expected = {expected}")
+                else:
+                    st.write("All categories meet the expected frequencies.")
+                
                 # Conclusion
                 if result.pvalue < 0.05:
                     st.write("The observed distribution does not match the expected distribution (Reject H0).")
