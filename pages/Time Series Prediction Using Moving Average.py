@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
 
 # App title
 st.title("Time Series Prediction Using Moving Average")
@@ -87,26 +88,24 @@ elif section == "Test Illustration":
             if st.button("Run Moving Average Forecast"):
                 moving_average = df[value_column].rolling(window=window_size).mean()
 
-                # Generate forecast values
-                forecast_values = []
+                # Prepare data for linear regression
+                X = np.array(range(len(df))).reshape(-1, 1)  # Time variable (0, 1, 2, ...)
+                y = df[value_column].values
 
-                # Get the last known value and the last moving average value
-                last_value = df[value_column].iloc[-1]
-                last_moving_average_value = moving_average.iloc[-1]
+                # Fit the linear regression model
+                model = LinearRegression()
+                model.fit(X, y)
 
-                # Calculate a simple linear growth factor based on historical differences
-                growth_factor = (last_value - last_moving_average_value) / window_size
-                
-                for i in range(forecast_period):
-                    next_value = last_moving_average_value + (i + 1) * growth_factor
-                    forecast_values.append(next_value)
+                # Create future time points for forecasting
+                future_X = np.array(range(len(df), len(df) + forecast_period)).reshape(-1, 1)
 
-                # Create future dates for the forecast period
-                forecast_index = pd.date_range(start=moving_average.index[-1] + pd.DateOffset(months=1), 
-                                                periods=forecast_period, freq='M')
+                # Predict future values
+                future_values = model.predict(future_X)
 
                 # Create a DataFrame for the forecast values
-                forecast_df = pd.DataFrame(forecast_values, index=forecast_index, columns=['Forecast'])
+                forecast_index = pd.date_range(start=moving_average.index[-1] + pd.DateOffset(months=1), 
+                                                periods=forecast_period, freq='M')
+                forecast_df = pd.DataFrame(future_values, index=forecast_index, columns=['Forecast'])
 
                 # Combine original data, moving average, and forecast
                 combined_df = pd.concat([df[value_column], moving_average, forecast_df])
