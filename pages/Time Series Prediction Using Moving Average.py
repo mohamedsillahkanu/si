@@ -84,17 +84,25 @@ elif section == "Test Illustration":
             if st.button("Run Moving Average Forecast"):
                 moving_average = df[value_column].rolling(window=window_size).mean()
 
-                # Forecasting using Moving Average
-                forecast = moving_average.iloc[-1]  # Last value of moving average
-                forecast_values = [forecast] * forecast_period
+                # Create forecast values by repeating the last moving average value
+                forecast_values = []
+                last_moving_average_value = moving_average.iloc[-1]  # Last moving average value
+                
+                for i in range(forecast_period):
+                    forecast_values.append(last_moving_average_value)
+
+                # Create future dates for the forecast period
                 forecast_index = pd.date_range(start=moving_average.index[-1] + pd.Timedelta(days=1), 
                                                 periods=forecast_period, freq='D')
 
-                # Create a DataFrame for forecast values
+                # Create a DataFrame for the forecast values
                 forecast_df = pd.DataFrame(forecast_values, index=forecast_index, columns=['Forecast'])
 
+                # Combine original data, moving average, and forecast
+                combined_df = pd.concat([df[value_column], moving_average, forecast_df])
+
                 # Plot the results
-                plt.figure(figsize=(10, 6))
+                plt.figure(figsize=(12, 6))
                 plt.plot(df[value_column], label='Observed', color='blue')
                 plt.plot(moving_average.index, moving_average, label=f'Moving Average (window={window_size})', color='orange')
                 plt.plot(forecast_df.index, forecast_df['Forecast'], label='Forecast', color='red', linestyle='--')
