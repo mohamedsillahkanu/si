@@ -83,10 +83,16 @@ elif section == "Test Illustration":
                                               seasonal_periods=12).fit()
                 forecast = model.forecast(forecast_period)
 
+                # Combine the forecast with the original DataFrame
+                forecast_index = pd.date_range(start=df.index[-1] + pd.DateOffset(months=1), 
+                                                periods=forecast_period, 
+                                                freq='M')
+                forecast_series = pd.Series(forecast, index=forecast_index)
+
                 # Plot the results
                 plt.figure(figsize=(10, 6))
                 plt.plot(df[value_column], label='Observed', color='blue')
-                plt.plot(forecast, label='Forecast', color='orange', linestyle='--')
+                plt.plot(forecast_series, label='Forecast', color='orange', linestyle='--')
                 plt.title('Holt-Winters Forecast')
                 plt.xlabel('Date')
                 plt.ylabel('Values')
@@ -94,7 +100,7 @@ elif section == "Test Illustration":
                 st.pyplot(plt)
 
                 st.write("Forecasted Values:")
-                st.write(forecast)
+                st.write(forecast_series)
         
         except Exception as e:
             st.error(f"Error loading file: {e}")
