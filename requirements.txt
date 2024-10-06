@@ -17,4 +17,6 @@ dataframe-image
 fpdf
 python-docx
 streamlit_option_menu
+scipy
+statsmodels
 
