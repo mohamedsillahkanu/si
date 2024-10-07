@@ -84,6 +84,8 @@ elif section == "Test Illustration":
                     
                     # Only proceed if the contingency table is 2x2
                     if contingency_table.shape == (2, 2):
+                        st.write(f"Contingency table for stratum '{stratum}':")
+                        st.write(contingency_table)  # Display the contingency table for the current stratum
                         tables.append(contingency_table.values)
                     else:
                         st.warning(f"The contingency table for stratum {stratum} is not 2x2. Skipping this stratum.")
