@@ -80,7 +80,7 @@ elif section == "Test Illustration":
             cross_tab_flat['label'] = cross_tab_flat[cat_column1] + ' - ' + cross_tab_flat[cat_column2]
 
             # Generate the pie chart with a smaller size
-            fig, ax = plt.subplots(figsize=(6, 6))  # Set a smaller size for the pie chart
+            fig, ax = plt.subplots(figsize=(8, 8))  # Set a smaller size for the pie chart
             ax.pie(cross_tab_flat['count'], labels=cross_tab_flat['label'], autopct='%1.1f%%', startangle=90)
 
             # Create a rectangular box around the pie chart
