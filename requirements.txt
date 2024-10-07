@@ -18,4 +18,5 @@ fpdf
 python-docx
 streamlit_option_menu
 scipy
-statsmodels==0.14.0 
+statsmodels
+statsmodels>=0.13.0
