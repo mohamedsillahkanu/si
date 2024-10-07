@@ -70,29 +70,41 @@ elif section == "Test Illustration":
             cat_column2 = st.selectbox("Select the second categorical variable", df.columns)
             strata_column = st.selectbox("Select the stratification variable", df.columns)
             
-            st.write(f"You selected: {cat_column1}, {cat_column2}, and {strata_column} for the test.")
-            
-            # Build stratified tables
-            tables = []
-            for stratum in df[strata_column].unique():
-                subset = df[df[strata_column] == stratum]
-                contingency_table = pd.crosstab(subset[cat_column1], subset[cat_column2])
-                tables.append(contingency_table.values)
-            
-            # Perform Cochran-Mantel-Haenszel Test
-            cmh_test = StratifiedTable(tables)
-            result = cmh_test.test_null_odds()
-            
-            # Display test results
-            st.write("Cochran-Mantel-Haenszel Test Results:")
-            st.write(f"Test Statistic: {result.statistic}")
-            st.write(f"p-value: {result.pvalue}")
-            
-            # Interpretation of results
-            if result.pvalue < 0.05:
-                st.write("The association between the two variables is statistically significant across strata (Reject H0).")
+            # Check if the selected columns are binary
+            if df[cat_column1].nunique() != 2 or df[cat_column2].nunique() != 2:
+                st.error("Both selected categorical variables must have exactly two categories.")
             else:
-                st.write("There is no significant association between the two variables across strata (Fail to reject H0).")
+                st.write(f"You selected: {cat_column1}, {cat_column2}, and {strata_column} for the test.")
+                
+                # Build stratified tables
+                tables = []
+                for stratum in df[strata_column].unique():
+                    subset = df[df[strata_column] == stratum]
+                    contingency_table = pd.crosstab(subset[cat_column1], subset[cat_column2])
+                    
+                    # Only proceed if the contingency table is 2x2
+                    if contingency_table.shape == (2, 2):
+                        tables.append(contingency_table.values)
+                    else:
+                        st.warning(f"The contingency table for stratum {stratum} is not 2x2. Skipping this stratum.")
+                
+                if len(tables) > 0:
+                    # Perform Cochran-Mantel-Haenszel Test
+                    cmh_test = StratifiedTable(tables)
+                    result = cmh_test.test_null_odds()
+                    
+                    # Display test results
+                    st.write("Cochran-Mantel-Haenszel Test Results:")
+                    st.write(f"Test Statistic: {result.statistic}")
+                    st.write(f"p-value: {result.pvalue}")
+                    
+                    # Interpretation of results
+                    if result.pvalue < 0.05:
+                        st.write("The association between the two variables is statistically significant across strata (Reject H0).")
+                    else:
+                        st.write("There is no significant association between the two variables across strata (Fail to reject H0).")
+                else:
+                    st.warning("No valid 2x2 contingency tables were found for the selected strata.")
         
         except Exception as e:
             st.error(f"Error loading file: {e}")
