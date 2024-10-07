@@ -87,8 +87,8 @@ elif section == "Test Illustration":
             box = plt.Rectangle((-1.5, -1.5), 3, 3, fill=False, edgecolor='black', linewidth=2)
             ax.add_artist(box)
 
-            # Set legend outside the box
-            ax.legend(title="Categories", loc="upper left", bbox_to_anchor=(1.2, 1.5))  # Adjusted position
+            # Set legend at the bottom of the pie chart
+            ax.legend(title="Categories", loc="upper center", bbox_to_anchor=(0.5, -0.1), ncol=3)  # Legend at the bottom
             plt.title(f"Proportions of {cat_column1} and {cat_column2} by {cat_column3}")
             plt.tight_layout()
 
