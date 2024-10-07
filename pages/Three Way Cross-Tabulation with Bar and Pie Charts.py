@@ -88,7 +88,7 @@ elif section == "Test Illustration":
             ax.add_artist(box)
 
             # Set legend outside the box
-            ax.legend(title="Categories", loc="upper left", bbox_to_anchor=(1.5, 1))  # Adjusted position
+            ax.legend(title="Categories", loc="upper left", bbox_to_anchor=(1.2, 1.5))  # Adjusted position
             plt.title(f"Proportions of {cat_column1} and {cat_column2} by {cat_column3}")
             plt.tight_layout()
 
