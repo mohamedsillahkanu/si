@@ -79,8 +79,8 @@ elif section == "Test Illustration":
             cross_tab_flat = cross_tab.stack().reset_index(name='count')
             cross_tab_flat['label'] = cross_tab_flat[cat_column1] + ' - ' + cross_tab_flat[cat_column2]
 
-            # Generate the pie chart
-            fig, ax = plt.subplots()
+            # Generate the pie chart with a smaller size
+            fig, ax = plt.subplots(figsize=(6, 6))  # Set a smaller size for the pie chart
             ax.pie(cross_tab_flat['count'], labels=cross_tab_flat['label'], autopct='%1.1f%%', startangle=90)
 
             # Create a rectangular box around the pie chart
@@ -88,7 +88,7 @@ elif section == "Test Illustration":
             ax.add_artist(box)
 
             # Set legend at the bottom of the pie chart
-            ax.legend(title="Categories", loc="upper center", bbox_to_anchor=(0.5, -0.1), ncol=3)  # Legend at the bottom
+            ax.legend(title="Categories", loc="upper center", bbox_to_anchor=(0.5, -0.2), ncol=3)  # Legend at the bottom
             plt.title(f"Proportions of {cat_column1} and {cat_column2} by {cat_column3}")
             plt.tight_layout()
 
