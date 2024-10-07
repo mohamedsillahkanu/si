@@ -59,13 +59,17 @@ elif section == "Test Illustration":
             st.write("3-Way Cross-Tabulation Table (Count and Percentage):")
             st.write(formatted_table)
 
+            # Input fields for custom titles
+            bar_chart_title = st.text_input("Enter a title for the Bar Chart:", "3-Way Cross-Tabulation Bar Chart")
+            pie_chart_title = st.text_input("Enter a title for the Pie Chart:", f"Proportions of {cat_column1} and {cat_column2} by {cat_column3}")
+
             # Bar chart of the counts
             st.write("Bar Chart of Counts:")
             ax = cross_tab.plot(kind='bar', stacked=True)
 
             # Add the legend to the bar chart
             ax.legend(title=cat_column3, loc='upper left', bbox_to_anchor=(1, 1))  # Legend outside
-            plt.title('3-Way Cross-Tabulation Bar Chart')
+            plt.title(bar_chart_title)
             plt.ylabel('Count')
             plt.xlabel(f'{cat_column1} and {cat_column2}')
 
@@ -89,7 +93,7 @@ elif section == "Test Illustration":
 
             # Set legend at the bottom of the pie chart
             ax.legend(title="Categories", loc="upper center", bbox_to_anchor=(0.5, -0.2), ncol=3)  # Legend at the bottom
-            plt.title(f"Proportions of {cat_column1} and {cat_column2} by {cat_column3}")
+            plt.title(pie_chart_title)
             plt.tight_layout()
 
             # Display the pie chart in Streamlit
