@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # App title
-st.title("Cross-Tabulation with Bar Chart")
+st.title("Cross-Tabulation with Bar Chart and Pie Chart")
 
 # Sidebar for navigation
 st.sidebar.title("Navigation")
@@ -12,7 +12,7 @@ section = st.sidebar.radio("Go to", ["Test Overview", "Test Illustration"])
 
 # 1. Test Overview Section
 if section == "Test Overview":
-    st.header("Overview: Cross-Tabulation and Bar Chart")
+    st.header("Overview: Cross-Tabulation, Bar Chart, and Pie Chart")
 
     st.subheader("What is Cross-Tabulation?")
     st.write("""
@@ -20,12 +20,15 @@ if section == "Test Overview":
         It shows the frequency (count) and often percentages of combinations of categories.
     """)
 
-    st.subheader("Bar Chart Illustration")
-    st.write("After constructing the cross-tabulation table, a bar chart can visually display the frequency distribution across categories.")
+    st.subheader("Visual Representation")
+    st.write("""
+        - **Bar Chart**: Visualizes the count for each combination of categories.
+        - **Pie Chart**: Displays the proportion of each category combination.
+    """)
 
 # 2. Test Illustration Section
 elif section == "Test Illustration":
-    st.header("Illustration: Cross-Tabulation with Bar Chart")
+    st.header("Illustration: Cross-Tabulation, Bar Chart, and Pie Chart")
     
     st.subheader("Upload your dataset (CSV or XLSX)")
     uploaded_file = st.file_uploader("Choose a CSV or XLSX file", type=["csv", "xlsx"])
@@ -58,13 +61,33 @@ elif section == "Test Illustration":
 
             # Bar chart of the counts
             st.write("Bar Chart of Counts:")
-            cross_tab.plot(kind='bar', stacked=True)
+            ax = cross_tab.plot(kind='bar', stacked=True)
 
-            # Display the bar chart using Matplotlib
+            # Add the legend to the bar chart
+            ax.legend(title=cat_column2, loc='upper right', bbox_to_anchor=(1.15, 1))
             plt.title('Cross-Tabulation Bar Chart')
             plt.ylabel('Count')
             plt.xlabel(cat_column1)
+
+            # Display the bar chart using Matplotlib
             st.pyplot(plt)
+
+            # Pie Chart Section
+            st.write("Pie Chart of Proportions:")
+            
+            # Flatten the cross_tab DataFrame to create pie chart data
+            cross_tab_flat = cross_tab.stack().reset_index(name='count')
+            cross_tab_flat['label'] = cross_tab_flat[cat_column1] + ' - ' + cross_tab_flat[cat_column2]
+
+            # Generate the pie chart
+            fig, ax = plt.subplots()
+            ax.pie(cross_tab_flat['count'], labels=cross_tab_flat['label'], autopct='%1.1f%%', startangle=90)
+            ax.legend(loc="upper right", bbox_to_anchor=(1, 1))
+            plt.title("Proportions of Categories")
+            plt.tight_layout()
+
+            # Display the pie chart in Streamlit
+            st.pyplot(fig)
 
         except Exception as e:
             st.error(f"Error loading file: {e}")
