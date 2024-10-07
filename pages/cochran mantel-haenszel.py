@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from statsmodels.stats.contingency_tables import stratified_tables
+from statsmodels.stats.contingency_tables import StratifiedTable
 
 # Cochran-Mantel-Haenszel Test Function
 def cmh_test(data, stratifying_col, cat_col1, cat_col2):
