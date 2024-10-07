@@ -82,7 +82,7 @@ elif section == "Test Illustration":
             # Generate the pie chart
             fig, ax = plt.subplots()
             ax.pie(cross_tab_flat['count'], labels=cross_tab_flat['label'], autopct='%1.1f%%', startangle=90)
-            ax.legend(loc="upper right", bbox_to_anchor=(1.15, 1))  # Legend outside
+            ax.legend(loc="upper right", bbox_to_anchor=(1, 1))  # Legend outside
             plt.title(f"Proportions of {cat_column1} and {cat_column2} by {cat_column3}")
             plt.tight_layout()
 
