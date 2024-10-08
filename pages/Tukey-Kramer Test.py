@@ -27,10 +27,14 @@ if uploaded_file:
         # Perform Tukey-Kramer Test
         tukey_result = pairwise_tukeyhsd(endog=df[numeric_col], groups=df[categorical_col], alpha=0.05)
 
-        # Convert result to DataFrame
-        tukey_summary = pd.DataFrame(data=tukey_result.summary().data[1:], columns=tukey_result.summary().data[0])
+        # Extract summary data
+        tukey_summary_data = tukey_result.summary().data[1:]  # Tukey summary without headers
+        headers = tukey_result.summary().data[0]  # Column headers
 
-        # Display results in table form
+        # Convert to DataFrame
+        tukey_summary = pd.DataFrame(data=tukey_summary_data, columns=headers)
+
+        # Display results in table form (with p-value and test statistics)
         st.write("Tukey-Kramer Test Results")
         st.dataframe(tukey_summary)
 
