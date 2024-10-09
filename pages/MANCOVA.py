@@ -5,7 +5,7 @@ import statsmodels.api as sm
 from statsmodels.multivariate.manova import MANOVA
 
 # App title
-st.title("MANCOVA (Multivariate Analysis of Covariance)")
+st.title("MANCOVA Test")
 
 # Sidebar for navigation
 st.sidebar.title("Navigation")
@@ -13,43 +13,45 @@ section = st.sidebar.radio("Go to", ["Test Overview", "Test Illustration"])
 
 # 1. Test Overview Section
 if section == "Test Overview":
-    st.header("Test Overview: MANCOVA")
-
+    st.header("Test Overview: MANCOVA Test")
+    
     st.subheader("When to Use It")
     st.write("""
-        The MANCOVA is used to evaluate whether two or more population means on multiple dependent variables 
-        are equal across levels of a categorical independent variable, while controlling for the effects of covariates.
+        The MANCOVA (Multivariate Analysis of Covariance) test is used to assess the effect of independent categorical variables 
+        on two or more dependent variables while controlling for one or more continuous covariates. It is particularly useful 
+        when you have multiple outcomes and you want to see if the independent variables influence them, taking covariates into account.
     """)
-
-    st.subheader("Number of Samples Required")
-    st.write("At least two dependent variables and one or more covariates are required, with a sufficient sample size depending on your data.")
-
-    st.subheader("Number of Variables")
+    
+    st.subheader("Number of Variables Required")
     st.write("""
-        - Dependent Variables: 2 or more continuous variables.
-        - Independent Variable: Categorical variable (factor).
-        - Covariate: A continuous variable that may influence the dependent variables.
+        - At least two dependent variables (continuous).
+        - One or more independent variables (categorical).
+        - One or more covariates (continuous) to control for their effect.
     """)
-
+    
     st.subheader("Purpose of the Test")
     st.write("""
-        The purpose of MANCOVA is to determine if there is a significant difference between groups on multiple dependent variables,
-        while accounting for the influence of covariates.
+        The purpose of the MANCOVA test is to analyze whether the dependent variables vary across levels of the independent variables 
+        while accounting for the covariates.
     """)
-
-    st.subheader("Real-Life Medical Examples")
+    
+    st.subheader("Real-Life Medical Examples (Malaria)")
+    st.write("Here are two practical examples of how this test can be used in malaria research:")
+    
     st.write("""
-        1. **Effect of Malaria Treatments on Multiple Health Outcomes**: MANCOVA can be used to test whether different malaria treatment methods (e.g., drug A vs. drug B) 
-           have significant effects on multiple health outcomes, such as fever reduction and recovery time, while controlling for age.
-        
-        2. **Impact of Malaria Prevention on Multiple Health Indicators**: You can use MANCOVA to see if different prevention methods (e.g., bed nets vs. no bed nets) 
-           impact health indicators like infection rate and hospital visits, while controlling for factors such as region or household size.
+    1. **Effect of Malaria Treatment on Multiple Health Outcomes**: Researchers can use MANCOVA to determine if different malaria treatments 
+       affect several health outcomes (e.g., hemoglobin levels and parasite counts), while controlling for age as a covariate.
+    """)
+    
+    st.write("""
+    2. **Impact of Region on Health Outcomes**: Researchers can analyze if malaria outcomes (e.g., recovery time and symptom severity) 
+       differ across regions, while controlling for initial health status as a covariate.
     """)
 
 # 2. Test Illustration Section
 elif section == "Test Illustration":
-    st.header("Test Illustration: MANCOVA")
-
+    st.header("Test Illustration: MANCOVA Test")
+    
     st.subheader("Upload your dataset (CSV or XLSX)")
     uploaded_file = st.file_uploader("Choose a CSV or XLSX file", type=["csv", "xlsx"])
     
@@ -63,22 +65,30 @@ elif section == "Test Illustration":
                 
             st.write("Here is a preview of your data:")
             st.write(df.head())
-
-            # Select dependent variables, independent variable, and covariate
-            dep_vars = st.multiselect("Select the dependent variables (2 or more)", df.columns)
-            indep_var = st.selectbox("Select the independent (categorical) variable", df.columns)
-            covariate = st.selectbox("Select the covariate (continuous)", df.columns)
-
-            if len(dep_vars) >= 2:
-                # Prepare the MANCOVA model
-                formula = f"{' + '.join(dep_vars)} ~ {indep_var} + {covariate}"
-                model = MANOVA.from_formula(formula, data=df)
-                result = model.mv_test()
-
-                st.write("MANCOVA Results:")
-                # Display the results in a tabular form
-                result_table = result.summary().tables[0]
-                st.write(result_table)
             
+            # Ask the user to select dependent variables, independent variables, and covariates
+            dependent_vars = st.multiselect("Select dependent variables (continuous)", df.columns)
+            independent_var = st.selectbox("Select the independent variable (categorical)", df.columns)
+            covariate = st.selectbox("Select the covariate (continuous)", df.columns)
+            
+            # Ensure that multiple dependent variables are selected
+            if len(dependent_vars) < 2:
+                st.error("Please select at least two dependent variables.")
+            else:
+                # Prepare the formula for the MANCOVA model
+                formula = f"{'+'.join(dependent_vars)} ~ C({independent_var}) + {covariate}"
+                st.write(f"Generated formula: {formula}")
+                
+                # Fit the MANCOVA model
+                try:
+                    mancova_model = MANOVA.from_formula(formula, data=df)
+                    results = mancova_model.mv_test()
+                    
+                    st.subheader("MANCOVA Test Results")
+                    st.write(results)
+                    
+                except Exception as e:
+                    st.error(f"Error in running MANCOVA: {e}")
+        
         except Exception as e:
             st.error(f"Error loading file: {e}")
