@@ -90,5 +90,9 @@ elif section == "Test Illustration":
                 st.write("Coefficients for Set 2:")
                 st.write(cancorr.ycoef)
 
+        except pd.errors.EmptyDataError:
+            st.error("The uploaded file is empty. Please upload a valid CSV or XLSX file.")
+        except ValueError as ve:
+            st.error(f"ValueError: {ve}. Please check your data structure.")
         except Exception as e:
-            st.error(f"Error loading file: {e}")
+            st.error(f"Error loading file: {e}. Please ensure the file is in the correct format and contains appropriate data.")
