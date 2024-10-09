@@ -67,6 +67,16 @@ elif section == "Test Illustration":
             
             st.write(f"You selected: {predictor_column} as the predictor and {outcome_column} as the outcome.")
             
+            # Convert the outcome column to numeric if it's categorical (e.g., 'Positive'/'Negative')
+            if df[outcome_column].dtype == 'object':
+                unique_values = df[outcome_column].unique()
+                if len(unique_values) == 2:
+                    df[outcome_column] = df[outcome_column].map({unique_values[0]: 0, unique_values[1]: 1})
+                    st.write(f"Converted the outcome '{outcome_column}' from {unique_values} to [0, 1].")
+                else:
+                    st.error("The outcome variable must have exactly 2 unique values (e.g., binary outcome).")
+                    st.stop()
+            
             # Prepare the data for logistic regression
             X = df[[predictor_column]]  # Independent variable
             y = df[outcome_column]  # Dependent variable
