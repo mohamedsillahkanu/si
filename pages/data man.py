@@ -504,8 +504,7 @@ elif data_management_option == "Quality Control/Checks":
                 st.pyplot(fig)
 
 
-
-
+    
     elif quality_control_option == "Outlier Detection":
         if st.session_state.df is not None:
 
@@ -530,6 +529,24 @@ elif data_management_option == "Quality Control/Checks":
                   
                     st.write("Outliers detected by Z-Score:")
                     st.dataframe(outliers)
+
+
+
+                # User selects a categorical column
+categorical_column = st.selectbox("Select a categorical column:", st.session_state.df.select_dtypes(include=['object']).columns)
+
+# Display unique values from the selected categorical column
+if categorical_column:
+    unique_values = st.session_state.df[categorical_column].unique()
+    selected_value = st.selectbox("Select a value:", unique_values)
+
+    # Filter the DataFrame based on the selected value
+    filtered_df = st.session_state.df[st.session_state.df[categorical_column] == selected_value]
+
+    # Now allow the user to choose a numerical column for outlier detection
+    numerical_columns = st.session_state.df.select_dtypes(include=['number']).columns
+    numerical_column = st.selectbox("Select a numerical column for outlier detection:", numerical_columns)
+
 
                 elif method == "IQR":
                     outliers = detect_outliers_iqr(st.session_state.df, column)
