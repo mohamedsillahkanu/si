@@ -73,6 +73,7 @@ def sanity_check(dfs):
 # Function for outlier correction methods
 
 def correct_outliers(df, col, method):
+    co1=df[[
     if method == "Winsorization":
         lower_bound = df[col].quantile(0.05)
         upper_bound = df[col].quantile(0.95)
@@ -570,8 +571,8 @@ elif data_management_option == "Quality Control/Checks":
         if st.session_state.df is not None:
 
             column = st.selectbox("Select column for outlier correction:", [""] + list(st.session_state.df.columns))
-
-
+          
+                 
             if column:
                 st.write("Outlier Correction Methods:")
                 method = st.selectbox("Choose method:", ["","Winsorization", "Moving Average including outliers in MA calculation", "Moving Average excluding outliers in MA calculation", "Replacement with Mean excluding outliers in the mean calculation", "Replacement with Mean including outliers in the mean calculation", "Replacement with Median excluding outliers in the median calculation", "Replacement with Median including outliers in the median calculation", "Replacement with Capped Values"])
