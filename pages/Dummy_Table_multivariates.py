@@ -3,7 +3,18 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from docx import Document
 from docx.shared import Inches
-from docx.enum.table import WD_CELL_ALIGNMENT
+from docx.oxml import OxmlElement
+
+# Function to add borders to the table in the Word document
+def add_borders_to_table(table):
+    for row in table.rows:
+        for cell in row.cells:
+            cell.border = {
+                'top': {'sz': 4, 'space': 0, 'color': '000000', 'val': 'single'},
+                'bottom': {'sz': 4, 'space': 0, 'color': '000000', 'val': 'single'},
+                'left': {'sz': 4, 'space': 0, 'color': '000000', 'val': 'single'},
+                'right': {'sz': 4, 'space': 0, 'color': '000000', 'val': 'single'},
+            }
 
 # App title
 st.title("Dummy Table with Categorical and Numeric Variables")
@@ -55,12 +66,12 @@ elif section == "Test Illustration":
                 summary_table = df.groupby(cat_column)[num_col].agg(['count', 'mean', 'sum', 'std']).reset_index()
                 summary_table.columns = [cat_column, 'Count', 'Mean', 'Total', 'Std Dev']
 
+                # Format Mean and Std Dev to one decimal place
+                summary_table['Mean'] = summary_table['Mean'].round(1)
+                summary_table['Std Dev'] = summary_table['std'].round(1)
+
                 # Calculate percentage
                 summary_table['Percentage'] = (summary_table['Total'] / summary_table['Total'].sum()) * 100
-
-                # Format mean and std dev to one decimal place
-                summary_table['Mean'] = summary_table['Mean'].round(1)
-                summary_table['Std Dev'] = summary_table['Std Dev'].round(1)
 
                 # Display the summary table
                 st.write(f"**{table_title} for {num_col}**")
@@ -114,16 +125,14 @@ elif section == "Test Illustration":
                 for i, column_name in enumerate(summary_table.columns):
                     hdr_cells[i].text = column_name
                 
-                # Fill in the table with data
+                # Fill in the table with data and add borders
                 for _, row in summary_table.iterrows():
                     row_cells = word_table.add_row().cells
                     for i, value in enumerate(row):
                         row_cells[i].text = str(value)
 
                 # Add borders to the table
-                for row in word_table.rows:
-                    for cell in row.cells:
-                        cell.border = True  # Apply borders
+                add_borders_to_table(word_table)
 
                 # Add plots to the Word document
                 doc.add_heading(f'Mean Bar Chart - {num_col}', level=3)
