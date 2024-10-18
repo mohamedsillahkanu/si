@@ -100,10 +100,20 @@ elif section == "Test Illustration":
                 plt.savefig(f'dummy_table_{num_col}.png', bbox_inches='tight', pad_inches=0.1)
                 plt.close(fig)  # Close the figure to avoid display
 
-                # Add to Word document
+                # Add to Word document with tabular format
                 doc.add_heading(f'{table_title} - {num_col}', level=2)
-                for i in range(len(summary_table)):
-                    doc.add_paragraph(str(summary_table.iloc[i].to_dict()))
+                
+                # Create a table in the Word document
+                word_table = doc.add_table(rows=1, cols=len(summary_table.columns))
+                hdr_cells = word_table.rows[0].cells
+                for i, column_name in enumerate(summary_table.columns):
+                    hdr_cells[i].text = column_name
+                
+                # Fill in the table with data
+                for _, row in summary_table.iterrows():
+                    row_cells = word_table.add_row().cells
+                    for i, value in enumerate(row):
+                        row_cells[i].text = str(value)
 
                 # Add plots to the Word document
                 doc.add_heading(f'Mean Bar Chart - {num_col}', level=3)
