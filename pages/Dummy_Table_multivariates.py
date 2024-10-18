@@ -3,7 +3,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from docx import Document
 from docx.shared import Inches
-from docx.oxml import OxmlElement
 
 # Function to add borders to the table in the Word document
 def add_borders_to_table(table):
@@ -68,7 +67,7 @@ elif section == "Test Illustration":
 
                 # Format Mean and Std Dev to one decimal place
                 summary_table['Mean'] = summary_table['Mean'].round(1)
-                summary_table['Std Dev'] = summary_table['std'].round(1)
+                summary_table['Std Dev'] = summary_table['Std Dev'].round(1)
 
                 # Calculate percentage
                 summary_table['Percentage'] = (summary_table['Total'] / summary_table['Total'].sum()) * 100
