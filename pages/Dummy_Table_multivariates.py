@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from docx import Document
 from docx.shared import Inches
+from docx.enum.table import WD_CELL_ALIGNMENT
 
 # App title
 st.title("Dummy Table with Categorical and Numeric Variables")
@@ -56,6 +57,10 @@ elif section == "Test Illustration":
 
                 # Calculate percentage
                 summary_table['Percentage'] = (summary_table['Total'] / summary_table['Total'].sum()) * 100
+
+                # Format mean and std dev to one decimal place
+                summary_table['Mean'] = summary_table['Mean'].round(1)
+                summary_table['Std Dev'] = summary_table['Std Dev'].round(1)
 
                 # Display the summary table
                 st.write(f"**{table_title} for {num_col}**")
@@ -114,6 +119,11 @@ elif section == "Test Illustration":
                     row_cells = word_table.add_row().cells
                     for i, value in enumerate(row):
                         row_cells[i].text = str(value)
+
+                # Add borders to the table
+                for row in word_table.rows:
+                    for cell in row.cells:
+                        cell.border = True  # Apply borders
 
                 # Add plots to the Word document
                 doc.add_heading(f'Mean Bar Chart - {num_col}', level=3)
