@@ -43,63 +43,73 @@ elif section == "Test Illustration":
             cat_column = st.selectbox("Select a categorical variable", df.select_dtypes(include=['object', 'category']).columns)
             num_columns = st.multiselect("Select numeric variables", df.select_dtypes(include=['float64', 'int64']).columns)
 
-            # Input field for the title of the dummy table
-            table_title = st.text_input("Enter a title for the Dummy Table:", "Summary Table")
+            # Input field for the title of the dummy tables
+            table_title = st.text_input("Enter a title for the Dummy Tables:", "Summary Table")
 
-            # Generate the summary table
-            summary_table = df.groupby(cat_column)[num_columns].agg(['count', 'mean', 'sum', 'std']).reset_index()
-            summary_table.columns = [cat_column] + [f"{num_col} ({stat})" for num_col in num_columns for stat in ['Count', 'Mean', 'Total', 'Std Dev']]
-            
-            # Calculate percentage for each numeric variable
+            # Create a Word document to save outputs
+            doc = Document()
+
             for num_col in num_columns:
-                summary_table[f"{num_col} (Percentage)"] = (summary_table[f"{num_col} (Total)"] / summary_table[f"{num_col} (Total)"].sum()) * 100
+                # Generate the summary table for the current numeric column
+                summary_table = df.groupby(cat_column)[num_col].agg(['count', 'mean', 'sum', 'std']).reset_index()
+                summary_table.columns = [cat_column, 'Count', 'Mean', 'Total', 'Std Dev']
 
-            # Display the summary table
-            st.write(f"**{table_title}**")
-            st.write(summary_table)
+                # Calculate percentage
+                summary_table['Percentage'] = (summary_table['Total'] / summary_table['Total'].sum()) * 100
 
-            # Input fields for plot titles
-            bar_chart_title = st.text_input("Enter a title for the Horizontal Bar Chart:", "Mean by Category")
-            pie_chart_title = st.text_input("Enter a title for the Pie Chart:", "Total by Category")
+                # Display the summary table
+                st.write(f"**{table_title} for {num_col}**")
+                st.write(summary_table)
 
-            # Horizontal Bar Charts for Mean
-            for num_col in num_columns:
+                # Input fields for plot titles
+                bar_chart_title = st.text_input(f"Enter a title for the Horizontal Bar Chart for {num_col}:", f"Mean by Category - {num_col}")
+                pie_chart_title = st.text_input(f"Enter a title for the Pie Chart for {num_col}:", f"Total by Category - {num_col}")
+
+                # Horizontal Bar Chart of Mean
                 st.write(f"Horizontal Bar Chart of Mean for {num_col}:")
-                mean_values = summary_table.sort_values(by=f"{num_col} (Mean)", ascending=False)
+                mean_values = summary_table.sort_values(by='Mean', ascending=False)
                 plt.figure(figsize=(10, 6))
-                plt.barh(mean_values[cat_column], mean_values[f"{num_col} (Mean)"], color='skyblue')
+                plt.barh(mean_values[cat_column], mean_values['Mean'], color='skyblue')
                 plt.xlabel('Mean')
-                plt.title(f'{bar_chart_title} - {num_col}')
+                plt.title(bar_chart_title)
                 plt.grid(axis='x')
                 plt.tight_layout()
                 plt.savefig(f'mean_bar_chart_{num_col}.png')
                 st.pyplot(plt)
 
-            # Pie Charts for Total
-            for num_col in num_columns:
+                # Pie Chart of Total
                 st.write(f"Pie Chart of Total for {num_col}:")
                 plt.figure(figsize=(8, 8))
-                plt.pie(mean_values[f"{num_col} (Total)"], labels=mean_values[cat_column], autopct='%1.1f%%', startangle=90)
-                plt.title(f'{pie_chart_title} - {num_col}')
+                plt.pie(mean_values['Total'], labels=mean_values[cat_column], autopct='%1.1f%%', startangle=90)
+                plt.title(pie_chart_title)
                 plt.tight_layout()
                 plt.savefig(f'total_pie_chart_{num_col}.png')
                 st.pyplot(plt)
 
-            # Save all outputs to a Word document
-            doc = Document()
-            doc.add_heading(table_title, level=1)
+                # Save the dummy table as a picture
+                fig, ax = plt.subplots(figsize=(8, len(summary_table) * 0.5))  # Adjust size based on number of rows
+                ax.axis('tight')
+                ax.axis('off')
+                the_table = ax.table(cellText=summary_table.values, colLabels=summary_table.columns, cellLoc='center', loc='center')
+                the_table.auto_set_font_size(False)
+                the_table.set_fontsize(10)
+                the_table.scale(1.2, 1.2)
 
-            # Add the summary table to the Word document
-            doc.add_heading('Summary Table', level=2)
-            for i in range(len(summary_table)):
-                doc.add_paragraph(str(summary_table.iloc[i].to_dict()))
+                # Save the table as a PNG image
+                plt.title(f'{table_title} - {num_col}')
+                plt.savefig(f'dummy_table_{num_col}.png', bbox_inches='tight', pad_inches=0.1)
+                plt.close(fig)  # Close the figure to avoid display
 
-            # Add plots to the Word document
-            for num_col in num_columns:
-                doc.add_heading(f'Mean Bar Chart - {num_col}', level=2)
+                # Add to Word document
+                doc.add_heading(f'{table_title} - {num_col}', level=2)
+                for i in range(len(summary_table)):
+                    doc.add_paragraph(str(summary_table.iloc[i].to_dict()))
+
+                # Add plots to the Word document
+                doc.add_heading(f'Mean Bar Chart - {num_col}', level=3)
                 doc.add_picture(f'mean_bar_chart_{num_col}.png', width=Inches(5))
                 
-                doc.add_heading(f'Total Pie Chart - {num_col}', level=2)
+                doc.add_heading(f'Total Pie Chart - {num_col}', level=3)
                 doc.add_picture(f'total_pie_chart_{num_col}.png', width=Inches(5))
 
             # Save the document
