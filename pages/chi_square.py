@@ -4,92 +4,64 @@ import numpy as np
 from scipy.stats import chi2_contingency
 
 # App title
-st.title("Chi-Square Test for Independence")
+st.title("Chi-Square Test for Independence with Aggregation")
 
-# Sidebar for navigation
-st.sidebar.title("Navigation")
-section = st.sidebar.radio("Go to", ["Test Overview", "Test Illustration"])
+# Step 1: Upload the Excel file
+uploaded_file = st.file_uploader("Upload your Excel file", type=["xlsx"])
 
-# 1. Test Overview Section
-if section == "Test Overview":
-    st.header("Test Overview: Chi-Square Test for Independence")
-    
-    st.subheader("When to Use It")
-    st.write("""
-        The Chi-Square Test of Independence is used when you have two categorical variables, and you want 
-        to determine whether there is a significant association between these variables. The test assesses 
-        whether the observed frequencies in a contingency table differ significantly from the expected frequencies.
-    """)
-    
-    st.subheader("Number of Samples Required")
-    st.write("This test works well when you have at least 5 observations per category, but it can handle larger contingency tables (not limited to 2x2).")
-    
-    st.subheader("Number of Categorical Variables")
-    st.write("You need two categorical variables for this test. Each variable can have more than two categories.")
-    
-    st.subheader("Purpose of the Test")
-    st.write("""
-        The purpose of the Chi-Square Test of Independence is to determine if there is a significant relationship 
-        between two categorical variables.
-    """)
-    
-    st.subheader("Real-Life Medical Examples (Malaria)")
-    st.write("Here are two practical examples of how this test can be used in malaria research:")    
-    st.write("""1. **Malaria Symptoms and Diagnostic Results**: Researchers may use the Chi-Square Test to determine if there is a significant association between the type of malaria symptoms (e.g., fever, chills, headaches) and the result of a diagnostic test (positive or negative).""")
-    st.write("""2. **Malaria Prevention Methods and Infection Status**: The test can be used to evaluate whether there is an association between the use of malaria prevention methods (e.g., bed nets, repellents) and malaria infection status (infected or not infected).""")
+if uploaded_file is not None:
+    # Load the dataset
+    df = pd.read_excel(uploaded_file, sheet_name=0)
 
-# 2. Test Illustration Section
-elif section == "Test Illustration":
-    st.header("Test Illustration: Chi-Square Test for Independence")
-    
-    st.subheader("Upload your contingency table dataset (CSV or XLSX)")
-    uploaded_file = st.file_uploader("Choose a CSV or XLSX file", type=["csv", "xlsx"])
-    
-    if uploaded_file is not None:
-        # Load the dataset based on file type
-        try:
-            if uploaded_file.name.endswith('.csv'):
-                df = pd.read_csv(uploaded_file)
-            elif uploaded_file.name.endswith('.xlsx'):
-                df = pd.read_excel(uploaded_file)
+    # Step 2: Select categorical and numeric variables
+    categorical_columns = df.select_dtypes(include=['object']).columns.tolist()
+    numeric_columns = df.select_dtypes(include=['int64', 'float64']).columns.tolist()
 
-            st.write("Here is a preview of your contingency table:")
-            st.write(df)
+    # User selects categorical variables
+    selected_categorical = st.multiselect("Select one or more categorical variables", categorical_columns)
 
-            # Ensure that the dataframe is in contingency table format
-            if df.shape[1] < 2:
-                st.error("The uploaded file must contain at least two columns for the contingency table.")
+    # User selects numeric variables
+    selected_numeric = st.multiselect("Select one or more numeric variables", numeric_columns)
+
+    if st.button("Generate Aggregated Table"):
+        if selected_categorical and selected_numeric:
+            # Step 3: Perform row-wise aggregation
+            aggregated_df = df[selected_categorical + selected_numeric].groupby(selected_categorical).agg(
+                count=('District', 'size'), 
+                total=sum
+            ).reset_index()
+
+            # Calculate percentage
+            aggregated_df['percentage'] = (aggregated_df['total'] / aggregated_df['total'].sum()) * 100
+
+            # Format the count and percentage in brackets
+            aggregated_df['count (percentage)'] = aggregated_df.apply(lambda x: f"{x['count']} ({x['percentage']:.1f}%)", axis=1)
+
+            st.write("Aggregated Table:")
+            st.write(aggregated_df)
+
+            # Step 4: Prepare data for Chi-Square Test
+            contingency_table = pd.crosstab(index=aggregated_df[selected_categorical[0]], columns=aggregated_df[selected_numeric[0]])
+
+            # Perform Chi-Square Test
+            chi2_stat, p_value, dof, expected = chi2_contingency(contingency_table)
+
+            # Step 5: Display Chi-Square test results
+            st.write("Chi-Square Test Results:")
+            st.write(f"Chi-Square Statistic: {chi2_stat}")
+            st.write(f"p-value: {p_value}")
+            st.write(f"Degrees of Freedom: {dof}")
+
+            # Show expected frequencies
+            st.write("Expected Frequencies Table:")
+            expected_df = pd.DataFrame(expected, index=contingency_table.index, columns=contingency_table.columns)
+            st.write(expected_df)
+
+            # Interpretation of results
+            if p_value < 0.05:
+                st.write("The association between the two variables is statistically significant (Reject H0).")
             else:
-                # Perform the Chi-Square Test of Independence
-                chi2_stat, p_value, dof, expected = chi2_contingency(df)
+                st.write("There is no significant association between the two variables (Fail to reject H0).")
 
-                st.write("Chi-Square Test Results:")
-                st.write(f"Chi-Square Statistic: {chi2_stat}")
-                st.write(f"p-value: {p_value}")
-                st.write(f"Degrees of Freedom: {dof}")
-                
-                # Show expected frequencies table
-                expected_df = pd.DataFrame(expected, index=df.index, columns=df.columns)
-                st.write("Expected Frequencies Table:")
-                st.write(expected_df)
-                
-                # Mark significant differences in the contingency table
-                significant_contingency_table = df.copy()
-
-                # Check for significant values and mark with an asterisk
-                for i in range(df.shape[0]):
-                    for j in range(df.shape[1]):
-                        if expected[i][j] > 5 and p_value < 0.05:  # Using criteria for significance
-                            significant_contingency_table.iat[i, j] = str(df.iat[i, j]) + '*'
-                
-                st.write("Contingency Table with Significance Indicators:")
-                st.write(significant_contingency_table)
-
-                # Interpretation of results
-                if p_value < 0.05:
-                    st.write("The association between the two variables is statistically significant (Reject H0).")
-                else:
-                    st.write("There is no significant association between the two variables (Fail to reject H0).")
-        
-        except Exception as e:
-            st.error(f"Error loading file: {e}")
+        else:
+            st.error("Please select at least one categorical variable and one numeric variable.")
