@@ -103,7 +103,7 @@ elif section == "Test Illustration":
                 plt.title(percentage_chart_title)
                 plt.grid(axis='x')
                 plt.tight_layout()
-                plt.savefig(f'mean_bar_chart_{num_col}.png')
+                plt.savefig(f'percentage_bar_chart_{num_col}.png')
                 st.pyplot(plt)
 
                 
@@ -122,19 +122,7 @@ elif section == "Test Illustration":
                 plt.savefig(f'total_pie_chart_{num_col}.png')
                 st.pyplot(plt)
 
-                # Save the dummy table as a picture
-                fig, ax = plt.subplots(figsize=(8, len(summary_table) * 0.5))  # Adjust size based on number of rows
-                ax.axis('tight')
-                ax.axis('off')
-                the_table = ax.table(cellText=summary_table.values, colLabels=summary_table.columns, cellLoc='center', loc='center')
-                the_table.auto_set_font_size(False)
-                the_table.set_fontsize(10)
-                the_table.scale(1.2, 1.2)
-
-                # Save the table as a PNG image
-                plt.title(f'{table_title} - {num_col}')
-                plt.savefig(f'dummy_table_{num_col}.png', bbox_inches='tight', pad_inches=0.1)
-                plt.close(fig)  # Close the figure to avoid display
+             
 
                 # Add to Word document with tabular format
                 doc.add_heading(f'{table_title} - {num_col}', level=2)
@@ -155,15 +143,16 @@ elif section == "Test Illustration":
                 add_borders_to_table(word_table)
 
                 # Add plots to the Word document
-                doc.add_heading(f'Mean Bar Chart - {num_col}', level=3)
+                doc.add_heading(f'Mean of {num_col} by {cat_column}', level=3)
                 doc.add_picture(f'mean_bar_chart_{num_col}.png', width=Inches(5))
+
+                doc.add_heading(f'Percentage of {num_col} by {cat_column}', level=3)
+                doc.add_picture(f'percentage_bar_chart_{num_col}.png', width=Inches(5))
                 
-                doc.add_heading(f'Total Pie Chart - {num_col}', level=3)
+                doc.add_heading(f'Percentage of {num_col} by {cat_column}', level=3)
                 doc.add_picture(f'total_pie_chart_{num_col}.png', width=Inches(5))
 
-                # Add table image to the Word document
-                doc.add_heading(f'Dummy Table Image - {num_col}', level=3)
-                doc.add_picture(f'dummy_table_{num_col}.png', width=Inches(5))
+            
 
             # Save the document
             doc.save('dummy_tables.docx')
