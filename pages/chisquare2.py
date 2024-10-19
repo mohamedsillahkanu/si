@@ -42,14 +42,14 @@ if uploaded_file is not None:
             significance_results = []
 
             for index, row in contingency_table.iterrows():
-                # Convert percentages to counts assuming a common total (e.g., 100 for simplicity)
-                counts = [row[f"{selected_numeric[0]} (%)"], row[f"{selected_numeric[1]} (%)"]]
-                total_count = sum(counts)
+                # Extract the observed counts for Chi-Square test
+                observed_counts = np.array([row[f"{selected_numeric[0]} (%)"], row[f"{selected_numeric[1]} (%)"]])
                 
-                # Chi-Square test on the row
-                chi2_stat, p_value, dof = chi2_contingency([counts, [total_count / 2, total_count / 2]])  # Null hypothesis: equal distribution
+                # Perform Chi-Square test on observed counts
+                # Here we need to make sure observed_counts is in the right format
+                chi2_stat, p_value, dof = chi2_contingency([observed_counts, [1, 1]])  # Testing against a simple expected distribution
                 
-                # Append significance result
+                # Mark significance
                 significance_results.append('*' if p_value < 0.05 else '')
 
             # Add significance results to the contingency table
