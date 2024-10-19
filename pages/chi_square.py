@@ -29,6 +29,7 @@ if uploaded_file is not None:
             aggregation_dict = {num_col: 'sum' for num_col in selected_numeric}
             aggregation_dict['count'] = 'size'  # Add a count for the number of entries
 
+            # Group by selected categorical variables and aggregate numeric variables
             aggregated_df = df[selected_categorical + selected_numeric].groupby(selected_categorical).agg(aggregation_dict).reset_index()
 
             # Calculate percentage
