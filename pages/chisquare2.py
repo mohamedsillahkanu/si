@@ -45,11 +45,13 @@ if uploaded_file is not None:
                 # Extract the observed counts for Chi-Square test
                 observed_counts = np.array([row[f"{selected_numeric[0]} (Total)"], row[f"{selected_numeric[1]} (Total)"]])
                 
-                # Perform Chi-Square test on the observed counts
-                chi2_stat, p_value, dof = chi2_contingency([observed_counts, [1, 1]])  # Null hypothesis: equal distribution
-                
-                # Mark significance
-                significance_results.append('*' if p_value < 0.05 else '')
+                # Ensure there are sufficient counts for the test
+                if np.all(observed_counts > 0):
+                    # Perform Chi-Square test on the observed counts
+                    chi2_stat, p_value, dof = chi2_contingency([observed_counts, [1, 1]])  # Testing against a simple expected distribution
+                    significance_results.append('*' if p_value < 0.05 else '')
+                else:
+                    significance_results.append('')  # No significance if counts are zero or less
 
             # Add significance results to the contingency table
             contingency_table['Significance'] = significance_results
