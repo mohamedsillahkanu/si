@@ -42,7 +42,7 @@ if section == "Test Overview":
 elif section == "Test Illustration":
     st.header("Test Illustration: Chi-Square Test for Independence")
     
-    st.subheader("Upload your dataset (CSV or XLSX)")
+    st.subheader("Upload your contingency table dataset (CSV or XLSX)")
     uploaded_file = st.file_uploader("Choose a CSV or XLSX file", type=["csv", "xlsx"])
     
     if uploaded_file is not None:
@@ -52,65 +52,44 @@ elif section == "Test Illustration":
                 df = pd.read_csv(uploaded_file)
             elif uploaded_file.name.endswith('.xlsx'):
                 df = pd.read_excel(uploaded_file)
-                
-            st.write("Here is a preview of your data:")
-            st.write(df.head())
-            
-            # Option to use an existing contingency table or create one
-            use_existing_table = st.radio("Do you have a contingency table in the file?", ["Yes", "No"])
-            
-            if use_existing_table == "Yes":
-                st.subheader("Select the contingency table")
-                table_name = st.selectbox("Select the table", df.columns)
-                
-                # Assuming the selected column contains the contingency table data
-                contingency_table = df[table_name].values.reshape(-1, 2)  # Modify as necessary for the actual structure
-                contingency_table = pd.DataFrame(contingency_table)
-                st.write("Contingency Table (Observed Frequencies):")
-                st.write(contingency_table)
+
+            st.write("Here is a preview of your contingency table:")
+            st.write(df)
+
+            # Ensure that the dataframe is in contingency table format
+            if df.shape[1] < 2:
+                st.error("The uploaded file must contain at least two columns for the contingency table.")
             else:
-                # Ask the user to select the two categorical columns for the contingency table
-                cat_column1 = st.selectbox("Select the first categorical variable", df.columns)
-                cat_column2 = st.selectbox("Select the second categorical variable", df.columns)
+                # Perform the Chi-Square Test of Independence
+                chi2_stat, p_value, dof, expected = chi2_contingency(df)
+
+                st.write("Chi-Square Test Results:")
+                st.write(f"Chi-Square Statistic: {chi2_stat}")
+                st.write(f"p-value: {p_value}")
+                st.write(f"Degrees of Freedom: {dof}")
                 
-                st.write(f"You selected: {cat_column1} and {cat_column2} for the test.")
+                # Show expected frequencies table
+                expected_df = pd.DataFrame(expected, index=df.index, columns=df.columns)
+                st.write("Expected Frequencies Table:")
+                st.write(expected_df)
                 
-                # Generate the contingency table
-                contingency_table = pd.crosstab(df[cat_column1], df[cat_column2])
-                st.write("Contingency Table (Observed Frequencies):")
-                st.write(contingency_table)
+                # Mark significant differences in the contingency table
+                significant_contingency_table = df.copy()
 
-            # Perform the Chi-Square Test of Independence
-            chi2_stat, p_value, dof, expected = chi2_contingency(contingency_table)
-            
-            st.write("Chi-Square Test Results:")
-            st.write(f"Chi-Square Statistic: {chi2_stat}")
-            st.write(f"p-value: {p_value}")
-            st.write(f"Degrees of Freedom: {dof}")
-            
-            # Show expected frequencies table
-            st.write("Expected Frequencies Table:")
-            expected_df = pd.DataFrame(expected, index=contingency_table.index, columns=contingency_table.columns)
-            st.write(expected_df)
-            
-            # Mark significant differences in the contingency table
-            significance_mask = expected_df > 5  # Adjust threshold as necessary
-            significant_contingency_table = contingency_table.copy()
+                # Check for significant values and mark with an asterisk
+                for i in range(df.shape[0]):
+                    for j in range(df.shape[1]):
+                        if expected[i][j] > 5 and p_value < 0.05:  # Using criteria for significance
+                            significant_contingency_table.iat[i, j] = str(df.iat[i, j]) + '*'
+                
+                st.write("Contingency Table with Significance Indicators:")
+                st.write(significant_contingency_table)
 
-            # Add asterisks for significant values
-            for i in range(contingency_table.shape[0]):
-                for j in range(contingency_table.shape[1]):
-                    if (expected[i, j] > 5) and (p_value < 0.05):
-                        significant_contingency_table.iat[i, j] = str(contingency_table.iat[i, j]) + '*'
-            
-            st.write("Contingency Table with Significance Indicators:")
-            st.write(significant_contingency_table)
-
-            # Interpretation of results
-            if p_value < 0.05:
-                st.write("The association between the two variables is statistically significant (Reject H0).")
-            else:
-                st.write("There is no significant association between the two variables (Fail to reject H0).")
+                # Interpretation of results
+                if p_value < 0.05:
+                    st.write("The association between the two variables is statistically significant (Reject H0).")
+                else:
+                    st.write("There is no significant association between the two variables (Fail to reject H0).")
         
         except Exception as e:
             st.error(f"Error loading file: {e}")
