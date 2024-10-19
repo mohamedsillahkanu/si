@@ -70,7 +70,7 @@ elif section == "Test Illustration":
                 summary_table['Std Dev'] = summary_table['Std Dev'].round(1)
 
                 # Calculate percentage
-                summary_table['Percentage'] = (summary_table['Total'] / summary_table['Total'].sum()) * 100
+                summary_table['Percentage'] = (summary_table['Total'] / summary_table['Total'].sum() * 100).round(1)
 
                 # Display the summary table
                 st.write(f"**{table_title} for {num_col}**")
