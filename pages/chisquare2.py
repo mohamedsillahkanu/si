@@ -4,7 +4,7 @@ import numpy as np
 from scipy.stats import chi2_contingency
 
 # App title
-st.title("Chi-Square Test for Independence with Percentages")
+st.title("Chi-Square Test for Independence with Row-wise Analysis")
 
 # Step 1: Upload the Excel file
 uploaded_file = st.file_uploader("Upload your Excel file", type=["xlsx"])
@@ -33,43 +33,31 @@ if uploaded_file is not None:
             # Prepare a contingency table
             contingency_table = df.groupby(selected_categorical)[['Percentage_Numeric_1', 'Percentage_Numeric_2']].mean().reset_index()
 
-            # Display the contingency table with variable names
+            # Rename columns for clarity
             contingency_table.columns = [selected_categorical] + [f"{selected_numeric[0]} (%)", f"{selected_numeric[1]} (%)"]
             st.write("Contingency Table with Row-wise Percentages:")
             st.write(contingency_table)
 
-            # Step 6: Perform Chi-Square Test
-            chi2_stat, p_value, dof, expected = chi2_contingency(contingency_table[[f"{selected_numeric[0]} (%)", f"{selected_numeric[1]} (%)"]])
+            # Initialize a column to mark significance
+            contingency_table['Significance'] = ''
 
-            # Step 7: Display Chi-Square test results
-            st.write("Chi-Square Test Results:")
-            st.write(f"Chi-Square Statistic: {chi2_stat}")
-            st.write(f"p-value: {p_value}")
-            st.write(f"Degrees of Freedom: {dof}")
-
-            # Show expected frequencies
-            expected_df = pd.DataFrame(expected, index=contingency_table[selected_categorical], columns=['Expected ' + f"{selected_numeric[0]} (%)", 'Expected ' + f"{selected_numeric[1]} (%)"])
-            st.write("Expected Frequencies Table:")
-            st.write(expected_df)
-
-            # Interpretation of results
-            if p_value < 0.05:
-                st.write("The association between the categorical variable and numeric variables is statistically significant (Reject H0).")
-            else:
-                st.write("There is no significant association between the categorical variable and numeric variables (Fail to reject H0).")
-
-            # Marking significant values with an asterisk (*)
-            contingency_table_with_significance = contingency_table.copy()
-            significance_row = (expected > 5)  # Ensure valid conditions for significance
-            
-            # Adding * to the columns where the percentage is significantly associated
+            # Step 6: Perform Chi-Square Test for each category
             for i in range(len(contingency_table)):
-                if significance_row[i].all() and p_value < 0.05:
-                    contingency_table_with_significance.iloc[i, 1] = str(round(contingency_table.iloc[i, 1], 2)) + '*'
-                    contingency_table_with_significance.iloc[i, 2] = str(round(contingency_table.iloc[i, 2], 2)) + '*'
+                row_data = contingency_table.iloc[i][[f"{selected_numeric[0]} (%)", f"{selected_numeric[1]} (%)"]].values
+                chi2_stat, p_value, dof = chi2_contingency([row_data, [1, 1]])  # Test against a uniform distribution
+
+                # Mark significant results
+                if p_value < 0.05:
+                    contingency_table.at[i, 'Significance'] = '*'  # Add asterisk for statistical significance
 
             st.write("Contingency Table with Significance Indicators:")
-            st.write(contingency_table_with_significance)
+            st.write(contingency_table)
+
+            # Interpretation of results
+            if any(contingency_table['Significance'] == '*'):
+                st.write("There are statistically significant differences between the two numeric variables in some categories.")
+            else:
+                st.write("There are no statistically significant differences between the two numeric variables.")
 
         else:
             st.error("Please select one categorical variable and exactly two numeric variables.")
