@@ -23,51 +23,45 @@ if uploaded_file is not None:
 
     if st.button("Calculate Percentages and Perform Chi-Square Test"):
         if selected_categorical and len(selected_numeric) == 2:
-            # Step 4: Calculate row-wise sums
-            df['Total'] = df[selected_numeric[0]] + df[selected_numeric[1]]
-
-            # Step 5: Calculate row-wise percentages
-            df['Percentage_Numeric_1'] = (df[selected_numeric[0]] / df['Total']) * 100
-            df['Percentage_Numeric_2'] = (df[selected_numeric[1]] / df['Total']) * 100
-
-            # Prepare a contingency table with counts
-            contingency_table = df.groupby(selected_categorical)[[selected_numeric[0], selected_numeric[1]]].sum().reset_index()
+            # Prepare the contingency table for counts
+            contingency_table = df.groupby(selected_categorical)[selected_numeric].sum().reset_index()
 
             # Rename columns for clarity
             contingency_table.columns = [selected_categorical] + [f"{selected_numeric[0]} (Total)", f"{selected_numeric[1]} (Total)"]
             st.write("Contingency Table with Total Counts:")
             st.write(contingency_table)
 
-            # Step 6: Perform Chi-Square Test
-            # Prepare observed counts as a 2D array
-            observed_counts = contingency_table[[f"{selected_numeric[0]} (Total)", f"{selected_numeric[1]} (Total)"]].values
-            
-            # Perform Chi-Square test on the 2D array of observed counts
-            chi2_stat, p_value, dof = chi2_contingency(observed_counts)
+            # Step 4: Initialize lists to hold p-values and significance markers
+            p_values = []
+            significance_results = []
 
-            # Step 7: Display Chi-Square test results
-            st.write("Chi-Square Test Results:")
-            st.write(f"Chi-Square Statistic: {chi2_stat}")
-            st.write(f"p-value: {p_value}")
-            st.write(f"Degrees of Freedom: {dof}")
+            # Step 5: Perform Chi-Square Test for each row
+            for index, row in contingency_table.iterrows():
+                observed_counts = np.array([row[f"{selected_numeric[0]} (Total)"], row[f"{selected_numeric[1]} (Total)"]])
+                
+                # Perform Chi-Square test only if both counts are greater than 0
+                if np.all(observed_counts > 0):
+                    chi2_stat, p_value, dof = chi2_contingency([observed_counts, [1, 1]])  # Testing against a simple expected distribution
+                    
+                    # Store the p-value and mark significance
+                    p_values.append(p_value)
+                    significance_results.append('*' if p_value < 0.05 else '')
+                else:
+                    p_values.append(None)  # No significance if counts are zero or less
+                    significance_results.append('')
 
-            # Show expected frequencies
-            expected_df = pd.DataFrame(expected, index=contingency_table[selected_categorical], columns=['Expected ' + f"{selected_numeric[0]} (Total)", 'Expected ' + f"{selected_numeric[1]} (Total)"])
-            st.write("Expected Frequencies Table:")
-            st.write(expected_df)
-
-            # Interpretation of results
-            if p_value < 0.05:
-                st.write("The association between the categorical variable and numeric variables is statistically significant (Reject H0).")
-            else:
-                st.write("There is no significant association between the categorical variable and numeric variables (Fail to reject H0).")
-
-            # Add significance marking to the contingency table
-            contingency_table['Significance'] = ['*' if p_value < 0.05 else '' for _ in range(len(contingency_table))]
+            # Add p-values and significance results to the contingency table
+            contingency_table['p-value'] = p_values
+            contingency_table['Significance'] = significance_results
 
             # Display the contingency table with significance indicators
-            st.write("Contingency Table with Significance Indicators:")
+            st.write("Contingency Table with p-values and Significance Indicators:")
             st.write(contingency_table)
 
+            # Interpretation of results
+            if any(significance_results):
+                st.write("There are statistically significant differences between the two numeric variables in some categories.")
+            else:
+                st.write("There are no statistically significant differences between the two numeric variables.")
         else:
             st.error("Please select one categorical variable and exactly two numeric variables.")
