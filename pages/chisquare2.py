@@ -38,33 +38,36 @@ if uploaded_file is not None:
             st.write("Contingency Table with Total Counts:")
             st.write(contingency_table)
 
-            # Step 6: Perform Chi-Square Test for each category
-            significance_results = []
+            # Step 6: Perform Chi-Square Test
+            # Prepare observed counts as a 2D array
+            observed_counts = contingency_table[[f"{selected_numeric[0]} (Total)", f"{selected_numeric[1]} (Total)"]].values
+            
+            # Perform Chi-Square test on the 2D array of observed counts
+            chi2_stat, p_value, dof = chi2_contingency(observed_counts)
 
-            for index, row in contingency_table.iterrows():
-                # Extract the observed counts for Chi-Square test
-                observed_counts = np.array([row[f"{selected_numeric[0]} (Total)"], row[f"{selected_numeric[1]} (Total)"]])
+            # Step 7: Display Chi-Square test results
+            st.write("Chi-Square Test Results:")
+            st.write(f"Chi-Square Statistic: {chi2_stat}")
+            st.write(f"p-value: {p_value}")
+            st.write(f"Degrees of Freedom: {dof}")
 
-                # Perform Chi-Square test only if both counts are greater than 0
-                if np.all(observed_counts > 0):
-                    chi2_stat, p_value, dof = chi2_contingency([observed_counts])  # Only one row of observed data
+            # Show expected frequencies
+            expected_df = pd.DataFrame(expected, index=contingency_table[selected_categorical], columns=['Expected ' + f"{selected_numeric[0]} (Total)", 'Expected ' + f"{selected_numeric[1]} (Total)"])
+            st.write("Expected Frequencies Table:")
+            st.write(expected_df)
 
-                    # Mark significance
-                    significance_results.append('*' if p_value < 0.05 else '')
-                else:
-                    significance_results.append('')  # No significance if counts are zero or less
+            # Interpretation of results
+            if p_value < 0.05:
+                st.write("The association between the categorical variable and numeric variables is statistically significant (Reject H0).")
+            else:
+                st.write("There is no significant association between the categorical variable and numeric variables (Fail to reject H0).")
 
-            # Add significance results to the contingency table
-            contingency_table['Significance'] = significance_results
+            # Add significance marking to the contingency table
+            contingency_table['Significance'] = ['*' if p_value < 0.05 else '' for _ in range(len(contingency_table))]
 
             # Display the contingency table with significance indicators
             st.write("Contingency Table with Significance Indicators:")
             st.write(contingency_table)
 
-            # Interpretation of results
-            if any(significance_results):
-                st.write("There are statistically significant differences between the two numeric variables in some categories.")
-            else:
-                st.write("There are no statistically significant differences between the two numeric variables.")
         else:
             st.error("Please select one categorical variable and exactly two numeric variables.")
