@@ -23,13 +23,16 @@ if uploaded_file is not None:
 
     if st.button("Generate Contingency Table and Chi-Square Test"):
         if selected_categorical and selected_numeric:
-            # Step 4: Create a contingency table
+            # Step 4: Concatenate numeric variables into one table
+            # Sum the numeric variables for each category
+            aggregated_df = df.groupby(selected_categorical)[selected_numeric].sum().reset_index()
+
+            # Step 5: Create a contingency table
+            # Prepare a contingency table by converting the aggregated data
             contingency_table = pd.DataFrame()
 
             for num_col in selected_numeric:
-                # Group by the categorical variable and sum the numeric variable
-                temp_table = df.groupby(selected_categorical)[num_col].sum().reset_index()
-                temp_table.rename(columns={num_col: 'Total'}, inplace=True)
+                temp_table = aggregated_df[[selected_categorical, num_col]].rename(columns={num_col: 'Total'})
                 contingency_table = pd.concat([contingency_table, temp_table.set_index(selected_categorical)], axis=1)
 
             # Ensure that the contingency table does not have any NaNs
@@ -39,12 +42,12 @@ if uploaded_file is not None:
             st.write("Contingency Table:")
             st.write(contingency_table)
 
-            # Step 5: Perform Chi-Square Test
+            # Step 6: Perform Chi-Square Test
             # Perform Chi-Square Test only if the contingency table is valid
             if (contingency_table > 0).all().all():  # Check if all values are greater than 0
                 chi2_stat, p_value, dof, expected = chi2_contingency(contingency_table)
 
-                # Step 6: Display Chi-Square test results
+                # Step 7: Display Chi-Square test results
                 st.write("Chi-Square Test Results:")
                 st.write(f"Chi-Square Statistic: {chi2_stat}")
                 st.write(f"p-value: {p_value}")
