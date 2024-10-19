@@ -30,7 +30,7 @@ if uploaded_file is not None:
             df['Percentage_Numeric_1'] = (df[selected_numeric[0]] / df['Total']) * 100
             df['Percentage_Numeric_2'] = (df[selected_numeric[1]] / df['Total']) * 100
 
-            # Prepare a contingency table
+            # Prepare a contingency table with counts
             contingency_table = df.groupby(selected_categorical)[[selected_numeric[0], selected_numeric[1]]].sum().reset_index()
 
             # Rename columns for clarity
@@ -44,11 +44,12 @@ if uploaded_file is not None:
             for index, row in contingency_table.iterrows():
                 # Extract the observed counts for Chi-Square test
                 observed_counts = np.array([row[f"{selected_numeric[0]} (Total)"], row[f"{selected_numeric[1]} (Total)"]])
-                
-                # Ensure there are sufficient counts for the test
+
+                # Perform Chi-Square test only if both counts are greater than 0
                 if np.all(observed_counts > 0):
-                    # Perform Chi-Square test on the observed counts
-                    chi2_stat, p_value, dof = chi2_contingency([observed_counts, [1, 1]])  # Testing against a simple expected distribution
+                    chi2_stat, p_value, dof = chi2_contingency([observed_counts])  # Only one row of observed data
+
+                    # Mark significance
                     significance_results.append('*' if p_value < 0.05 else '')
                 else:
                     significance_results.append('')  # No significance if counts are zero or less
