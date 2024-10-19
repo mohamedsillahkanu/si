@@ -39,7 +39,7 @@ if uploaded_file is not None:
             st.write(contingency_table)
 
             # Step 6: Perform Chi-Square Test
-            chi2_stat, p_value, dof, expected = chi2_contingency(contingency_table[['Percentage_Numeric_1', 'Percentage_Numeric_2']])
+            chi2_stat, p_value, dof, expected = chi2_contingency(contingency_table[[f"{selected_numeric[0]} (%)", f"{selected_numeric[1]} (%)"]])
 
             # Step 7: Display Chi-Square test results
             st.write("Chi-Square Test Results:")
