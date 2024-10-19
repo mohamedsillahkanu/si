@@ -98,7 +98,7 @@ elif section == "Test Illustration":
                 st.write(f"Percentage for {num_col} by {cat_column}:")
                 percentage_values = summary_table.sort_values(by='Percentage', ascending=False)
                 plt.figure(figsize=(10, 6))
-                plt.barh(percentage_values[cat_column], percentage_values['Percentage'], color='yellow')
+                plt.barh(percentage_values[cat_column], percentage_values['Percentage'], color='skyblue')
                 plt.xlabel('Percentage')
                 plt.title(percentage_chart_title)
                 plt.grid(axis='x')
