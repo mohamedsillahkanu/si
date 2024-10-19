@@ -17,53 +17,44 @@ if uploaded_file is not None:
     categorical_columns = df.select_dtypes(include=['object']).columns.tolist()
     selected_categorical = st.selectbox("Select one categorical variable", categorical_columns)
 
-    # Step 3: Select multiple numeric variables
+    # Step 3: Select two numeric variables
     numeric_columns = df.select_dtypes(include=['int64', 'float64']).columns.tolist()
-    selected_numeric = st.multiselect("Select one or more numeric variables", numeric_columns)
+    selected_numeric = st.multiselect("Select two numeric variables", numeric_columns, max_selections=2)
 
-    if st.button("Generate Contingency Table and Chi-Square Test"):
-        if selected_categorical and selected_numeric:
-            # Step 4: Concatenate numeric variables into one table
-            # Sum the numeric variables for each category
-            aggregated_df = df.groupby(selected_categorical)[selected_numeric].sum().reset_index()
+    if st.button("Calculate Percentages and Perform Chi-Square Test"):
+        if selected_categorical and len(selected_numeric) == 2:
+            # Step 4: Calculate row-wise sums
+            df['Total'] = df[selected_numeric[0]] + df[selected_numeric[1]]
 
-            # Step 5: Create a contingency table
-            # Prepare a contingency table by converting the aggregated data
-            contingency_table = pd.DataFrame()
+            # Step 5: Calculate row-wise percentages
+            df['Percentage_Numeric_1'] = (df[selected_numeric[0]] / df['Total']) * 100
+            df['Percentage_Numeric_2'] = (df[selected_numeric[1]] / df['Total']) * 100
 
-            for num_col in selected_numeric:
-                temp_table = aggregated_df[[selected_categorical, num_col]].rename(columns={num_col: 'Total'})
-                contingency_table = pd.concat([contingency_table, temp_table.set_index(selected_categorical)], axis=1)
-
-            # Ensure that the contingency table does not have any NaNs
-            contingency_table.fillna(0, inplace=True)  # Replace NaNs with 0
+            # Step 6: Prepare a contingency table
+            contingency_table = df.groupby(selected_categorical)[['Percentage_Numeric_1', 'Percentage_Numeric_2']].mean().reset_index()
 
             # Display the contingency table
-            st.write("Contingency Table:")
+            st.write("Contingency Table with Row-wise Percentages:")
             st.write(contingency_table)
 
-            # Step 6: Perform Chi-Square Test
-            # Perform Chi-Square Test only if the contingency table is valid
-            if (contingency_table > 0).all().all():  # Check if all values are greater than 0
-                chi2_stat, p_value, dof, expected = chi2_contingency(contingency_table)
+            # Step 7: Perform Chi-Square Test
+            chi2_stat, p_value, dof, expected = chi2_contingency(contingency_table[['Percentage_Numeric_1', 'Percentage_Numeric_2']])
 
-                # Step 7: Display Chi-Square test results
-                st.write("Chi-Square Test Results:")
-                st.write(f"Chi-Square Statistic: {chi2_stat}")
-                st.write(f"p-value: {p_value}")
-                st.write(f"Degrees of Freedom: {dof}")
+            # Step 8: Display Chi-Square test results
+            st.write("Chi-Square Test Results:")
+            st.write(f"Chi-Square Statistic: {chi2_stat}")
+            st.write(f"p-value: {p_value}")
+            st.write(f"Degrees of Freedom: {dof}")
 
-                # Show expected frequencies
-                expected_df = pd.DataFrame(expected, index=contingency_table.index, columns=contingency_table.columns)
-                st.write("Expected Frequencies Table:")
-                st.write(expected_df)
+            # Show expected frequencies
+            expected_df = pd.DataFrame(expected, index=contingency_table[selected_categorical], columns=['Percentage_Numeric_1', 'Percentage_Numeric_2'])
+            st.write("Expected Frequencies Table:")
+            st.write(expected_df)
 
-                # Interpretation of results
-                if p_value < 0.05:
-                    st.write("The association between the categorical variable and numeric variables is statistically significant (Reject H0).")
-                else:
-                    st.write("There is no significant association between the categorical variable and numeric variables (Fail to reject H0).")
+            # Interpretation of results
+            if p_value < 0.05:
+                st.write("The association between the categorical variable and numeric variables is statistically significant (Reject H0).")
             else:
-                st.error("Contingency table contains zero counts. Chi-Square test cannot be performed.")
+                st.write("There is no significant association between the categorical variable and numeric variables (Fail to reject H0).")
         else:
-            st.error("Please select a categorical variable and at least one numeric variable.")
+            st.error("Please select one categorical variable and exactly two numeric variables.")
