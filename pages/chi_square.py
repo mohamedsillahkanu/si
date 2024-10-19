@@ -4,7 +4,7 @@ import numpy as np
 from scipy.stats import chi2_contingency
 
 # App title
-st.title("Chi-Square Test for Independence with Aggregation")
+st.title("Chi-Square Test for Independence")
 
 # Step 1: Upload the Excel file
 uploaded_file = st.file_uploader("Upload your Excel file", type=["xlsx"])
@@ -13,56 +13,49 @@ if uploaded_file is not None:
     # Load the dataset
     df = pd.read_excel(uploaded_file, sheet_name=0)
 
-    # Step 2: Select categorical and numeric variables
+    # Step 2: Select one categorical variable
     categorical_columns = df.select_dtypes(include=['object']).columns.tolist()
+    selected_categorical = st.selectbox("Select one categorical variable", categorical_columns)
+
+    # Step 3: Select multiple numeric variables
     numeric_columns = df.select_dtypes(include=['int64', 'float64']).columns.tolist()
-
-    # User selects categorical variables
-    selected_categorical = st.multiselect("Select one or more categorical variables", categorical_columns)
-
-    # User selects numeric variables
     selected_numeric = st.multiselect("Select one or more numeric variables", numeric_columns)
 
-    if st.button("Generate Aggregated Table"):
+    if st.button("Generate Contingency Table and Chi-Square Test"):
         if selected_categorical and selected_numeric:
-            # Step 3: Perform row-wise aggregation
-            aggregation_dict = {num_col: 'sum' for num_col in selected_numeric}
-            aggregation_dict['count'] = 'size'  # Add a count for the number of entries
+            # Step 4: Create a contingency table
+            contingency_table = pd.DataFrame()
 
-            # Group by selected categorical variables and aggregate numeric variables
-            aggregated_df = df[selected_categorical + selected_numeric].groupby(selected_categorical).agg(aggregation_dict).reset_index()
+            for num_col in selected_numeric:
+                # Group by the categorical variable and sum the numeric variable
+                temp_table = df.groupby(selected_categorical)[num_col].sum().reset_index()
+                temp_table.rename(columns={num_col: 'Total'}, inplace=True)
+                temp_table[selected_categorical] = temp_table[selected_categorical].astype(str)
+                contingency_table = pd.concat([contingency_table, temp_table.set_index(selected_categorical)], axis=1)
 
-            # Calculate percentage
-            aggregated_df['percentage'] = (aggregated_df['count'] / aggregated_df['count'].sum()) * 100
-
-            # Format the count and percentage in brackets
-            aggregated_df['count (percentage)'] = aggregated_df.apply(lambda x: f"{x['count']} ({x['percentage']:.1f}%)", axis=1)
-
-            st.write("Aggregated Table:")
-            st.write(aggregated_df)
-
-            # Prepare the contingency table for Chi-Square Test
-            contingency_table = pd.crosstab(index=aggregated_df[selected_categorical[0]], 
-                                             columns=aggregated_df[selected_numeric[0]])
-
-            # Step 4: Perform Chi-Square Test
+            # Step 5: Perform Chi-Square Test
+            # Ensure that the contingency table is in the correct format
+            contingency_table.fillna(0, inplace=True)  # Replace NaNs with 0 for Chi-Square test
             chi2_stat, p_value, dof, expected = chi2_contingency(contingency_table)
 
-            # Step 5: Display Chi-Square test results
+            # Step 6: Display results
+            st.write("Contingency Table:")
+            st.write(contingency_table)
+
             st.write("Chi-Square Test Results:")
             st.write(f"Chi-Square Statistic: {chi2_stat}")
             st.write(f"p-value: {p_value}")
             st.write(f"Degrees of Freedom: {dof}")
 
             # Show expected frequencies
-            st.write("Expected Frequencies Table:")
             expected_df = pd.DataFrame(expected, index=contingency_table.index, columns=contingency_table.columns)
+            st.write("Expected Frequencies Table:")
             st.write(expected_df)
 
             # Interpretation of results
             if p_value < 0.05:
-                st.write("The association between the two variables is statistically significant (Reject H0).")
+                st.write("The association between the categorical variable and numeric variables is statistically significant (Reject H0).")
             else:
-                st.write("There is no significant association between the two variables (Fail to reject H0).")
+                st.write("There is no significant association between the categorical variable and numeric variables (Fail to reject H0).")
         else:
-            st.error("Please select at least one categorical variable and one numeric variable.")
+            st.error("Please select a categorical variable and at least one numeric variable.")
