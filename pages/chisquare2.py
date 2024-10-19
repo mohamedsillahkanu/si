@@ -38,26 +38,31 @@ if uploaded_file is not None:
             st.write("Contingency Table with Row-wise Percentages:")
             st.write(contingency_table)
 
-            # Initialize a column to mark significance
-            contingency_table['Significance'] = ''
-
             # Step 6: Perform Chi-Square Test for each category
-            for i in range(len(contingency_table)):
-                row_data = contingency_table.iloc[i][[f"{selected_numeric[0]} (%)", f"{selected_numeric[1]} (%)"]].values
-                chi2_stat, p_value, dof = chi2_contingency([row_data, [1, 1]])  # Test against a uniform distribution
+            significance_results = []
 
-                # Mark significant results
-                if p_value < 0.05:
-                    contingency_table.at[i, 'Significance'] = '*'  # Add asterisk for statistical significance
+            for index, row in contingency_table.iterrows():
+                # Convert percentages to counts assuming a common total (e.g., 100 for simplicity)
+                counts = [row[f"{selected_numeric[0]} (%)"], row[f"{selected_numeric[1]} (%)"]]
+                total_count = sum(counts)
+                
+                # Chi-Square test on the row
+                chi2_stat, p_value, dof = chi2_contingency([counts, [total_count / 2, total_count / 2]])  # Null hypothesis: equal distribution
+                
+                # Append significance result
+                significance_results.append('*' if p_value < 0.05 else '')
 
+            # Add significance results to the contingency table
+            contingency_table['Significance'] = significance_results
+
+            # Display the contingency table with significance indicators
             st.write("Contingency Table with Significance Indicators:")
             st.write(contingency_table)
 
             # Interpretation of results
-            if any(contingency_table['Significance'] == '*'):
+            if any(significance_results):
                 st.write("There are statistically significant differences between the two numeric variables in some categories.")
             else:
                 st.write("There are no statistically significant differences between the two numeric variables.")
-
         else:
             st.error("Please select one categorical variable and exactly two numeric variables.")
