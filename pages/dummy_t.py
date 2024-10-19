@@ -25,7 +25,6 @@ section = st.sidebar.radio("Go to", ["Test Overview", "Test Illustration"])
 # 1. Test Overview Section
 if section == "Test Overview":
     st.header("Overview: Dummy Table")
-
     st.subheader("What is a Dummy Table?")
     st.write("""
         A dummy table summarizes data involving both categorical and numeric variables.
@@ -57,116 +56,111 @@ elif section == "Test Illustration":
             # Input field for the title of the dummy tables
             table_title = st.text_input("Enter a title for the Dummy Tables:", "Summary Table")
 
-            # Create a Word document to save outputs
-            doc = Document()
+            # Generate outputs button
+            if st.button("Generate outputs"):
+                # Create a Word document to save outputs
+                doc = Document()
 
-            for num_col in num_columns:
-                # Generate the summary table for the current numeric column
-                summary_table = df.groupby(cat_column)[num_col].agg(['count', 'mean', 'sum', 'std']).reset_index()
-                summary_table.columns = [cat_column, 'Count', 'Mean', 'Total', 'Std Dev']
+                for num_col in num_columns:
+                    # Generate the summary table for the current numeric column
+                    summary_table = df.groupby(cat_column)[num_col].agg(['count', 'mean', 'sum', 'std']).reset_index()
+                    summary_table.columns = [cat_column, 'Count', 'Mean', 'Total', 'Std Dev']
 
-                # Format Mean and Std Dev to one decimal place
-                summary_table['Mean'] = summary_table['Mean'].round(1)
-                summary_table['Std Dev'] = summary_table['Std Dev'].round(1)
+                    # Format Mean and Std Dev to one decimal place
+                    summary_table['Mean'] = summary_table['Mean'].round(1)
+                    summary_table['Std Dev'] = summary_table['Std Dev'].round(1)
 
-                # Calculate percentage
-                summary_table['Percentage'] = (summary_table['Total'] / summary_table['Total'].sum() * 100).round(1)
+                    # Calculate percentage
+                    summary_table['Percentage'] = (summary_table['Total'] / summary_table['Total'].sum() * 100).round(1)
 
-                # Display the summary table
-                st.write(f"**{table_title} for {num_col}**")
-                st.write(summary_table)
+                    # Display the summary table
+                    st.write(f"**{table_title} for {num_col}**")
+                    st.write(summary_table)
 
-                # Input fields for plot titles
-                bar_chart_title = st.text_input(f"Enter a title for the Horizontal Bar Chart for {num_col}:", f"Mean of {num_col} by {cat_column}")
-                percentage_chart_title = st.text_input(f"Enter a title for the Horizontal Bar Chart for {num_col}:", f"Percentage of {num_col} by {cat_column}")
-                pie_chart_title = st.text_input(f"Enter a title for the Pie Chart for {num_col}:", f"Percentage of {num_col} by {cat_column}")
+                    # Input fields for plot titles
+                    bar_chart_title = st.text_input(f"Enter a title for the Horizontal Bar Chart for {num_col}:", f"Mean of {num_col} by {cat_column}")
+                    percentage_chart_title = st.text_input(f"Enter a title for the Horizontal Bar Chart for {num_col}:", f"Percentage of {num_col} by {cat_column}")
+                    pie_chart_title = st.text_input(f"Enter a title for the Pie Chart for {num_col}:", f"Percentage of {num_col} by {cat_column}")
 
-                # Horizontal Bar Chart of Mean
-                st.write(f"Horizontal Bar Chart of Mean for {num_col} by {cat_column}:")
-                mean_values = summary_table.sort_values(by='Mean', ascending=False)
-                plt.figure(figsize=(10, 6))
-                plt.barh(mean_values[cat_column], mean_values['Mean'], color='skyblue')
-                plt.xlabel('Mean')
-                plt.title(bar_chart_title)
-                plt.grid(axis='x')
-                plt.tight_layout()
-                plt.savefig(f'mean_bar_chart_{num_col}.png')
-                st.pyplot(plt)
+                    # Horizontal Bar Chart of Mean
+                    st.write(f"Horizontal Bar Chart of Mean for {num_col} by {cat_column}:")
+                    mean_values = summary_table.sort_values(by='Mean', ascending=False)
+                    plt.figure(figsize=(10, 6))
+                    plt.barh(mean_values[cat_column], mean_values['Mean'], color='skyblue')
+                    plt.xlabel('Mean')
+                    plt.title(bar_chart_title)
+                    plt.grid(axis='x')
+                    plt.tight_layout()
+                    plt.savefig(f'mean_bar_chart_{num_col}.png')
+                    st.pyplot(plt)
 
+                    # Horizontal Bar Chart of Percentage
+                    st.write(f"Percentage for {num_col} by {cat_column}:")
+                    percentage_values = summary_table.sort_values(by='Percentage', ascending=False)
+                    plt.figure(figsize=(10, 6))
+                    plt.barh(percentage_values[cat_column], percentage_values['Percentage'], color='skyblue')
+                    plt.xlabel('Percentage')
+                    plt.title(percentage_chart_title)
+                    plt.grid(axis='x')
+                    plt.tight_layout()
+                    plt.savefig(f'percentage_bar_chart_{num_col}.png')
+                    st.pyplot(plt)
 
-                # Horizontal Bar Chart of Percentage
-                st.write(f"Percentage for {num_col} by {cat_column}:")
-                percentage_values = summary_table.sort_values(by='Percentage', ascending=False)
-                plt.figure(figsize=(10, 6))
-                plt.barh(percentage_values[cat_column], percentage_values['Percentage'], color='skyblue')
-                plt.xlabel('Percentage')
-                plt.title(percentage_chart_title)
-                plt.grid(axis='x')
-                plt.tight_layout()
-                plt.savefig(f'percentage_bar_chart_{num_col}.png')
-                st.pyplot(plt)
+                    # Pie Chart of Total with rotated labels
+                    st.write(f"Percentage of {num_col} by {cat_column}:")
+                    plt.figure(figsize=(8, 8))
+                    wedges, texts, autotexts = plt.pie(mean_values['Total'], labels=mean_values[cat_column], autopct='%1.1f%%', startangle=90)
+                    
+                    # Rotate labels
+                    for text in texts:
+                        text.set_rotation(45)
 
-                
+                    plt.title(pie_chart_title)
+                    plt.tight_layout()
+                    plt.savefig(f'total_pie_chart_{num_col}.png')
+                    st.pyplot(plt)
 
-                # Pie Chart of Total with rotated labels
-                st.write(f"Percentage of {num_col} by {cat_column}:")
-                plt.figure(figsize=(8, 8))
-                wedges, texts, autotexts = plt.pie(mean_values['Total'], labels=mean_values[cat_column], autopct='%1.1f%%', startangle=90)
-                
-                # Rotate labels
-                for text in texts:
-                    text.set_rotation(45)
+                    # Add to Word document with tabular format
+                    doc.add_heading(f'{table_title} - {num_col}', level=2)
+                    
+                    # Create a table in the Word document
+                    word_table = doc.add_table(rows=1, cols=len(summary_table.columns))
+                    hdr_cells = word_table.rows[0].cells
+                    for i, column_name in enumerate(summary_table.columns):
+                        hdr_cells[i].text = column_name
+                    
+                    # Fill in the table with data and add borders
+                    for _, row in summary_table.iterrows():
+                        row_cells = word_table.add_row().cells
+                        for i, value in enumerate(row):
+                            row_cells[i].text = str(value)
 
-                plt.title(pie_chart_title)
-                plt.tight_layout()
-                plt.savefig(f'total_pie_chart_{num_col}.png')
-                st.pyplot(plt)
+                    # Add borders to the table
+                    add_borders_to_table(word_table)
 
-             
+                    # Add plots to the Word document
+                    doc.add_heading(f'Mean of {num_col} by {cat_column}', level=3)
+                    doc.add_picture(f'mean_bar_chart_{num_col}.png', width=Inches(5))
 
-                # Add to Word document with tabular format
-                doc.add_heading(f'{table_title} - {num_col}', level=2)
-                
-                # Create a table in the Word document
-                word_table = doc.add_table(rows=1, cols=len(summary_table.columns))
-                hdr_cells = word_table.rows[0].cells
-                for i, column_name in enumerate(summary_table.columns):
-                    hdr_cells[i].text = column_name
-                
-                # Fill in the table with data and add borders
-                for _, row in summary_table.iterrows():
-                    row_cells = word_table.add_row().cells
-                    for i, value in enumerate(row):
-                        row_cells[i].text = str(value)
+                    doc.add_heading(f'Percentage of {num_col} by {cat_column}', level=3)
+                    doc.add_picture(f'percentage_bar_chart_{num_col}.png', width=Inches(5))
+                    
+                    doc.add_heading(f'Percentage of {num_col} by {cat_column}', level=3)
+                    doc.add_picture(f'total_pie_chart_{num_col}.png', width=Inches(5))
 
-                # Add borders to the table
-                add_borders_to_table(word_table)
+                # Save the document
+                doc.save('dummy_tables.docx')
 
-                # Add plots to the Word document
-                doc.add_heading(f'Mean of {num_col} by {cat_column}', level=3)
-                doc.add_picture(f'mean_bar_chart_{num_col}.png', width=Inches(5))
+                # Provide download link for the Word document
+                with open('dummy_tables.docx', 'rb') as f:
+                    st.download_button(
+                        label="Download Dummy Tables as Word Document",
+                        data=f,
+                        file_name='dummy_tables.docx',
+                        mime='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                    )
 
-                doc.add_heading(f'Percentage of {num_col} by {cat_column}', level=3)
-                doc.add_picture(f'percentage_bar_chart_{num_col}.png', width=Inches(5))
-                
-                doc.add_heading(f'Percentage of {num_col} by {cat_column}', level=3)
-                doc.add_picture(f'total_pie_chart_{num_col}.png', width=Inches(5))
-
-            
-
-            # Save the document
-            doc.save('dummy_tables.docx')
-
-            # Provide download link for the Word document
-            with open('dummy_tables.docx', 'rb') as f:
-                st.download_button(
-                    label="Download Dummy Tables as Word Document",
-                    data=f,
-                    file_name='dummy_tables.docx',
-                    mime='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-                )
-
-            st.success("Plots and tables have been generated and saved as images and the Word document has been created.")
+                st.success("Plots and tables have been generated and saved as images and the Word document has been created.")
 
         except Exception as e:
             st.error(f"Error loading file: {e}")
