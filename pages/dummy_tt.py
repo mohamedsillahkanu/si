@@ -3,6 +3,21 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from docx import Document
 from docx.shared import Inches
+from docx.oxml import OxmlElement
+
+# Function to add borders to the table in the Word document
+def add_borders_to_table(table):
+    for row in table.rows:
+        for cell in row.cells:
+            cell_border = OxmlElement('w:tcBorders')
+            for border in ['top', 'left', 'bottom', 'right']:
+                border_elem = OxmlElement(f'w:{border}')
+                border_elem.set('w:val', 'single')
+                border_elem.set('w:sz', '4')  # Set border size
+                border_elem.set('w:space', '0')
+                border_elem.set('w:color', '000000')  # Black color
+                cell_border.append(border_elem)
+            cell._element.get_or_add(OxmlElement('w:tc')).append(cell_border)
 
 # App title
 st.title("Dummy Table with Categorical and Numeric Variables")
@@ -54,12 +69,13 @@ elif section == "Test Illustration":
                 summary_table = df.groupby(cat_column)[num_col].agg(['count', 'mean', 'sum', 'std']).reset_index()
                 summary_table.columns = [cat_column, 'Count', 'Mean', 'Total', 'Std Dev']
 
-                # Format Mean and Std Dev to one decimal place
+                # Format Mean, Std Dev, and Percentage to one decimal place
                 summary_table['Mean'] = summary_table['Mean'].round(1)
                 summary_table['Std Dev'] = summary_table['Std Dev'].round(1)
 
                 # Calculate percentage
                 summary_table['Percentage'] = (summary_table['Total'] / summary_table['Total'].sum()) * 100
+                summary_table['Percentage'] = summary_table['Percentage'].round(1)  # One decimal place
 
                 # Display the summary table
                 st.write(f"**{table_title} for {num_col}**")
