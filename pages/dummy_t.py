@@ -77,11 +77,12 @@ elif section == "Test Illustration":
                 st.write(summary_table)
 
                 # Input fields for plot titles
-                bar_chart_title = st.text_input(f"Enter a title for the Horizontal Bar Chart for {num_col}:", f"Mean by Category - {num_col}")
-                pie_chart_title = st.text_input(f"Enter a title for the Pie Chart for {num_col}:", f"Total by Category - {num_col}")
+                bar_chart_title = st.text_input(f"Enter a title for the Horizontal Bar Chart for {num_col}:", f"Mean of {num_col} by {cat_column}")
+                percentage_chart_title = st.text_input(f"Enter a title for the Horizontal Bar Chart for {num_col}:", f"Percentage of {num_col} by {cat_column}")
+                pie_chart_title = st.text_input(f"Enter a title for the Pie Chart for {num_col}:", f"Proportion of {num_col} by {cat_column}")
 
                 # Horizontal Bar Chart of Mean
-                st.write(f"Horizontal Bar Chart of Mean for {num_col}:")
+                st.write(f"Horizontal Bar Chart of Mean for {num_col} by {cat_column}:")
                 mean_values = summary_table.sort_values(by='Mean', ascending=False)
                 plt.figure(figsize=(10, 6))
                 plt.barh(mean_values[cat_column], mean_values['Mean'], color='skyblue')
@@ -92,8 +93,23 @@ elif section == "Test Illustration":
                 plt.savefig(f'mean_bar_chart_{num_col}.png')
                 st.pyplot(plt)
 
+
+                # Horizontal Bar Chart of Percentage
+                st.write(f"Percentage for {num_col} by {cat_column}:")
+                percentage_values = summary_table.sort_values(by='Percentage', ascending=False)
+                plt.figure(figsize=(10, 6))
+                plt.barh(percentage_values[cat_column], percentage_values['Percentage'], color='skyblue')
+                plt.xlabel('Percentage')
+                plt.title(percentage_chart_title)
+                plt.grid(axis='x')
+                plt.tight_layout()
+                plt.savefig(f'mean_bar_chart_{num_col}.png')
+                st.pyplot(plt)
+
+                
+
                 # Pie Chart of Total with rotated labels
-                st.write(f"Pie Chart of Total for {num_col}:")
+                st.write(f"Percentage of {num_col} by {cat_column}:")
                 plt.figure(figsize=(8, 8))
                 wedges, texts, autotexts = plt.pie(mean_values['Total'], labels=mean_values[cat_column], autopct='%1.1f%%', startangle=90)
                 
