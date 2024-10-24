@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from lifelines import KaplanMeierFitter
+import matplotlib.pyplot as plt
 
 # App title
 st.title("Kaplan-Meier Estimator for Survival Analysis")
@@ -73,20 +74,45 @@ elif section == "Kaplan-Meier Illustration":
             # Add radio buttons for Kaplan-Meier analysis options
             analysis_option = st.radio("Choose an analysis option:", ["See Python code", "Use Kaplan-Meier Estimator"])
             
-        
+            if analysis_option == "See Python code":
+                st.code("""
+from lifelines import KaplanMeierFitter
+import matplotlib.pyplot as plt
+
+# Fit the Kaplan-Meier Estimator
+kmf = KaplanMeierFitter()
+kmf.fit(df[time_column], event_observed=df[event_column])
 
 # Plot the survival function
+plt.figure(figsize=(10, 6))
 kmf.plot()
+plt.title('Kaplan-Meier Survival Curve')
+plt.xlabel('Time to Event')
+plt.ylabel('Survival Probability')
+plt.show()
                 """, language='python')
-            if analysis_option == "Use Kaplan-Meier Estimator":
-                # Fit the Kaplan-Meier Estimator
-                kmf = KaplanMeierFitter()
-                kmf.fit(df[time_column], event_observed=df[event_column])
-                
-                # Plot the survival function
-                st.write("Kaplan-Meier Survival Curve:")
-                kmf_plot = kmf.plot()
-                st.pyplot(kmf_plot.figure)
+            elif analysis_option == "Use Kaplan-Meier Estimator":
+                # Button to generate the plot
+                if st.button("Generate Kaplan-Meier Plot"):
+                    # Fit the Kaplan-Meier Estimator
+                    kmf = KaplanMeierFitter()
+                    kmf.fit(df[time_column], event_observed=df[event_column])
+                    
+                    # Plot the survival function
+                    st.write("Kaplan-Meier Survival Curve:")
+                    plt.figure(figsize=(10, 6))
+                    kmf.plot()
+                    plt.title('Kaplan-Meier Survival Curve')
+                    plt.xlabel('Time to Event')
+                    plt.ylabel('Survival Probability')
+                    st.pyplot(plt)
+                    
+                    # Display a tip for interpretation
+                    st.write("""
+                    **Tip for Interpretation**: The Kaplan-Meier curve shows the probability of survival over time.
+                    If the curve declines rapidly, it suggests a high event occurrence rate at earlier time points.
+                    The p-value can be used to determine if there are significant differences between groups (if comparing multiple survival curves).
+                    """)
                 
         except Exception as e:
             st.error(f"Error loading file: {e}")
