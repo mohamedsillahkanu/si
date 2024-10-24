@@ -93,7 +93,7 @@ elif section == "Interrupted Time Series Illustration":
             plt.figure(figsize=(10, 6))
             plt.plot(df.index, df[outcome_column], label='Observed Data', color='blue')
             for i, date in enumerate(intervention_dates):
-                intervention_date = pd.to_datetime(date).to_timestamp()
+                intervention_date = pd.to_datetime(date)
                 plt.axvline(x=intervention_date, color='red', linestyle='--', label=f'Intervention {i+1}: {intervention_types[i]}')
             plt.xlabel('Time')
             plt.ylabel(outcome_column)
