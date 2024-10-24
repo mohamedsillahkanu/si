@@ -99,10 +99,30 @@ elif section == "Interrupted Time Series Illustration":
             plt.xlabel('Time')
             plt.ylabel(outcome_column)
             plt.title('Interrupted Time Series Analysis with Multiple Interventions')
-            plt.legend()
+            plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
             st.pyplot(plt)
+            
+            # Tips on interpreting results
+            st.subheader("How to Interpret the Results")
+            st.write("""
+                - **Coefficients**: The coefficients for each intervention represent the immediate change in the outcome after the intervention.
+                - **Time After Intervention**: The coefficients for the time after intervention variables indicate the trend change after each intervention.
+                - **P-value**: A p-value less than 0.05 indicates that the effect of the intervention is statistically significant.
+                - **R-squared**: This value indicates how well the model fits the data. A higher R-squared value means a better fit.
+                
+                Look for significant changes in the level or trend after each intervention point to determine the impact of the interventions.
+            """)
                 
         except Exception as e:
             st.error(f"Error loading file: {e}")
 
-
+# requirements.txt content
+requirements_txt = """
+streamlit
+pandas
+numpy
+matplotlib
+statsmodels
+"""
+with open('requirements.txt', 'w') as f:
+    f.write(requirements_txt)
