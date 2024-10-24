@@ -98,15 +98,3 @@ elif section == "Shapiro-Wilk Test Illustration":
                 
         except Exception as e:
             st.error(f"Error loading file: {e}")
-
-# requirements.txt content
-requirements_txt = """
-streamlit
-pandas
-numpy
-scipy
-matplotlib
-seaborn
-"""
-with open('requirements.txt', 'w') as f:
-    f.write(requirements_txt)
