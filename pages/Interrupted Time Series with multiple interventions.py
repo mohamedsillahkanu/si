@@ -62,15 +62,24 @@ elif section == "Interrupted Time Series Illustration":
             # Ask the user to select the relevant columns
             time_column = st.selectbox("Select the time column", df.columns)
             outcome_column = st.selectbox("Select the outcome column (e.g., malaria cases)", df.columns)
-            intervention_points = st.multiselect("Enter the time points of interventions (e.g., month numbers)", options=list(range(len(df))))
+            intervention_dates = st.multiselect("Enter the intervention dates (Year-Month format, e.g., 2023-05)", options=pd.to_datetime(df[time_column]).dt.to_period('M').astype(str).unique())
+            intervention_types = []
+            for i, date in enumerate(intervention_dates):
+                intervention_type = st.text_input(f"Enter the type of intervention for {date}")
+                intervention_types.append(intervention_type)
+            
+            # Convert the time column to datetime and set as index
+            df[time_column] = pd.to_datetime(df[time_column])
+            df.set_index(time_column, inplace=True)
             
             # Create intervention dummy variables for each intervention point
-            for i, point in enumerate(intervention_points):
-                df[f'intervention_{i+1}'] = (df[time_column] >= point).astype(int)
-                df[f'time_after_intervention_{i+1}'] = df['time'] * df[f'intervention_{i+1}']
+            for i, date in enumerate(intervention_dates):
+                intervention_date = pd.to_datetime(date).to_timestamp()
+                df[f'intervention_{i+1}'] = (df.index >= intervention_date).astype(int)
+                df[f'time_after_intervention_{i+1}'] = (df.index - intervention_date).days.clip(lower=0)
             
             # Prepare the model data
-            X = df[['time'] + [f'intervention_{i+1}' for i in range(len(intervention_points))] + [f'time_after_intervention_{i+1}' for i in range(len(intervention_points))]]
+            X = df[['time'] + [f'intervention_{i+1}' for i in range(len(intervention_dates))] + [f'time_after_intervention_{i+1}' for i in range(len(intervention_dates))]]
             X = sm.add_constant(X)
             y = df[outcome_column]
             model = sm.OLS(y, X).fit()
@@ -82,9 +91,10 @@ elif section == "Interrupted Time Series Illustration":
             # Plot the outcome before and after each intervention
             st.subheader("Interrupted Time Series Plot")
             plt.figure(figsize=(10, 6))
-            plt.plot(df[time_column], df[outcome_column], label='Observed Data', color='blue')
-            for i, point in enumerate(intervention_points):
-                plt.axvline(x=point, color='red', linestyle='--', label=f'Intervention {i+1}')
+            plt.plot(df.index, df[outcome_column], label='Observed Data', color='blue')
+            for i, date in enumerate(intervention_dates):
+                intervention_date = pd.to_datetime(date).to_timestamp()
+                plt.axvline(x=intervention_date, color='red', linestyle='--', label=f'Intervention {i+1}: {intervention_types[i]}')
             plt.xlabel('Time')
             plt.ylabel(outcome_column)
             plt.title('Interrupted Time Series Analysis with Multiple Interventions')
@@ -94,4 +104,13 @@ elif section == "Interrupted Time Series Illustration":
         except Exception as e:
             st.error(f"Error loading file: {e}")
 
-
+# requirements.txt content
+requirements_txt = """
+streamlit
+pandas
+numpy
+matplotlib
+statsmodels
+"""
+with open('requirements.txt', 'w') as f:
+    f.write(requirements_txt)
