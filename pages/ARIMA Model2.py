@@ -79,10 +79,10 @@ elif section == "ARIMA Illustration":
                     # Fit the ARIMA model with the best parameters
                     model = ARIMA(df[value_column], order=(p, d, q))
                     model_fit = model.fit()
-                    df['Fitted'] = model_fit.fittedvalues
+                    df['Fitted'] = model_fit.fittedvalues.shift(-1)  # Shift to align fitted values with the original data
                     forecast = model_fit.get_forecast(steps=12)
                     forecast_ci = forecast.conf_int()
-                    forecast_index = pd.date_range(df.index[-1], periods=13, freq='M')[1:]
+                    forecast_index = pd.date_range(df.index[-1], periods=12, freq='M')
                     
                     # Plot the original time series, fitted values, and forecast with confidence intervals
                     st.write("**Improved ARIMA Forecast**:")
