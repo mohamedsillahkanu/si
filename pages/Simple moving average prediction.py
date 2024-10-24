@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # App title
-st.title("Time Series Analysis using Moving Average")
+st.title("Time Series Analysis using Moving Average with Forecasting")
 
 # Sidebar for navigation
 st.sidebar.title("Navigation")
@@ -67,19 +67,28 @@ elif section == "Moving Average Illustration":
             df.set_index(time_column, inplace=True)
             
             # Button to apply 3-month moving average
-            if st.button("Apply 3-Month Moving Average"):
+            if st.button("Apply 3-Month Moving Average with Forecast"):
                 try:
                     # Calculate 3-month moving average
                     df['3_Month_Moving_Avg'] = df[value_column].rolling(window=3).mean()
                     
-                    # Plot the original time series and moving average
-                    st.write("**3-Month Moving Average Smoothing**:")
+                    # Forecast the next 36 months (3 years)
+                    forecast_periods = 36
+                    last_date = df.index[-1]
+                    forecast_dates = pd.date_range(start=last_date, periods=forecast_periods + 1, freq='M')[1:]
+                    forecast_values = [df['3_Month_Moving_Avg'].iloc[-1]] * forecast_periods
+                    forecast_df = pd.DataFrame({'Date': forecast_dates, 'Forecast': forecast_values})
+                    forecast_df.set_index('Date', inplace=True)
+                    
+                    # Plot the original time series, moving average, and forecast
+                    st.write("**3-Month Moving Average Smoothing with 3-Year Forecast**:")
                     plt.figure(figsize=(12, 6))
                     plt.plot(df.index, df[value_column], label='Original Data', color='blue')
                     plt.plot(df.index, df['3_Month_Moving_Avg'], label='3-Month Moving Average', color='orange')
+                    plt.plot(forecast_df.index, forecast_df['Forecast'], label='3-Year Forecast', color='green', linestyle='--')
                     plt.xlabel('Time')
                     plt.ylabel(value_column)
-                    plt.title('3-Month Moving Average Smoothing')
+                    plt.title('3-Month Moving Average Smoothing with 3-Year Forecast')
                     plt.legend()
                     st.pyplot(plt)
                     
@@ -88,3 +97,4 @@ elif section == "Moving Average Illustration":
                 
         except Exception as e:
             st.error(f"Error loading file: {e}")
+
