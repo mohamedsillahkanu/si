@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-from lifelines import KaplanMeierFitter
+from lifelines import KaplanMeierFitter, statistics
 import matplotlib.pyplot as plt
 
 # App title
@@ -86,14 +86,29 @@ elif section == "Kaplan-Meier Illustration":
                 plt.ylabel('Survival Probability')
                 st.pyplot(plt)
                 
+                # Display survival probabilities at specific times
+                st.write("**Survival Probabilities at Specific Times:**")
+                survival_probabilities = kmf.survival_function_
+                st.write(survival_probabilities)
+                
+                # Display median survival time
+                median_survival_time = kmf.median_survival_time_
+                st.write(f"**Median Survival Time:** {median_survival_time}")
+                
+                # Log-rank test (if comparing two groups)
+                # Note: This is for illustration if you have two groups to compare
+                # from lifelines.statistics import logrank_test
+                # results = logrank_test(time_A, time_B, event_observed_A, event_observed_B)
+                # st.write(f"**p-value:** {results.p_value}")
+                
                 # Display a tip for interpretation
                 st.write("""
-                **Tip for Interpretation**: The Kaplan-Meier curve shows the probability of survival over time.
-                If the curve declines rapidly, it suggests a high event occurrence rate at earlier time points.
-                The p-value can be used to determine if there are significant differences between groups (if comparing multiple survival curves).
+                **Tip for Interpretation**: 
+                - The Kaplan-Meier curve shows the probability of survival over time. If the curve declines rapidly, it suggests a high event occurrence rate at earlier time points.
+                - The median survival time is the point at which 50% of the subjects are expected to have experienced the event.
+                - If comparing multiple survival curves, a p-value from a statistical test (e.g., log-rank test) can help determine if the differences between the groups are statistically significant.
                 """)
                 
         except Exception as e:
             st.error(f"Error loading file: {e}")
-
 
