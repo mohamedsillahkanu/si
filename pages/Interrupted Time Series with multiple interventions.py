@@ -76,7 +76,8 @@ elif section == "Interrupted Time Series Illustration":
             for i, date in enumerate(intervention_dates):
                 intervention_date = pd.to_datetime(date)
                 df[f'intervention_{i+1}'] = (df.index >= intervention_date).astype(int)
-                df[f'time_after_intervention_{i+1}'] = (df.index - intervention_date).days.clip(lower=0)
+                df[f'time_after_intervention_{i+1}'] = (df.index - intervention_date).days
+                df[f'time_after_intervention_{i+1}'] = df[f'time_after_intervention_{i+1}'].apply(lambda x: max(0, x))
             
             # Prepare the model data
             X = df[['intervention_' + str(i+1) for i in range(len(intervention_dates))] + ['time_after_intervention_' + str(i+1) for i in range(len(intervention_dates))]]
@@ -103,4 +104,5 @@ elif section == "Interrupted Time Series Illustration":
                 
         except Exception as e:
             st.error(f"Error loading file: {e}")
+
 
