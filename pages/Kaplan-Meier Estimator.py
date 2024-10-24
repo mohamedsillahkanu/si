@@ -73,18 +73,12 @@ elif section == "Kaplan-Meier Illustration":
             # Add radio buttons for Kaplan-Meier analysis options
             analysis_option = st.radio("Choose an analysis option:", ["See Python code", "Use Kaplan-Meier Estimator"])
             
-            if analysis_option == "See Python code":
-                st.code("""
-from lifelines import KaplanMeierFitter
-
-# Fit the Kaplan-Meier Estimator
-kmf = KaplanMeierFitter()
-kmf.fit(df[time_column], event_observed=df[event_column])
+        
 
 # Plot the survival function
 kmf.plot()
                 """, language='python')
-            elif analysis_option == "Use Kaplan-Meier Estimator":
+            if analysis_option == "Use Kaplan-Meier Estimator":
                 # Fit the Kaplan-Meier Estimator
                 kmf = KaplanMeierFitter()
                 kmf.fit(df[time_column], event_observed=df[event_column])
