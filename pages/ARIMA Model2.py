@@ -79,18 +79,21 @@ elif section == "ARIMA Illustration":
                     # Fit the ARIMA model with the best parameters
                     model = ARIMA(df[value_column], order=(p, d, q))
                     model_fit = model.fit()
-                    df['Forecast'] = model_fit.fittedvalues
-                    forecast = model_fit.forecast(steps=12)
+                    df['Fitted'] = model_fit.fittedvalues
+                    forecast = model_fit.get_forecast(steps=12)
+                    forecast_ci = forecast.conf_int()
+                    forecast_index = pd.date_range(df.index[-1], periods=13, freq='M')[1:]
                     
-                    # Plot the original time series and forecast
+                    # Plot the original time series, fitted values, and forecast with confidence intervals
                     st.write("**Improved ARIMA Forecast**:")
                     plt.figure(figsize=(12, 6))
                     plt.plot(df.index, df[value_column], label='Original Data', color='blue')
-                    plt.plot(df.index, df['Forecast'], label='Fitted Values', color='orange')
-                    plt.plot(pd.date_range(df.index[-1], periods=13, freq='M')[1:], forecast, label='Forecast', color='green')
+                    plt.plot(df.index, df['Fitted'], label='Fitted Values', color='orange')
+                    plt.plot(forecast_index, forecast.predicted_mean, label='Forecast', color='green')
+                    plt.fill_between(forecast_index, forecast_ci.iloc[:, 0], forecast_ci.iloc[:, 1], color='green', alpha=0.2)
                     plt.xlabel('Time')
                     plt.ylabel(value_column)
-                    plt.title('Improved ARIMA Forecasting')
+                    plt.title('Improved ARIMA Forecasting with Confidence Intervals')
                     plt.legend()
                     st.pyplot(plt)
                     
