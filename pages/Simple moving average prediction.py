@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from statsmodels.tsa.holtwinters import ExponentialSmoothing
 
 # App title
 st.title("Time Series Analysis using Moving Average with Forecasting")
@@ -72,20 +73,17 @@ elif section == "Moving Average Illustration":
                     # Calculate 3-month moving average
                     df['3_Month_Moving_Avg'] = df[value_column].rolling(window=3).mean()
                     
-                    # Forecast the next 36 months (3 years)
-                    forecast_periods = 36
-                    last_date = df.index[-1]
-                    forecast_dates = pd.date_range(start=last_date, periods=forecast_periods + 1, freq='M')[1:]
-                    forecast_values = [df['3_Month_Moving_Avg'].iloc[-1]] * forecast_periods
-                    forecast_df = pd.DataFrame({'Date': forecast_dates, 'Forecast': forecast_values})
-                    forecast_df.set_index('Date', inplace=True)
+                    # Fit the Holt-Winters model for forecasting
+                    model = ExponentialSmoothing(df[value_column], seasonal='add', trend='add', seasonal_periods=12).fit()
+                    forecast = model.forecast(steps=36)
+                    forecast_index = pd.date_range(start=df.index[-1], periods=37, freq='M')[1:]
                     
                     # Plot the original time series, moving average, and forecast
                     st.write("**3-Month Moving Average Smoothing with 3-Year Forecast**:")
                     plt.figure(figsize=(12, 6))
                     plt.plot(df.index, df[value_column], label='Original Data', color='blue')
                     plt.plot(df.index, df['3_Month_Moving_Avg'], label='3-Month Moving Average', color='orange')
-                    plt.plot(forecast_df.index, forecast_df['Forecast'], label='3-Year Forecast', color='green', linestyle='--')
+                    plt.plot(forecast_index, forecast, label='3-Year Forecast', color='green', linestyle='--')
                     plt.xlabel('Time')
                     plt.ylabel(value_column)
                     plt.title('3-Month Moving Average Smoothing with 3-Year Forecast')
@@ -97,4 +95,5 @@ elif section == "Moving Average Illustration":
                 
         except Exception as e:
             st.error(f"Error loading file: {e}")
+
 
