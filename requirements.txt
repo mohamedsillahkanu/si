@@ -21,3 +21,4 @@ scipy
 statsmodels>=0.13.0
 factor_analyzer
 lifelines
+pymc3
