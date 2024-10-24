@@ -100,14 +100,4 @@ elif section == "ARIMA Illustration":
         except Exception as e:
             st.error(f"Error loading file: {e}")
 
-# requirements.txt content
-requirements_txt = """
-streamlit
-pandas
-numpy
-statsmodels
-matplotlib
-pmdarima
-"""
-with open('requirements.txt', 'w') as f:
-    f.write(requirements_txt)
+
