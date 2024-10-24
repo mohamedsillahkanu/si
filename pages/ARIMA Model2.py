@@ -1,11 +1,12 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+from pmdarima import auto_arima
 from statsmodels.tsa.arima.model import ARIMA
 import matplotlib.pyplot as plt
 
 # App title
-st.title("Time Series Analysis using ARIMA Model")
+st.title("Time Series Analysis using Improved ARIMA Model")
 
 # Sidebar for navigation
 st.sidebar.title("Navigation")
@@ -68,23 +69,28 @@ elif section == "ARIMA Illustration":
             df.set_index(time_column, inplace=True)
             
             # Button to apply ARIMA model
-            if st.button("Apply ARIMA Model"):
+            if st.button("Apply Improved ARIMA Model"):
                 try:
-                    # Fit the ARIMA model
-                    model = ARIMA(df[value_column], order=(1, 1, 1))
+                    # Use auto_arima to determine the best parameters for ARIMA
+                    st.write("Determining the best ARIMA parameters using auto_arima...")
+                    model_auto = auto_arima(df[value_column], seasonal=False, trace=True, error_action='ignore', suppress_warnings=True, stepwise=True)
+                    p, d, q = model_auto.order
+                    
+                    # Fit the ARIMA model with the best parameters
+                    model = ARIMA(df[value_column], order=(p, d, q))
                     model_fit = model.fit()
                     df['Forecast'] = model_fit.fittedvalues
                     forecast = model_fit.forecast(steps=12)
                     
                     # Plot the original time series and forecast
-                    st.write("**ARIMA Forecast**:")
+                    st.write("**Improved ARIMA Forecast**:")
                     plt.figure(figsize=(12, 6))
                     plt.plot(df.index, df[value_column], label='Original Data', color='blue')
                     plt.plot(df.index, df['Forecast'], label='Fitted Values', color='orange')
                     plt.plot(pd.date_range(df.index[-1], periods=13, freq='M')[1:], forecast, label='Forecast', color='green')
                     plt.xlabel('Time')
                     plt.ylabel(value_column)
-                    plt.title('ARIMA Forecasting')
+                    plt.title('Improved ARIMA Forecasting')
                     plt.legend()
                     st.pyplot(plt)
                     
@@ -94,3 +100,14 @@ elif section == "ARIMA Illustration":
         except Exception as e:
             st.error(f"Error loading file: {e}")
 
+# requirements.txt content
+requirements_txt = """
+streamlit
+pandas
+numpy
+statsmodels
+matplotlib
+pmdarima
+"""
+with open('requirements.txt', 'w') as f:
+    f.write(requirements_txt)
