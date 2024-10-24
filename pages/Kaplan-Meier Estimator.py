@@ -8,10 +8,10 @@ st.title("Kaplan-Meier Estimator for Survival Analysis")
 
 # Sidebar for navigation
 st.sidebar.title("Navigation")
-section = st.sidebar.radio("Go to", ["Kaplan-Meier Estimator"])
+section = st.sidebar.radio("Go to", ["Kaplan-Meier Overview", "Kaplan-Meier Illustration"])
 
-# 1. Kaplan-Meier Estimator Section
-if section == "Kaplan-Meier Estimator":
+# 1. Kaplan-Meier Overview Section
+if section == "Kaplan-Meier Overview":
     st.header("Kaplan-Meier Estimator for Survival Analysis")
     
     st.subheader("When to Use It")
@@ -45,6 +45,10 @@ if section == "Kaplan-Meier Estimator":
     """)
     
     st.write("For more information, visit the [Wikipedia page on the Kaplan-Meier Estimator](https://en.wikipedia.org/wiki/Kaplan%E2%80%93Meier_estimator).")
+
+# 2. Kaplan-Meier Illustration Section
+elif section == "Kaplan-Meier Illustration":
+    st.header("Kaplan-Meier Estimator Illustration")
     
     st.subheader("Upload your dataset (CSV or XLSX)")
     uploaded_file = st.file_uploader("Choose a CSV or XLSX file", type=["csv", "xlsx"], key="km_file")
@@ -66,14 +70,40 @@ if section == "Kaplan-Meier Estimator":
             
             st.write(f"You selected: {time_column} and {event_column} for the Kaplan-Meier Estimator.")
             
-            # Fit the Kaplan-Meier Estimator
-            kmf = KaplanMeierFitter()
-            kmf.fit(df[time_column], event_observed=df[event_column])
+            # Add radio buttons for Kaplan-Meier analysis options
+            analysis_option = st.radio("Choose an analysis option:", ["See Python code", "Use Kaplan-Meier Estimator"])
             
-            # Plot the survival function
-            st.write("Kaplan-Meier Survival Curve:")
-            kmf_plot = kmf.plot()
-            st.pyplot(kmf_plot.figure)
-            
+            if analysis_option == "See Python code":
+                st.code("""
+from lifelines import KaplanMeierFitter
+
+# Fit the Kaplan-Meier Estimator
+kmf = KaplanMeierFitter()
+kmf.fit(df[time_column], event_observed=df[event_column])
+
+# Plot the survival function
+kmf.plot()
+                """, language='python')
+            elif analysis_option == "Use Kaplan-Meier Estimator":
+                # Fit the Kaplan-Meier Estimator
+                kmf = KaplanMeierFitter()
+                kmf.fit(df[time_column], event_observed=df[event_column])
+                
+                # Plot the survival function
+                st.write("Kaplan-Meier Survival Curve:")
+                kmf_plot = kmf.plot()
+                st.pyplot(kmf_plot.figure)
+                
         except Exception as e:
             st.error(f"Error loading file: {e}")
+
+# requirements.txt content
+requirements_txt = """
+streamlit
+pandas
+numpy
+lifelines
+matplotlib
+"""
+with open('requirements.txt', 'w') as f:
+    f.write(requirements_txt)
