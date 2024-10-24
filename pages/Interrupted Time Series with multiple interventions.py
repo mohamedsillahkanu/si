@@ -74,12 +74,12 @@ elif section == "Interrupted Time Series Illustration":
             
             # Create intervention dummy variables for each intervention point
             for i, date in enumerate(intervention_dates):
-                intervention_date = pd.to_datetime(date).to_timestamp()
+                intervention_date = pd.to_datetime(date)
                 df[f'intervention_{i+1}'] = (df.index >= intervention_date).astype(int)
                 df[f'time_after_intervention_{i+1}'] = (df.index - intervention_date).days.clip(lower=0)
             
             # Prepare the model data
-            X = df[['time'] + [f'intervention_{i+1}' for i in range(len(intervention_dates))] + [f'time_after_intervention_{i+1}' for i in range(len(intervention_dates))]]
+            X = df[['intervention_' + str(i+1) for i in range(len(intervention_dates))] + ['time_after_intervention_' + str(i+1) for i in range(len(intervention_dates))]]
             X = sm.add_constant(X)
             y = df[outcome_column]
             model = sm.OLS(y, X).fit()
