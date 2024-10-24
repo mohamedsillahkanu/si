@@ -2,11 +2,12 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from pmdarima import auto_arima
-from statsmodels.tsa.arima.model import ARIMA
+from statsmodels.tsa.statespace.sarimax import SARIMAX
 import matplotlib.pyplot as plt
+from statsmodels.tsa.stattools import adfuller
 
 # App title
-st.title("Time Series Analysis using Improved ARIMA Model")
+st.title("Time Series Analysis using Improved ARIMA/SARIMA Model")
 
 # Sidebar for navigation
 st.sidebar.title("Navigation")
@@ -68,24 +69,34 @@ elif section == "ARIMA Illustration":
             df[time_column] = pd.to_datetime(df[time_column])
             df.set_index(time_column, inplace=True)
             
+            # Check for stationarity
+            st.write("Checking stationarity of the data using Augmented Dickey-Fuller test...")
+            adf_result = adfuller(df[value_column])
+            if adf_result[1] > 0.05:
+                st.write("The data is non-stationary (p-value > 0.05). Differencing will be applied to make it stationary.")
+                df[value_column] = df[value_column].diff().dropna()
+            else:
+                st.write("The data is stationary (p-value <= 0.05). Proceeding with ARIMA modeling.")
+            
             # Button to apply ARIMA model
             if st.button("Apply Improved ARIMA Model"):
                 try:
-                    # Use auto_arima to determine the best parameters for ARIMA
-                    st.write("Determining the best ARIMA parameters using auto_arima...")
-                    model_auto = auto_arima(df[value_column], seasonal=False, trace=True, error_action='ignore', suppress_warnings=True, stepwise=True)
+                    # Use auto_arima to determine the best parameters for ARIMA/SARIMA
+                    st.write("Determining the best ARIMA/SARIMA parameters using auto_arima...")
+                    model_auto = auto_arima(df[value_column], seasonal=True, m=12, trace=True, error_action='ignore', suppress_warnings=True, stepwise=True)
                     p, d, q = model_auto.order
+                    P, D, Q, m = model_auto.seasonal_order
                     
-                    # Fit the ARIMA model with the best parameters
-                    model = ARIMA(df[value_column], order=(p, d, q))
+                    # Fit the SARIMA model with the best parameters
+                    model = SARIMAX(df[value_column], order=(p, d, q), seasonal_order=(P, D, Q, m))
                     model_fit = model.fit()
-                    df['Fitted'] = model_fit.fittedvalues.shift(-1)  # Shift to align fitted values with the original data
+                    df['Fitted'] = model_fit.fittedvalues
                     forecast = model_fit.get_forecast(steps=12)
                     forecast_ci = forecast.conf_int()
                     forecast_index = pd.date_range(df.index[-1], periods=12, freq='M')
                     
                     # Plot the original time series, fitted values, and forecast with confidence intervals
-                    st.write("**Improved ARIMA Forecast**:")
+                    st.write("**Improved ARIMA/SARIMA Forecast**:")
                     plt.figure(figsize=(12, 6))
                     plt.plot(df.index, df[value_column], label='Original Data', color='blue')
                     plt.plot(df.index, df['Fitted'], label='Fitted Values', color='orange')
@@ -93,7 +104,7 @@ elif section == "ARIMA Illustration":
                     plt.fill_between(forecast_index, forecast_ci.iloc[:, 0], forecast_ci.iloc[:, 1], color='green', alpha=0.2)
                     plt.xlabel('Time')
                     plt.ylabel(value_column)
-                    plt.title('Improved ARIMA Forecasting with Confidence Intervals')
+                    plt.title('Improved ARIMA/SARIMA Forecasting with Confidence Intervals')
                     plt.legend()
                     st.pyplot(plt)
                     
