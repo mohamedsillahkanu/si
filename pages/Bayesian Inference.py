@@ -1,8 +1,9 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import pymc3 as pm
+import arviz as az
 import matplotlib.pyplot as plt
+import pymc as pm  # Use PyMC 4 for compatibility
 
 # App title
 st.title("Bayesian Inference for Survival Analysis")
@@ -93,15 +94,15 @@ elif section == "Bayesian Inference Illustration":
                         censoring = pm.Bernoulli('censoring', p=0.5, observed=event)
                         
                         # Posterior distribution
-                        trace = pm.sample(1000, return_inferencedata=False)
+                        trace = pm.sample(1000, return_inferencedata=True)
                         
                         # Display results
                         st.write("**Posterior Summary:**")
-                        st.text(pm.summary(trace))
+                        st.text(az.summary(trace))
                         
                         # Plot the trace
                         st.write("Trace Plot:")
-                        pm.traceplot(trace)
+                        az.plot_trace(trace)
                         st.pyplot(plt)
                         
                         # Display a tip for interpretation
