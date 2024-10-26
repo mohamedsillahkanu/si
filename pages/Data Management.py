@@ -61,7 +61,7 @@ def replace_outliers_with_mean(df, col):
 
 
 
-    def replace_outliers_with_mean_incld(df, col):
+def replace_outliers_with_mean_incld(df, col):
     # Calculate Q1, Q3, and IQR
     Q1 = df[col].quantile(0.25)
     Q3 = df[col].quantile(0.75)
@@ -84,7 +84,7 @@ def replace_outliers_with_mean(df, col):
 
 
 
-    def replace_outliers_with_median(df, col):
+def replace_outliers_with_median(df, col):
     # Calculate Q1, Q3, and IQR
     Q1 = df[col].quantile(0.25)
     Q3 = df[col].quantile(0.75)
@@ -109,7 +109,7 @@ def replace_outliers_with_mean(df, col):
 
 
 
-    def replace_outliers_with_median_incld(df, col):
+def replace_outliers_with_median_incld(df, col):
     # Calculate Q1, Q3, and IQR
     Q1 = df[col].quantile(0.25)
     Q3 = df[col].quantile(0.75)
