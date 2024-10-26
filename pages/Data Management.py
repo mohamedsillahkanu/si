@@ -36,9 +36,7 @@ def detect_outliers_scatterplot(df, col):
 
 
 
-
-
-  def replace_outliers_with_mean(df, col):
+def replace_outliers_with_mean(df, col):
     # Calculate Q1, Q3, and IQR
     Q1 = df[col].quantile(0.25)
     Q3 = df[col].quantile(0.75)
