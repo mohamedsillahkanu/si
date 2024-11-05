@@ -81,23 +81,24 @@ uploaded_dbf = st.file_uploader("Upload .dbf file", type="dbf")
 years = st.multiselect("Select Years", range(1981, 2025))
 months = st.multiselect("Select Months", range(1, 13))
 
-# Variable selection for line plot
-variable = st.selectbox("Select Variable for Line Plot", ["mean_rain"])  # Add more variables as needed
-
 # Ensure that the shapefile and other inputs are provided
-if uploaded_shp and uploaded_shx and uploaded_dbf and years and months and variable:
+if uploaded_shp and uploaded_shx and uploaded_dbf and years and months:
     # Load and process the shapefile
     with st.spinner("Loading and processing shapefile..."):
         gdf = load_shapefile(uploaded_shp, uploaded_shx, uploaded_dbf)
 
     st.success("Shapefile loaded successfully!")
 
-    # Automatically detect the first text column to use for naming (e.g., administrative regions)
+    # Display the GeoDataFrame
+    st.write("Here is a preview of your shapefile:")
+    st.dataframe(gdf)
+
+    # Let user select which text column to use
     text_columns = gdf.select_dtypes(include=['object']).columns
     if len(text_columns) == 0:
         st.error("No text columns found in the shapefile. Please upload a valid shapefile.")
     else:
-        text_column = text_columns[0]  # Use the first detected text column
+        text_column = st.selectbox("Select a text column to use for naming:", text_columns)
 
         # Initialize a list to collect DataFrames
         all_data = []
@@ -125,16 +126,16 @@ if uploaded_shp and uploaded_shx and uploaded_dbf and years and months and varia
         # Create separate figures for each unique value in the detected text column
         for name in combined_df[text_column].unique():
             name_data = combined_df[combined_df[text_column] == name]
-            mean_rain_by_month = name_data.groupby(['Year', 'Month'])[variable].mean().reset_index()
+            mean_rain_by_month = name_data.groupby(['Year', 'Month'])['mean_rain'].mean().reset_index()
 
             fig, ax = plt.subplots(figsize=(12, 8))
             for year in years:
                 year_data = mean_rain_by_month[mean_rain_by_month['Year'] == year]
-                ax.plot(year_data['Month'], year_data[variable], marker='o', label=f'Year {year}')
+                ax.plot(year_data['Month'], year_data['mean_rain'], marker='o', label=f'Year {year}')
             
-            ax.set_title(f"{variable} over Months for {name}")
+            ax.set_title(f"Mean Rainfall over Months for {name}")
             ax.set_xlabel('Month')
-            ax.set_ylabel(variable)
+            ax.set_ylabel('mean_rain')
             ax.legend(loc='best')
             ax.annotate(name, xy=(0.5, 1.05), xycoords='axes fraction', ha='center', fontsize=14, fontweight='bold')
             st.pyplot(fig)
@@ -145,16 +146,16 @@ if uploaded_shp and uploaded_shx and uploaded_dbf and years and months and varia
 
             for name in combined_df[text_column].unique():
                 name_data = combined_df[combined_df[text_column] == name]
-                mean_rain_by_month = name_data.groupby(['Year', 'Month'])[variable].mean().reset_index()
+                mean_rain_by_month = name_data.groupby(['Year', 'Month'])['mean_rain'].mean().reset_index()
 
                 fig, ax = plt.subplots(figsize=(12, 8))
                 for year in years:
                     year_data = mean_rain_by_month[mean_rain_by_month['Year'] == year]
-                    ax.plot(year_data['Month'], year_data[variable], marker='o', label=f'Year {year}')
+                    ax.plot(year_data['Month'], year_data['mean_rain'], marker='o', label=f'Year {year}')
                 
-                ax.set_title(f"{variable} over Months for {name}")
+                ax.set_title(f"Mean Rainfall over Months for {name}")
                 ax.set_xlabel('Month')
-                ax.set_ylabel(variable)
+                ax.set_ylabel('mean_rain')
                 ax.legend(loc='best')
                 ax.annotate(name, xy=(0.5, 1.05), xycoords='axes fraction', ha='center', fontsize=14, fontweight='bold')
 
