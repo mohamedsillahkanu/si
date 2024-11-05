@@ -90,12 +90,12 @@ if data_management_option == "Outlier Detection and Correction":
                 (st.session_state.df['adm3'] == adm3) &
                 (st.session_state.df['Year'] == Year)
             ]['Month'].unique()
-            Month = st.selectbox("Select Month:", Month_options)
+            Months = st.multiselect("Select Month(s):", Month_options)
             hf_options = st.session_state.df[
                 (st.session_state.df['adm1'] == adm1) &
                 (st.session_state.df['adm3'] == adm3) &
                 (st.session_state.df['Year'] == Year) &
-                (st.session_state.df['Month'] == Month)
+                (st.session_state.df['Month'].isin(Months))
             ]['hf'].unique()
             hf = st.multiselect("Select hf:", hf_options)
 
@@ -104,7 +104,7 @@ if data_management_option == "Outlier Detection and Correction":
                 (st.session_state.df['adm1'] == adm1) &
                 (st.session_state.df['adm3'] == adm3) &
                 (st.session_state.df['Year'] == Year) &
-                (st.session_state.df['Month'] == Month) &
+                (st.session_state.df['Month'].isin(Months)) &
                 (st.session_state.df['hf'].isin(hf))
             ]
 
