@@ -1,6 +1,11 @@
 import streamlit as st
 import pandas as pd
 import os
+from streamlit.components.v1 import html
+import cv2
+import tempfile
+import numpy as np
+import base64
 
 # File to store data
 data_file = 'data_collection.csv'
@@ -16,8 +21,47 @@ else:
 st.title("Offline Data Collection App")
 st.write("This is an offline data collection application. Please enter the required details below.")
 
+# Barcode Scanning Function
+def scan_barcode():
+    """Uses the device camera to scan a barcode."""
+    cap = cv2.VideoCapture(0)
+    barcode = None
+
+    st.text("Opening camera...")
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            st.error("Failed to open camera.")
+            break
+
+        # Display the frame in Streamlit
+        frame_placeholder = st.image(frame, channels="BGR")
+        key = cv2.waitKey(1) & 0xFF
+
+        if key == ord('q'):
+            break
+
+        # Attempt to detect barcode
+        detector = cv2.QRCodeDetector()
+        barcode, points, _ = detector.detectAndDecode(frame)
+        if barcode:
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+    if barcode:
+        return barcode
+    else:
+        return ""
+
+# Barcode Input
+if st.button("Scan Barcode"):
+    barcode = scan_barcode()
+else:
+    barcode = st.text_input("Enter or Scan Barcode:")
+
 # User Input
-barcode = st.text_input("Enter or Scan Barcode:")
 name = st.text_input("Name:")
 age = st.number_input("Age:", min_value=1, max_value=100, step=1)
 gender = st.radio("Gender:", ('Male', 'Female', 'Other'))
