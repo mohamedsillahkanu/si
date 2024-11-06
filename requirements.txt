@@ -25,4 +25,5 @@ pymc
 arviz
 pmdarima
 pingouin
-opencv-python
+opencv-python-headless
+libgl1-mesa-glx
