@@ -1,11 +1,11 @@
 import streamlit as st
 import pandas as pd
 import os
-from streamlit.components.v1 import html
+import numpy as np
+from PIL import Image
+from pyzbar.pyzbar import decode
 import cv2
 import tempfile
-import numpy as np
-import base64
 
 # File to store data
 data_file = 'data_collection.csv'
@@ -22,44 +22,26 @@ st.title("Offline Data Collection App")
 st.write("This is an offline data collection application. Please enter the required details below.")
 
 # Barcode Scanning Function
-def scan_barcode():
-    """Uses the device camera to scan a barcode."""
-    cap = cv2.VideoCapture(0)
-    barcode = None
-
-    st.text("Opening camera...")
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            st.error("Failed to open camera.")
-            break
-
-        # Display the frame in Streamlit
-        frame_placeholder = st.image(frame, channels="BGR")
-        key = cv2.waitKey(1) & 0xFF
-
-        if key == ord('q'):
-            break
-
-        # Attempt to detect barcode
-        detector = cv2.QRCodeDetector()
-        barcode, points, _ = detector.detectAndDecode(frame)
-        if barcode:
-            break
-
-    cap.release()
-    cv2.destroyAllWindows()
-
-    if barcode:
-        return barcode
-    else:
-        return ""
+def scan_barcode(uploaded_file):
+    """Uses the uploaded image to scan a barcode."""
+    image = Image.open(uploaded_file)
+    image_np = np.array(image)
+    barcodes = decode(image_np)
+    for barcode in barcodes:
+        barcode_data = barcode.data.decode('utf-8')
+        return barcode_data
+    return ""
 
 # Barcode Input
-if st.button("Scan Barcode"):
-    barcode = scan_barcode()
+uploaded_file = st.file_uploader("Upload an image to scan barcode", type=['jpg', 'jpeg', 'png'])
+if uploaded_file is not None:
+    barcode = scan_barcode(uploaded_file)
+    if barcode:
+        st.success(f"Scanned Barcode: {barcode}")
+    else:
+        st.error("No barcode detected. Please try again with a clearer image.")
 else:
-    barcode = st.text_input("Enter or Scan Barcode:")
+    barcode = st.text_input("Enter Barcode Manually:")
 
 # User Input
 name = st.text_input("Name:")
