@@ -9,11 +9,14 @@ from docx import Document
 from docx.shared import Inches
 
 # Function to create a subplot based on user-selected parameters
-def create_subplot(ax, data, plot_type, feature1, feature2=None, title="", xlabel="", ylabel="Values"):
-    ax.set_title(title)
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel(ylabel)
-    
+def create_subplot(ax, data, plot_type, feature1, feature2=None, title="", ylabel="Values"):
+    ax.set_title(title, fontsize=16, fontweight='bold')  # Uniform title font and size
+    ax.set_ylabel(ylabel, fontsize=12)
+
+    # Remove X labels for all plots
+    ax.set_xlabel('')
+    ax.set_xticklabels([])
+
     if plot_type == 'Bar Chart':
         if data[feature1].dtype == 'object':  # Ensure it's a categorical variable
             count_data = data[feature1].value_counts()
@@ -38,7 +41,7 @@ def create_subplot(ax, data, plot_type, feature1, feature2=None, title="", xlabe
         ax.plot([data[feature1].min(), data[feature1].max()], [data[feature1].min(), data[feature1].max()], 'r--')
 
 # Function to generate the subplots based on user inputs
-def generate_subplots(rows, cols, data, plot_types, features1, features2, titles, xlabels, ylabels):
+def generate_subplots(rows, cols, data, plot_types, features1, features2, titles, ylabels):
     fig, axes = plt.subplots(rows, cols, figsize=(5*cols, 4*rows))
 
     # If only one subplot, make axes a list
@@ -55,9 +58,8 @@ def generate_subplots(rows, cols, data, plot_types, features1, features2, titles
             feature1 = features1[i]
             feature2 = features2[i] if len(features2) > i else None
             title = titles[i] if len(titles) > i else f"Figure {i+1}"
-            xlabel = xlabels[i] if len(xlabels) > i else feature1
             ylabel = ylabels[i] if len(ylabels) > i else "Values"
-            create_subplot(axes[i], data, plot_type, feature1, feature2, title, xlabel, ylabel)
+            create_subplot(axes[i], data, plot_type, feature1, feature2, title, ylabel)
         else:
             axes[i].axis('off')  # Turn off any unused subplots
 
@@ -76,24 +78,50 @@ def export_to_word(figures, titles, filename="dashboard.docx"):
         fig.savefig(img_stream, format='png')
         img_stream.seek(0)
         doc.add_picture(img_stream, width=Inches(6))  # Use Inches from docx.shared
-        title = st.text_input(f"Edit title for Figure {i+1}:", titles[i], key=f"title_{i+1}")
-        doc.add_paragraph(f'{title}')
+        doc.add_paragraph(f'{titles[i]}')  # Include user-defined title
 
     buffer = BytesIO()
     doc.save(buffer)
     buffer.seek(0)
     st.download_button(label="Download as Word", data=buffer, file_name=filename, mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
 
+# Function to export the dashboard to a PDF document
+def export_to_pdf(figures, titles, filename="dashboard.pdf"):
+    pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+    pdf.cell(200, 10, txt="Dashboard Export", ln=True, align='C')
+
+    for i, fig in enumerate(figures):
+        img_stream = BytesIO()
+        fig.savefig(img_stream, format='png')
+        img_stream.seek(0)
+        pdf.add_page()
+        pdf.image(img_stream, x=10, y=20, w=180)
+        pdf.ln(85)  # Adjust this value to control spacing between images
+        pdf.cell(0, 10, f"{titles[i]}", ln=True)
+
+    buffer = BytesIO()
+    pdf.output(buffer)
+    buffer.seek(0)
+    st.download_button(label="Download as PDF", data=buffer, file_name=filename, mime="application/pdf")
+
 # Streamlit app layout
 # Initialize df as an empty DataFrame
 df = pd.DataFrame()
 
 # Streamlit app layout
-st.title("Customizable Data Visualization Dashboard with Editable Titles")
+st.title("Customizable Data Visualization Dashboard with Export Option")
 
 # Sidebar for data source selection
 st.sidebar.header("Data Source")
 data_source = st.sidebar.radio("Choose data source", ["Use Sample Data", "Upload Excel/CSV"])
+
+# Sidebar for number of pages, rows, and columns
+n_pages = st.sidebar.number_input("Select number of pages", min_value=1, max_value=5, value=1)
+n_rows = st.sidebar.number_input("Select number of rows", min_value=1, max_value=5, value=1)
+n_cols = st.sidebar.number_input("Select number of columns", min_value=1, max_value=5, value=1)
 
 if data_source == "Upload Excel/CSV":
     uploaded_file = st.sidebar.file_uploader("Upload an Excel or CSV file", type=["xlsx", "csv"])
@@ -114,25 +142,50 @@ else:
 
     st.write(df)  # Display sample data
 
-# Sidebar for selecting the chart type and columns for plotting
-plot_type = st.sidebar.selectbox("Select plot type", ['Bar Chart', 'Pie Chart', 'Histogram', 'Violin Plot', 'Line Plot', 'Hexbin Plot', 'Box Plot', 'Scatter Plot'])
+# User input for selecting features, plot types, titles, and labels
+page_data = []
+for page in range(n_pages):
+    st.sidebar.subheader(f"Page {page+1} Configuration")
+    plot_types = []
+    features1 = []
+    features2 = []
+    titles = []
+    ylabels = []
 
-# MultiSelect for columns
-selected_columns = st.sidebar.multiselect("Select columns to plot", df.columns)
+    for i in range(n_rows * n_cols):
+        st.sidebar.subheader(f"Subplot {i+1} on Page {page+1}")
+        plot_type = st.sidebar.selectbox(f"Select plot type for subplot {i+1} on Page {page+1}",
+                                         ['Bar Chart', 'Pie Chart', 'Histogram', 'Violin Plot', 'Line Plot', 'Hexbin Plot', 'Box Plot', 'Scatter Plot'], key=f"plot_type_{page}_{i}")
+        plot_types.append(plot_type)
 
-# User input for titles and labels
-titles = [col for col in selected_columns]
-xlabels = [col for col in selected_columns]
-ylabels = ["Values" for _ in selected_columns]
+        feature1 = st.sidebar.selectbox(f"Select feature for subplot {i+1} on Page {page+1}", df.columns, key=f"feature1_{page}_{i}")
+        features1.append(feature1)
 
-# Generate plots for each selected column
+        title = st.sidebar.text_input(f"Enter title for subplot {i+1} on Page {page+1}", f"Figure {i+1}", key=f"title_{page}_{i}")
+        titles.append(title)
+
+        ylabel = st.sidebar.text_input(f"Enter Y label for subplot {i+1} on Page {page+1}", "Values", key=f"ylabel_{page}_{i}")
+        ylabels.append(ylabel)
+
+        if plot_type in ['Hexbin Plot', 'Scatter Plot']:
+            feature2 = st.sidebar.selectbox(f"Select second feature for {plot_type} {i+1} on Page {page+1}", df.columns, key=f"feature2_{page}_{i}")
+            features2.append(feature2)
+        else:
+            features2.append(None)
+
+    page_data.append((plot_types, features1, features2, titles, ylabels))
+
+# Generate the plots and display them
 figures = []
-for col in selected_columns:
-    fig = generate_subplots(1, 1, df, [plot_type], [col], [None], [col], [col], ["Values"])
+for plot_types, features1, features2, titles, ylabels in page_data:
+    fig = generate_subplots(n_rows, n_cols, df, plot_types, features1, features2, titles, ylabels)
     figures.append(fig)
 
 # Export options
-export_option = st.sidebar.selectbox("Export as", ["None", "PDF", "Word"])
-if export_option == "Word":
-    export_to_word(figures, titles)
+export_format = st.selectbox("Choose export format", ["None", "Word", "PDF"])
 
+if export_format == "Word":
+    export_to_word(figures, [title for _, _, _, titles, _ in page_data for title in titles])
+
+elif export_format == "PDF":
+    export_to_pdf(figures, [title for _, _, _, titles, _ in page_data for title in titles])
