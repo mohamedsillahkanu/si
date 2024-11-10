@@ -9,10 +9,10 @@ from docx import Document
 from docx.shared import Inches  # Corrected import for Word export
 
 # Function to create a subplot based on user-selected parameters
-def create_subplot(ax, data, plot_type, feature1, feature2=None, title="", xlabel="", ylabel="Values"):
-    ax.set_title(title)
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel(ylabel)
+def create_subplot(ax, data, plot_type, feature1, feature2=None, title="", xlabel="", ylabel=""):
+    ax.set_xlabel(xlabel if xlabel else feature1)
+    ax.set_ylabel(ylabel if ylabel else 'Values')
+    ax.set_title(title if title else plot_type)
     
     if plot_type == 'Bar Chart':
         if data[feature1].dtype == 'object':  # Ensure it's a categorical variable
@@ -54,9 +54,9 @@ def generate_subplots(rows, cols, data, plot_types, features1, features2, titles
             plot_type = plot_types[i]
             feature1 = features1[i]
             feature2 = features2[i] if len(features2) > i else None
-            title = titles[i] if len(titles) > i else f"Figure {i+1}"
-            xlabel = xlabels[i] if len(xlabels) > i else feature1
-            ylabel = ylabels[i] if len(ylabels) > i else "Values"
+            title = titles[i] if len(titles) > i else ""
+            xlabel = xlabels[i] if len(xlabels) > i else ""
+            ylabel = ylabels[i] if len(ylabels) > i else ""
             create_subplot(axes[i], data, plot_type, feature1, feature2, title, xlabel, ylabel)
         else:
             axes[i].axis('off')  # Turn off any unused subplots
@@ -128,7 +128,6 @@ if data_source == "Upload Excel/CSV":
             df = pd.read_excel(uploaded_file)
         else:
             df = pd.read_csv(uploaded_file)
-        st.write(df)  # Display the dataframe after uploading
 else:
     # Sample data
     df = pd.DataFrame({
@@ -138,9 +137,7 @@ else:
         'Feature 4': np.random.randn(100),
     })
 
-    st.write(df)  # Display sample data
-
-# User input for selecting features, plot types, titles, and labels
+# User input for selecting features and plot types for each page
 page_data = []
 for page in range(n_pages):
     st.sidebar.subheader(f"Page {page+1} Configuration")
@@ -151,8 +148,15 @@ for page in range(n_pages):
     xlabels = []
     ylabels = []
 
+    st.header(f"Page {page+1}")  # Display the page title before subplots
     for i in range(n_rows * n_cols):
         st.sidebar.subheader(f"Subplot {i+1} on Page {page+1}")
+        
+        # Let the user input titles, X and Y labels
+        title = st.sidebar.text_input(f"Enter title for subplot {i+1} on Page {page+1}", key=f"title_{page}_{i}")
+        xlabel = st.sidebar.text_input(f"Enter X label for subplot {i+1} on Page {page+1}", key=f"xlabel_{page}_{i}")
+        ylabel = st.sidebar.text_input(f"Enter Y label for subplot {i+1} on Page {page+1}", key=f"ylabel_{page}_{i}")
+        
         plot_type = st.sidebar.selectbox(f"Select plot type for subplot {i+1} on Page {page+1}",
                                          ['Bar Chart', 'Pie Chart', 'Histogram', 'Violin Plot', 'Line Plot', 'Hexbin Plot', 'Box Plot', 'Scatter Plot'], key=f"plot_type_{page}_{i}")
         plot_types.append(plot_type)
@@ -160,32 +164,29 @@ for page in range(n_pages):
         feature1 = st.sidebar.selectbox(f"Select feature for subplot {i+1} on Page {page+1}", df.columns, key=f"feature1_{page}_{i}")
         features1.append(feature1)
 
-        title = st.sidebar.text_input(f"Enter title for subplot {i+1} on Page {page+1}", f"Figure {i+1}", key=f"title_{page}_{i}")
-        titles.append(title)
-
-        xlabel = st.sidebar.text_input(f"Enter X label for subplot {i+1} on Page {page+1}", feature1, key=f"xlabel_{page}_{i}")
-        xlabels.append(xlabel)
-
-        ylabel = st.sidebar.text_input(f"Enter Y label for subplot {i+1} on Page {page+1}", "Values", key=f"ylabel_{page}_{i}")
-        ylabels.append(ylabel)
-
         if plot_type in ['Hexbin Plot', 'Scatter Plot']:
             feature2 = st.sidebar.selectbox(f"Select second feature for {plot_type} {i+1} on Page {page+1}", df.columns, key=f"feature2_{page}_{i}")
             features2.append(feature2)
         else:
             features2.append(None)
 
-    page_data.append((plot_types, features1, features2, titles, xlabels, ylabels))
+        # Store titles, X and Y labels
+        titles.append(title)
+        xlabels.append(xlabel)
+        ylabels.append(ylabel)
 
-# Generate the plots and display them
+    page_data.append({'plot_types': plot_types, 'features1': features1, 'features2': features2, 'titles': titles, 'xlabels': xlabels, 'ylabels': ylabels})
+
+# Create the subplots
 figures = []
-for plot_types, features1, features2, titles, xlabels, ylabels in page_data:
-    fig = generate_subplots(n_rows, n_cols, df, plot_types, features1, features2, titles, xlabels, ylabels)
+for page in page_data:
+    fig = generate_subplots(n_rows, n_cols, df, page['plot_types'], page['features1'], page['features2'], page['titles'], page['xlabels'], page['ylabels'])
     figures.append(fig)
 
-# Export options
-export_option = st.sidebar.selectbox("Export as", ["None", "PDF", "Word"])
-if export_option == "PDF":
+# Export buttons for PDF and Word
+st.sidebar.header("Export Dashboard")
+export_format = st.sidebar.radio("Choose export format", ["PDF", "Word"])
+if export_format == "PDF":
     export_to_pdf(figures)
-elif export_option == "Word":
+elif export_format == "Word":
     export_to_word(figures)
