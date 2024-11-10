@@ -29,7 +29,7 @@ def create_subplot(ax, data, plot_type, feature1, feature2=None, title=None, xla
     elif plot_type == 'Violin Plot':
         sns.violinplot(x=data[feature1], ax=ax)
     elif plot_type == 'Line Plot':
-        sns.lineplot(x=data.index, y=data[feature1], ax=ax)
+        ax.plot(data[feature1])
     elif plot_type == 'Hexbin Plot' and feature2 is not None:
         ax.hexbin(data[feature1], data[feature2], gridsize=20, cmap='Blues')
     elif plot_type == 'Box Plot':
@@ -165,7 +165,7 @@ for page in range(n_pages):
         else:
             features2.append(None)
 
-        # User input for titles and labels (no auto-population)
+        # User input for titles and labels
         title = st.sidebar.text_input(f"Enter title for subplot {i+1} on Page {page+1}", key=f"title_{page}_{i}")
         titles.append(title)
 
@@ -177,9 +177,13 @@ for page in range(n_pages):
 
     page_data.append({'plot_types': plot_types, 'features1': features1, 'features2': features2, 'titles': titles, 'xlabels': xlabels, 'ylabels': ylabels})
 
-# Create subplots for all pages
+# List to store generated figures for export
 figures = []
-for page_plots in page_data:
+
+# Display all pages with their subplots
+for page in range(n_pages):
+    st.header(f"Dashboard - Page {page+1}")
+    page_plots = page_data[page]
     fig = generate_subplots(n_rows, n_cols, df, page_plots['plot_types'], page_plots['features1'], page_plots['features2'], page_plots['titles'], page_plots['xlabels'], page_plots['ylabels'])
     figures.append(fig)
 
