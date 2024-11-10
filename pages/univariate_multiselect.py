@@ -31,7 +31,7 @@ def create_subplot(ax, data, plot_type, feature1, feature2=None, title="", ylabe
     elif plot_type == 'Violin Plot':
         sns.violinplot(x=data[feature1], ax=ax)
     elif plot_type == 'Line Plot':
-        ax.plot(data[feature1])
+        sns.lineplot(x=data.index, y=data[feature1], ax=ax)
     elif plot_type == 'Hexbin Plot' and feature2 is not None:
         ax.hexbin(data[feature1], data[feature2], gridsize=20, cmap='Blues')
     elif plot_type == 'Box Plot':
@@ -158,8 +158,8 @@ for page in range(n_pages):
                                          ['Bar Chart', 'Pie Chart', 'Histogram', 'Violin Plot', 'Line Plot', 'Hexbin Plot', 'Box Plot', 'Scatter Plot'], key=f"plot_type_{page}_{i}")
         plot_types.append(plot_type)
 
-        feature1 = st.sidebar.selectbox(f"Select feature for subplot {i+1} on Page {page+1}", df.columns, key=f"feature1_{page}_{i}")
-        features1.append(feature1)
+        features1_selection = st.sidebar.multiselect(f"Select features for subplot {i+1} on Page {page+1}", df.columns, key=f"features1_{page}_{i}")
+        features1.append(features1_selection)
 
         title = st.sidebar.text_input(f"Enter title for subplot {i+1} on Page {page+1}", f"Figure {i+1}", key=f"title_{page}_{i}")
         titles.append(title)
