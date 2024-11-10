@@ -9,40 +9,42 @@ from docx import Document
 from docx.shared import Inches  # Corrected import for Word export
 
 # Function to create a subplot based on user-selected parameters
-def create_subplot(ax, data, plot_type, feature1, feature2=None, title=None, xlabel=None, ylabel=None):
-    if title:
-        ax.set_title(title)
-    else:
-        ax.set_title(f'{plot_type} of {feature1}')
-    
-    ax.set_xlabel(xlabel if xlabel else feature1)
-    ax.set_ylabel(ylabel if ylabel else 'Values')
-    
+def create_subplot(ax, data, plot_type, feature1, feature2=None):
+    ax.set_xlabel(feature1)
+    ax.set_ylabel('Values')
     if plot_type == 'Bar Chart':
         if data[feature1].dtype == 'object':  # Ensure it's a categorical variable
             count_data = data[feature1].value_counts()
             sns.barplot(x=count_data.index, y=count_data.values, ax=ax)
+            ax.set_title('Bar Chart')
         else:
             st.error(f"'{feature1}' is not a categorical variable. Please select a categorical variable for the bar chart.")
     elif plot_type == 'Pie Chart':
         pie_data = data[feature1].value_counts()
         ax.pie(pie_data, labels=pie_data.index, autopct='%1.1f%%')
+        ax.set_title('Pie Chart')
     elif plot_type == 'Histogram':
         sns.histplot(data[feature1], kde=True, ax=ax)
+        ax.set_title('Histogram')
     elif plot_type == 'Violin Plot':
         sns.violinplot(x=data[feature1], ax=ax)
+        ax.set_title('Violin Plot')
     elif plot_type == 'Line Plot':
         ax.plot(data[feature1])
+        ax.set_title('Line Plot')
     elif plot_type == 'Hexbin Plot' and feature2 is not None:
         ax.hexbin(data[feature1], data[feature2], gridsize=20, cmap='Blues')
+        ax.set_title('Hexbin Plot')
     elif plot_type == 'Box Plot':
         sns.boxplot(x=data[feature1], ax=ax)
+        ax.set_title('Box Plot')
     elif plot_type == 'Scatter Plot' and feature2 is not None:
         ax.scatter(data[feature1], data[feature2])
         ax.plot([data[feature1].min(), data[feature1].max()], [data[feature1].min(), data[feature1].max()], 'r--')
+        ax.set_title('Scatter Plot')
 
 # Function to generate the subplots based on user inputs
-def generate_subplots(rows, cols, data, plot_types, features1, features2, titles, xlabel, ylabel):
+def generate_subplots(rows, cols, data, plot_types, features1, features2):
     fig, axes = plt.subplots(rows, cols, figsize=(5*cols, 4*rows))
 
     # If only one subplot, make axes a list
@@ -58,10 +60,7 @@ def generate_subplots(rows, cols, data, plot_types, features1, features2, titles
             plot_type = plot_types[i]
             feature1 = features1[i]
             feature2 = features2[i] if len(features2) > i else None
-            title = titles[i] if len(titles) > i else None
-            xlabel_value = xlabel[i] if len(xlabel) > i else None
-            ylabel_value = ylabel[i] if len(ylabel) > i else None
-            create_subplot(axes[i], data, plot_type, feature1, feature2, title, xlabel_value, ylabel_value)
+            create_subplot(axes[i], data, plot_type, feature1, feature2)
         else:
             axes[i].axis('off')  # Turn off any unused subplots
 
@@ -69,6 +68,7 @@ def generate_subplots(rows, cols, data, plot_types, features1, features2, titles
     st.pyplot(fig)
 
     return fig  # Return the figure object to export later
+
 
 
 # Function to export the dashboard to a Word document
@@ -142,57 +142,46 @@ else:
         'Feature 4': np.random.randn(100),
     })
 
-# User input for selecting features and plot types for each page
-page_data = []
-for page in range(n_pages):
-    st.sidebar.subheader(f"Page {page+1} Configuration")
-    plot_types = []
-    features1 = []
-    features2 = []
-    titles = []
-    xlabel = []
-    ylabel = []
 
-    for i in range(n_rows * n_cols):
-        st.sidebar.subheader(f"Subplot {i+1} on Page {page+1}")
-        plot_type = st.sidebar.selectbox(f"Select plot type for subplot {i+1} on Page {page+1}",
-                                         ['Bar Chart', 'Pie Chart', 'Histogram', 'Violin Plot', 'Line Plot', 'Hexbin Plot', 'Box Plot', 'Scatter Plot'], key=f"plot_type_{page}_{i}")
-        plot_types.append(plot_type)
+    # User input for selecting features and plot types for each page
+    page_data = []
+    for page in range(n_pages):
+        st.sidebar.subheader(f"Page {page+1} Configuration")
+        plot_types = []
+        features1 = []
+        features2 = []
 
-        feature1 = st.sidebar.selectbox(f"Select feature for subplot {i+1} on Page {page+1}", df.columns, key=f"feature1_{page}_{i}")
-        features1.append(feature1)
+        for i in range(n_rows * n_cols):
+            st.sidebar.subheader(f"Subplot {i+1} on Page {page+1}")
+            plot_type = st.sidebar.selectbox(f"Select plot type for subplot {i+1} on Page {page+1}",
+                                             ['Bar Chart', 'Pie Chart', 'Histogram', 'Violin Plot', 'Line Plot', 'Hexbin Plot', 'Box Plot', 'Scatter Plot'], key=f"plot_type_{page}_{i}")
+            plot_types.append(plot_type)
 
-        if plot_type in ['Hexbin Plot', 'Scatter Plot']:
-            feature2 = st.sidebar.selectbox(f"Select second feature for {plot_type} {i+1} on Page {page+1}", df.columns, key=f"feature2_{page}_{i}")
-            features2.append(feature2)
-        else:
-            features2.append(None)
+            feature1 = st.sidebar.selectbox(f"Select feature for subplot {i+1} on Page {page+1}", df.columns, key=f"feature1_{page}_{i}")
+            features1.append(feature1)
 
-        # Inputs for custom titles and labels
-        title = st.sidebar.text_input(f"Title for subplot {i+1} on Page {page+1}", key=f"title_{page}_{i}")
-        titles.append(title)
+            if plot_type in ['Hexbin Plot', 'Scatter Plot']:
+                feature2 = st.sidebar.selectbox(f"Select second feature for {plot_type} {i+1} on Page {page+1}", df.columns, key=f"feature2_{page}_{i}")
+                features2.append(feature2)
+            else:
+                features2.append(None)
 
-        xlabel_value = st.sidebar.text_input(f"X-axis label for subplot {i+1} on Page {page+1}", key=f"xlabel_{page}_{i}")
-        xlabel.append(xlabel_value)
+        page_data.append({'plot_types': plot_types, 'features1': features1, 'features2': features2})
 
-        ylabel_value = st.sidebar.text_input(f"Y-axis label for subplot {i+1} on Page {page+1}", key=f"ylabel_{page}_{i}")
-        ylabel.append(ylabel_value)
+    # List to store generated figures for export
+    figures = []
 
-    page_data.append({'plot_types': plot_types, 'features1': features1, 'features2': features2, 'titles': titles, 'xlabel': xlabel, 'ylabel': ylabel})
+    # Display all pages with their subplots
+    for page in range(n_pages):
+        st.header(f"Dashboard - Page {page+1}")
+        page_plots = page_data[page]
+        fig = generate_subplots(n_rows, n_cols, df, page_plots['plot_types'], page_plots['features1'], page_plots['features2'])
+        figures.append(fig)
 
-# List to store generated figures for export
-figures = []
-
-# Loop through pages and generate subplots
-for page_idx, page_config in enumerate(page_data):
-    page_fig = generate_subplots(n_rows, n_cols, df, page_config['plot_types'], page_config['features1'], page_config['features2'], page_config['titles'], page_config['xlabel'], page_config['ylabel'])
-    figures.append(page_fig)
-
-# Provide export options for Word and PDF
-st.sidebar.header("Export Options")
-export_option = st.sidebar.radio("Select export format", ['None', 'Export as Word', 'Export as PDF'])
-
-if export_option == 'Export as Word':
-    export_to_word(figures)
-elif export_option == 'Export as PDF':
-    export_to_pdf(figures)
+    # Export options
+    st.sidebar.subheader("Export Options")
+    export_type = st.sidebar.radio("Select export format", ["None", "Word Document", "PDF"])
+    if export_type == "Word Document":
+        export_to_word(figures)
+    elif export_type == "PDF":
+        export_to_pdf(figures)  
