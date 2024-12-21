@@ -9,7 +9,7 @@ from email import encoders
 
 # Email configuration
 SMTP_SERVER = "smtp.gmail.com"  # For Gmail. Use appropriate server for other email providers.
-SMTP_PORT = 587
+SMTP_PORT = 25
 EMAIL_ADDRESS = "sillahmohamedkanu@gmail.com"  # Replace with your email
 EMAIL_PASSWORD = "mohamed1995"  # Replace with your email password
 TO_EMAIL = "sillahkanuseries@gmail.com"  # Replace with recipient email
