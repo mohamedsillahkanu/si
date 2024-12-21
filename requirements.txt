@@ -25,4 +25,5 @@ pymc
 arviz
 pmdarima
 pingouin
+PyGithub
 
