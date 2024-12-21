@@ -7,8 +7,8 @@ from github import Github
 excel_file = "data.xlsx"
 
 # GitHub credentials
-GITHUB_TOKEN = "your_personal_access_token"
-GITHUB_REPO = "username/repository_name"  # Replace with your GitHub repo
+GITHUB_TOKEN = "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"
+GITHUB_REPO = "mohamedsillahkanu/si"  # Replace with your GitHub repo
 GITHUB_FILE_PATH = "data.xlsx"  # Path in the repository
 
 # Initialize the Excel file if it doesn't exist
