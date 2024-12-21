@@ -1,107 +1,75 @@
+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
+
+
 import streamlit as st
 import pandas as pd
 import os
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from email.mime.base import MIMEBase
-from email import encoders
+from github import Github
 
-# Email configuration
-SMTP_SERVER = "smtp.gmail.com"  # For Gmail. Use appropriate server for other email providers.
-SMTP_PORT = 25
-EMAIL_ADDRESS = "sillahmohamedkanu@gmail.com"  # Replace with your email
-EMAIL_PASSWORD = "mohamed1995"  # Replace with your email password
-TO_EMAIL = "sillahkanuseries@gmail.com"  # Replace with recipient email
+# Define the local Excel file and GitHub configurations
+excel_file = "data.xlsx"  # Local Excel file to store data
+GITHUB_TOKEN = "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"  # Replace with your GitHub token
+GITHUB_REPO = "mohamedsillahkanu/si"  # Replace with your GitHub repo (e.g., "user/repo")
+GITHUB_FILE_PATH = "data/data.xlsx"  # Path to save the file in the GitHub repo (e.g., "data/data.xlsx")
 
-# Define local file
-excel_file = "data.xlsx"
+# Function to push the file to GitHub
+def push_to_github(file_path, repo_name, token, commit_message):
+    """Pushes a file to a GitHub repository."""
+    g = Github(token)
+    try:
+        # Authenticate and access the repository
+        repo = g.get_repo(repo_name)
+        st.success(f"Authenticated successfully. Accessing repository: {repo.name}")
+    except Exception as e:
+        raise Exception(f"Failed to access repository: {e}")
+
+    # Try to update the file if it exists
+    try:
+        contents = repo.get_contents(file_path)
+        with open(file_path, "rb") as file:
+            repo.update_file(
+                contents.path, commit_message, file.read(), contents.sha
+            )
+        st.success("File updated successfully on GitHub!")
+    except Exception as e:
+        # Create the file if it doesn't exist
+        try:
+            with open(file_path, "rb") as file:
+                repo.create_file(file_path, commit_message, file.read())
+            st.success("File created successfully on GitHub!")
+        except Exception as inner_e:
+            raise Exception(f"Failed to create or update file: {inner_e}")
 
 # Initialize the Excel file if it doesn't exist
 if not os.path.exists(excel_file):
     pd.DataFrame(columns=["Name", "Age", "Gender"]).to_excel(excel_file, index=False)
 
-# Streamlit UI
-st.set_page_config(page_title="Data Sync App", page_icon="📧", layout="centered")
-st.title("📧 Data Collection and Email Sync App")
+# Streamlit form for data collection
+st.title("Data Collection Form")
+name = st.text_input("Name")
+age = st.number_input("Age", min_value=0, max_value=120, step=1)
+gender = st.selectbox("Gender", ["Male", "Female", "Other"])
 
-# Tabs for navigation
-tabs = st.tabs(["📋 Data Collection Form", "📊 View Data", "⬇️ Download File", "📤 Sync to Email"])
+if st.button("Submit"):
+    if name:
+        # Append new data to the Excel file
+        new_data = pd.DataFrame({"Name": [name], "Age": [age], "Gender": [gender]})
+        existing_data = pd.read_excel(excel_file)
+        updated_data = pd.concat([existing_data, new_data], ignore_index=True)
+        updated_data.to_excel(excel_file, index=False)
 
-# 📋 Data Collection Form
-with tabs[0]:
-    st.header("📋 Submit Your Data")
-    name = st.text_input("Enter Name", placeholder="Full Name")
-    age = st.number_input("Enter Age", min_value=0, max_value=120, step=1, format="%d")
-    gender = st.radio("Select Gender", options=["Male", "Female", "Other"])
+        st.success("Data submitted successfully!")
+    else:
+        st.error("Please enter a name.")
 
-    if st.button("Submit Data"):
-        if name:
-            # Read existing data
-            existing_data = pd.read_excel(excel_file)
-
-            # Add new data
-            new_data = pd.DataFrame({"Name": [name], "Age": [age], "Gender": [gender]})
-            updated_data = pd.concat([existing_data, new_data], ignore_index=True)
-
-            # Save updated data
-            updated_data.to_excel(excel_file, index=False)
-            st.success("Data submitted successfully!")
-        else:
-            st.error("Please enter a name.")
-
-# 📊 View Data
-with tabs[1]:
-    st.header("📊 Collected Data")
+# Button to sync the Excel file to GitHub
+if st.button("Sync to GitHub"):
     try:
-        df = pd.read_excel(excel_file)
-        st.dataframe(df)
+        push_to_github(excel_file, GITHUB_REPO, GITHUB_TOKEN, "Update data file")
     except Exception as e:
-        st.error(f"Error reading data: {e}")
+        st.error(f"Failed to sync data to GitHub: {e}")
 
-# ⬇️ Download File
-with tabs[2]:
-    st.header("⬇️ Download Collected Data")
-    with open(excel_file, "rb") as file:
-        st.download_button(
-            label="Download Excel File",
-            data=file,
-            file_name="collected_data.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        )
-
-# 📤 Sync to Email
-with tabs[3]:
-    st.header("📤 Sync Data to Email")
-    if st.button("Send Email"):
-        try:
-            # Create the email
-            msg = MIMEMultipart()
-            msg["From"] = EMAIL_ADDRESS
-            msg["To"] = TO_EMAIL
-            msg["Subject"] = "Collected Data - Excel File"
-
-            body = "Please find attached the collected data."
-            msg.attach(MIMEText(body, "plain"))
-
-            # Attach the Excel file
-            with open(excel_file, "rb") as attachment:
-                part = MIMEBase("application", "octet-stream")
-                part.set_payload(attachment.read())
-            encoders.encode_base64(part)
-            part.add_header(
-                "Content-Disposition",
-                f"attachment; filename={os.path.basename(excel_file)}",
-            )
-            msg.attach(part)
-
-            # Connect to the SMTP server and send the email
-            server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
-            server.starttls()
-            server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
-            server.sendmail(EMAIL_ADDRESS, TO_EMAIL, msg.as_string())
-            server.quit()
-
-            st.success("Email sent successfully!")
-        except Exception as e:
-            st.error(f"Failed to send email: {e}")
+# Display the collected data
+if st.checkbox("Show Collected Data"):
+    df = pd.read_excel(excel_file)
+    st.dataframe(df)
