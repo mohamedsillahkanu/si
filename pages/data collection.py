@@ -1,6 +1,3 @@
-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
-
-
 import streamlit as st
 import pandas as pd
 import os
