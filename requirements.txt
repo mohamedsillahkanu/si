@@ -26,4 +26,8 @@ arviz
 pmdarima
 pingouin
 PyGithub
-
+smtplib
+email
+google-auth
+gspread
+gspread-pandas
