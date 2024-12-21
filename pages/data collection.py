@@ -36,3 +36,13 @@ if st.button("Submit"):
 
         st.success("Data submitted successfully!")
         st.write("Thank you for your submission.")
+
+
+
+st.title("📋 Data Collection Form")
+st.write("📝 Fill out the form to submit your data.")
+
+if st.checkbox("Show Collected Data"):
+    df = pd.read_csv(data_file)
+    st.dataframe(df)
+
