@@ -1,72 +1,113 @@
 import streamlit as st
 import pandas as pd
 import os
-from github import Github
+import matplotlib.pyplot as plt
 
-# Define the local Excel file and GitHub configurations
-excel_file = "data.xlsx"  # Local Excel file to store data
-GITHUB_TOKEN = "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"  # Replace with your GitHub token
-GITHUB_REPO = "mohamedsillahkanu/si"  # Replace with your GitHub repo (e.g., "user/repo")
-GITHUB_FILE_PATH = "data/data.xlsx"  # Path to save the file in the GitHub repo (e.g., "data/data.xlsx")
-
-# Function to push the file to GitHub
-def push_to_github(file_path, repo_name, token, commit_message):
-    """Pushes a file to a GitHub repository."""
-    g = Github(token)
-    try:
-        # Authenticate and access the repository
-        repo = g.get_repo(repo_name)
-        st.success(f"Authenticated successfully. Accessing repository: {repo.name}")
-    except Exception as e:
-        raise Exception(f"Failed to access repository: {e}")
-
-    # Try to update the file if it exists
-    try:
-        contents = repo.get_contents(file_path)
-        with open(file_path, "rb") as file:
-            repo.update_file(
-                contents.path, commit_message, file.read(), contents.sha
-            )
-        st.success("File updated successfully on GitHub!")
-    except Exception as e:
-        # Create the file if it doesn't exist
-        try:
-            with open(file_path, "rb") as file:
-                repo.create_file(file_path, commit_message, file.read())
-            st.success("File created successfully on GitHub!")
-        except Exception as inner_e:
-            raise Exception(f"Failed to create or update file: {inner_e}")
+# Define the local Excel file
+excel_file = "data.xlsx"
 
 # Initialize the Excel file if it doesn't exist
 if not os.path.exists(excel_file):
     pd.DataFrame(columns=["Name", "Age", "Gender"]).to_excel(excel_file, index=False)
 
-# Streamlit form for data collection
-st.title("Data Collection Form")
-name = st.text_input("Name")
-age = st.number_input("Age", min_value=0, max_value=120, step=1)
-gender = st.selectbox("Gender", ["Male", "Female", "Other"])
+# Set page configuration
+st.set_page_config(page_title="Data Collection and Dashboard App", page_icon="📊", layout="centered")
 
-if st.button("Submit"):
-    if name:
-        # Append new data to the Excel file
-        new_data = pd.DataFrame({"Name": [name], "Age": [age], "Gender": [gender]})
-        existing_data = pd.read_excel(excel_file)
-        updated_data = pd.concat([existing_data, new_data], ignore_index=True)
-        updated_data.to_excel(excel_file, index=False)
+# Custom CSS for a better design
+st.markdown(
+    """
+    <style>
+    [data-testid="stAppViewContainer"] {
+        background-color: #F0F8FF; /* Light blue background */
+    }
+    [data-testid="stSidebar"] {
+        background-color: #D3E0FF; /* Slightly darker sidebar */
+    }
+    .css-1d391kg p {
+        font-size: 1.2rem; /* Larger font for text */
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
-        st.success("Data submitted successfully!")
-    else:
-        st.error("Please enter a name.")
+# Tabs for navigation
+tabs = st.tabs(["📋 Data Collection", "📊 Dashboard", "⬇️ Download Data"])
 
-# Button to sync the Excel file to GitHub
-if st.button("Sync to GitHub"):
+# 📋 Data Collection Tab
+with tabs[0]:
+    st.title("📋 Data Collection Form")
+    st.write("Enter the details below to collect data.")
+
+    # Form for data collection
+    name = st.text_input("Name", placeholder="Enter your full name")
+    age = st.number_input("Age", min_value=0, max_value=120, step=1, format="%d")
+    gender = st.radio("Gender", options=["Male", "Female", "Other"])
+
+    if st.button("Submit Data"):
+        if name:
+            # Read existing data
+            existing_data = pd.read_excel(excel_file)
+
+            # Add new data
+            new_data = pd.DataFrame({"Name": [name], "Age": [age], "Gender": [gender]})
+            updated_data = pd.concat([existing_data, new_data], ignore_index=True)
+
+            # Save updated data
+            updated_data.to_excel(excel_file, index=False)
+            st.success("Data submitted successfully!")
+        else:
+            st.error("Please enter a name.")
+
+# 📊 Dashboard Tab
+with tabs[1]:
+    st.title("📊 Data Dashboard")
+    st.write("Visualize the collected data with interactive charts.")
+
     try:
-        push_to_github(excel_file, GITHUB_REPO, GITHUB_TOKEN, "Update data file")
-    except Exception as e:
-        st.error(f"Failed to sync data to GitHub: {e}")
+        # Load data
+        df = pd.read_excel(excel_file)
 
-# Display the collected data
-if st.checkbox("Show Collected Data"):
-    df = pd.read_excel(excel_file)
-    st.dataframe(df)
+        # Display data summary
+        st.subheader("Summary Statistics")
+        st.write(df.describe(include="all"))
+
+        # Gender distribution
+        st.subheader("Gender Distribution")
+        gender_counts = df["Gender"].value_counts()
+        fig1, ax1 = plt.subplots()
+        ax1.pie(
+            gender_counts,
+            labels=gender_counts.index,
+            autopct="%1.1f%%",
+            startangle=90,
+            colors=["#4CAF50", "#FFC107", "#2196F3"],
+        )
+        ax1.axis("equal")  # Equal aspect ratio ensures a circular pie chart.
+        st.pyplot(fig1)
+
+        # Age distribution
+        st.subheader("Age Distribution")
+        fig2, ax2 = plt.subplots()
+        ax2.hist(df["Age"], bins=10, color="#FF5733", edgecolor="black")
+        ax2.set_title("Age Distribution")
+        ax2.set_xlabel("Age")
+        ax2.set_ylabel("Frequency")
+        st.pyplot(fig2)
+
+    except Exception as e:
+        st.info("No data available to display. Please submit data first.")
+
+# ⬇️ Download Data Tab
+with tabs[2]:
+    st.title("⬇️ Download Collected Data")
+    if os.path.exists(excel_file):
+        with open(excel_file, "rb") as file:
+            st.download_button(
+                label="Download Data as Excel",
+                data=file,
+                file_name="collected_data.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            )
+    else:
+        st.info("No data available for download.")
