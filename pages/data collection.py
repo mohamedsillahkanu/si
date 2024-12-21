@@ -9,7 +9,35 @@ excel_file = "data.xlsx"
 # GitHub credentials
 GITHUB_TOKEN = "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"
 GITHUB_REPO = "mohamedsillahkanu/si"  # Replace with your GitHub repo
-GITHUB_FILE_PATH = "data.xlsx"  # Path in the repository
+GITHUB_FILE_PATH = "data/data.xlsx"  # Path in the repository
+
+# Function to push the file to GitHub
+def push_to_github(file_path, repo_name, token, commit_message):
+    """Pushes a file to a GitHub repository."""
+    g = Github(token)
+    try:
+        # Authenticate and access the repository
+        repo = g.get_repo(repo_name)
+        st.success(f"Authenticated successfully. Accessing repository: {repo.name}")
+    except Exception as e:
+        raise Exception(f"Failed to access repository: {e}")
+
+    # Try to update the file if it exists
+    try:
+        contents = repo.get_contents(file_path)
+        with open(file_path, "rb") as file:
+            repo.update_file(
+                contents.path, commit_message, file.read(), contents.sha
+            )
+        st.success("File updated successfully on GitHub!")
+    except Exception as e:
+        # Create the file if it doesn't exist
+        try:
+            with open(file_path, "rb") as file:
+                repo.create_file(file_path, commit_message, file.read())
+            st.success("File created successfully on GitHub!")
+        except Exception as inner_e:
+            raise Exception(f"Failed to create or update file: {inner_e}")
 
 # Initialize the Excel file if it doesn't exist
 if not os.path.exists(excel_file):
@@ -33,40 +61,16 @@ if st.button("Submit"):
     else:
         st.error("Please enter a name.")
 
-# Push updated Excel file to GitHub
-def push_to_github(file_path, repo_name, token, commit_message):
-    """Pushes a file to a GitHub repository."""
-    g = Github(token)
-    repo = g.get_repo(repo_name)
-
-    # Get the file from the repository
-    try:
-        contents = repo.get_contents(file_path)
-        # Update the file
-        with open(file_path, "rb") as file:
-            repo.update_file(
-                contents.path,
-                commit_message,
-                file.read(),
-                contents.sha,
-            )
-    except:
-        # Create the file if it doesn't exist
-        with open(file_path, "rb") as file:
-            repo.create_file(
-                file_path,
-                commit_message,
-                file.read(),
-            )
-
+# Button to sync the Excel file to GitHub
 if st.button("Sync to GitHub"):
     try:
         push_to_github(excel_file, GITHUB_REPO, GITHUB_TOKEN, "Update data file")
-        st.success("Data synced to GitHub successfully!")
     except Exception as e:
         st.error(f"Failed to sync data to GitHub: {e}")
 
+# Display the collected data
 if st.checkbox("Show Collected Data"):
     df = pd.read_excel(excel_file)
     st.dataframe(df)
+
 
