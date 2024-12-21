@@ -8,7 +8,7 @@ excel_file = "data.xlsx"
 
 # GitHub credentials
 GITHUB_TOKEN = "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"
-GITHUB_REPO = "mohamedsillahkanu / si"  # Replace with your GitHub repo
+GITHUB_REPO = "mohamedsillahkanu/si"  # Replace with your GitHub repo
 GITHUB_FILE_PATH = "data/data.xlsx"  # Path in the repository
 
 # Function to push the file to GitHub
