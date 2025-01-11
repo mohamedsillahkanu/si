@@ -251,15 +251,23 @@ st.title("Data Processing App")
 
 if data_management_option == "Import Dataset":
     st.header("Import Dataset")
-    files = st.file_uploader("Upload files", type=["csv", "xlsx"], accept_multiple_files=True)
+    # Allow multiple file uploads
+    files = st.file_uploader("Upload files", type=["csv", "xlsx", "xls"], accept_multiple_files=True)
+    
     if files:
-        st.session_state.dfs = []
+        st.session_state.dfs = []  # Initialize a list to store the uploaded datasets
+        
         for file in files:
+            # Check the file extension and read accordingly
             if file.name.endswith(".csv"):
                 st.session_state.dfs.append(pd.read_csv(file))
-            else:
+            elif file.name.endswith(".xlsx") or file.name.endswith(".xls"):
                 st.session_state.dfs.append(pd.read_excel(file))
+            else:
+                st.error(f"Unsupported file format: {file.name}")
+        
         st.success("Datasets uploaded successfully!")
+
 
 elif data_management_option == "Sanity Checks":
     st.header("Sanity Checks")
