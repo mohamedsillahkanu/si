@@ -4,6 +4,7 @@ import rasterio
 import rasterio.mask
 import requests
 import tempfile
+import os
 from io import BytesIO
 from matplotlib import pyplot as plt
 
@@ -18,13 +19,19 @@ def download_shapefile(github_link, country_code, admin_level):
         file_base = f"gadm41_{country_code}_{admin_level}"
         components = ['.shp', '.shx', '.dbf']
 
+        # Debug: Log temporary directory and file base
+        st.write(f"Temporary directory: {tmpdir}")
+        st.write(f"File base: {file_base}")
+
         # Download each component of the shapefile
         for ext in components:
             url = f"{github_link}/{file_base}{ext}"
-            st.write(f"Attempting to download: {url}")  # Debugging output
+            st.write(f"Downloading from: {url}")  # Log the URL
             response = requests.get(url)
             if response.status_code == 200:
-                with open(os.path.join(tmpdir, f"{file_base}{ext}"), "wb") as f:
+                file_path = os.path.join(tmpdir, f"{file_base}{ext}")
+                st.write(f"Saving to: {file_path}")  # Log the save path
+                with open(file_path, "wb") as f:
                     f.write(response.content)
             else:
                 st.error(f"Failed to download {url}. HTTP Status Code: {response.status_code}")
@@ -33,6 +40,7 @@ def download_shapefile(github_link, country_code, admin_level):
         # Load the shapefile using GeoPandas
         shapefile_path = os.path.join(tmpdir, f"{file_base}.shp")
         try:
+            st.write(f"Loading shapefile from: {shapefile_path}")  # Log shapefile path
             gdf = gpd.read_file(shapefile_path)
         except Exception as e:
             st.error(f"Error loading shapefile: {e}")
@@ -47,6 +55,7 @@ def download_shapefile(github_link, country_code, admin_level):
 # Function to process CHIRPS rainfall data
 def process_chirps_data(gdf, year, month):
     link = f"https://data.chc.ucsb.edu/products/CHIRPS-2.0/africa_monthly/tifs/chirps-v2.0.{year}.{month:02d}.tif.gz"
+    st.write(f"Downloading CHIRPS data from: {link}")  # Debugging output
     response = requests.get(link)
 
     with tempfile.TemporaryDirectory() as tmpdir:
