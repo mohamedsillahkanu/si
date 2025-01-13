@@ -5,6 +5,7 @@ import rasterio.mask
 import requests
 import tempfile
 import os
+import gzip
 from io import BytesIO
 from matplotlib import pyplot as plt
 
@@ -60,30 +61,39 @@ def process_chirps_data(gdf, year, month):
 
     with tempfile.TemporaryDirectory() as tmpdir:
         # Save the .tif.gz file
-        zipped_file_path = f"{tmpdir}/chirps.tif.gz"
+        zipped_file_path = os.path.join(tmpdir, "chirps.tif.gz")
         with open(zipped_file_path, "wb") as f:
             f.write(response.content)
 
-        # Unzip the file
-        unzipped_file_path = f"{tmpdir}/chirps.tif"
-        with rasterio.open(zipped_file_path, "r") as zipped_src:
-            with rasterio.open(unzipped_file_path, "wb") as unzipped_dst:
-                unzipped_dst.write(zipped_src.read())
+        # Decompress the .gz file to extract the .tif file
+        unzipped_file_path = os.path.join(tmpdir, "chirps.tif")
+        try:
+            with gzip.open(zipped_file_path, "rb") as gz:
+                with open(unzipped_file_path, "wb") as tif:
+                    tif.write(gz.read())
+            st.write(f"Decompressed CHIRPS file to: {unzipped_file_path}")  # Debugging output
+        except Exception as e:
+            st.error(f"Error decompressing CHIRPS file: {e}")
+            raise e
 
         # Open the unzipped .tif file
-        with rasterio.open(unzipped_file_path) as src:
-            # Reproject the shapefile to match CHIRPS CRS
-            gdf = gdf.to_crs(src.crs)
-            mean_rains = []
+        try:
+            with rasterio.open(unzipped_file_path) as src:
+                # Reproject the shapefile to match CHIRPS CRS
+                gdf = gdf.to_crs(src.crs)
+                mean_rains = []
 
-            for geom in gdf.geometry:
-                # Mask the CHIRPS data using shapefile geometry
-                masked_data, _ = rasterio.mask.mask(src, [geom], crop=True)
-                masked_data = masked_data.flatten()
-                masked_data = masked_data[masked_data != src.nodata]  # Remove nodata values
-                mean_rains.append(masked_data.mean())
+                for geom in gdf.geometry:
+                    # Mask the CHIRPS data using shapefile geometry
+                    masked_data, _ = rasterio.mask.mask(src, [geom], crop=True)
+                    masked_data = masked_data.flatten()
+                    masked_data = masked_data[masked_data != src.nodata]  # Remove nodata values
+                    mean_rains.append(masked_data.mean())
 
-            gdf["mean_rain"] = mean_rains
+                gdf["mean_rain"] = mean_rains
+        except Exception as e:
+            st.error(f"Error processing CHIRPS data: {e}")
+            raise e
 
     return gdf
 
