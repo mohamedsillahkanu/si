@@ -21,16 +21,22 @@ def download_shapefile(github_link, country_code, admin_level):
         # Download each component of the shapefile
         for ext in components:
             url = f"{github_link}/{file_base}{ext}"
+            st.write(f"Attempting to download: {url}")  # Debugging output
             response = requests.get(url)
             if response.status_code == 200:
                 with open(os.path.join(tmpdir, f"{file_base}{ext}"), "wb") as f:
                     f.write(response.content)
             else:
-                raise FileNotFoundError(f"File {file_base}{ext} not found on GitHub.")
+                st.error(f"Failed to download {url}. HTTP Status Code: {response.status_code}")
+                raise FileNotFoundError(f"File {file_base}{ext} not found at {url}.")
 
         # Load the shapefile using GeoPandas
         shapefile_path = os.path.join(tmpdir, f"{file_base}.shp")
-        gdf = gpd.read_file(shapefile_path)
+        try:
+            gdf = gpd.read_file(shapefile_path)
+        except Exception as e:
+            st.error(f"Error loading shapefile: {e}")
+            raise e
 
     # Check CRS; set if missing
     if gdf.crs is None:
