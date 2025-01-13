@@ -1,7 +1,7 @@
 import streamlit as st
 import geopandas as gpd
 import rasterio
-import os
+import rasterio.mask
 import requests
 import tempfile
 from io import BytesIO
@@ -15,7 +15,6 @@ def check_file_exists(url):
 # Function to download and load shapefiles from GitHub
 def download_shapefile(github_link, country_code, admin_level):
     with tempfile.TemporaryDirectory() as tmpdir:
-        # Define the file name format
         file_base = f"gadm41_{country_code}_{admin_level}"
         components = ['.shp', '.shx', '.dbf']
 
@@ -39,24 +38,67 @@ def download_shapefile(github_link, country_code, admin_level):
 
     return gdf
 
+# Function to process CHIRPS rainfall data
+def process_chirps_data(gdf, year, month):
+    link = f"https://data.chc.ucsb.edu/products/CHIRPS-2.0/africa_monthly/tifs/chirps-v2.0.{year}.{month:02d}.tif.gz"
+    response = requests.get(link)
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Save the .tif.gz file
+        zipped_file_path = f"{tmpdir}/chirps.tif.gz"
+        with open(zipped_file_path, "wb") as f:
+            f.write(response.content)
+
+        # Unzip the file
+        unzipped_file_path = f"{tmpdir}/chirps.tif"
+        with rasterio.open(zipped_file_path, "r") as zipped_src:
+            with rasterio.open(unzipped_file_path, "wb") as unzipped_dst:
+                unzipped_dst.write(zipped_src.read())
+
+        # Open the unzipped .tif file
+        with rasterio.open(unzipped_file_path) as src:
+            # Reproject the shapefile to match CHIRPS CRS
+            gdf = gdf.to_crs(src.crs)
+            mean_rains = []
+
+            for geom in gdf.geometry:
+                # Mask the CHIRPS data using shapefile geometry
+                masked_data, _ = rasterio.mask.mask(src, [geom], crop=True)
+                masked_data = masked_data.flatten()
+                masked_data = masked_data[masked_data != src.nodata]  # Remove nodata values
+                mean_rains.append(masked_data.mean())
+
+            gdf["mean_rain"] = mean_rains
+
+    return gdf
+
 # Streamlit app layout
-st.title("Dynamic CHIRPS Data Analysis and Map Generation")
+st.title("CHIRPS Rainfall Data Analysis and Map Generation")
 
 # Define GitHub links and country codes
 github_links = {
-    "Sierra Leone": {"link": "https://raw.githubusercontent.com/mohamedsillahkanu/si/6d9453ea42ce867562ee71a3f59d8aa5dcc23b7b/shapefiles/", "code": "SLE"},
-    "Guinea": {"link": "https://raw.githubusercontent.com/mohamedsillahkanu/si/6d9453ea42ce867562ee71a3f59d8aa5dcc23b7b/shapefiles/Guinea", "code": "GIN"}
+    "Sierra Leone": {
+        "link": "https://raw.githubusercontent.com/mohamedsillahkanu/si/554bb45b390b5b2fb1de04540f1c8202a3510456/shapefiles/Sierra%20Leone",
+        "code": "SLE"
+    },
+    "Guinea": {
+        "link": "https://raw.githubusercontent.com/mohamedsillahkanu/si/6d9453ea42ce867562ee71a3f59d8aa5dcc23b7b/shapefiles/Guinea",
+        "code": "GIN"
+    }
 }
 
 # Country and admin level selection
 country = st.selectbox("Select Country", list(github_links.keys()))
 admin_level = st.selectbox("Select Admin Level", [1, 2, 3])
 
+# Year and month selection
+year = st.selectbox("Select Year", range(1981, 2025))
+month = st.selectbox("Select Month", range(1, 13))
+
 if country and admin_level:
     github_link = github_links[country]["link"]
     country_code = github_links[country]["code"]
 
-    # Validate the existence of the shapefile
     file_base = f"gadm41_{country_code}_{admin_level}"
     shapefile_url = f"{github_link}/{file_base}.shp"
 
@@ -69,23 +111,31 @@ if country and admin_level:
                 st.error(str(e))
                 st.stop()
 
-        # Display the GeoDataFrame
-        st.write(gdf)
+        with st.spinner("Processing CHIRPS rainfall data..."):
+            try:
+                gdf = process_chirps_data(gdf, year, month)
+                st.success("CHIRPS rainfall data processed successfully!")
+            except Exception as e:
+                st.error(f"Error processing CHIRPS data: {str(e)}")
+                st.stop()
 
-        # Simple visualization
+        # Display results
+        st.write(gdf[["geometry", "mean_rain"]])
+
+        # Plot the map
         fig, ax = plt.subplots(1, 1, figsize=(10, 10))
-        gdf.plot(ax=ax, edgecolor="black")
+        gdf.plot(column="mean_rain", ax=ax, legend=True, cmap="Blues", edgecolor="black")
         ax.set_axis_off()
-        plt.title(f"{country} - Admin Level {admin_level}")
+        plt.title(f"Mean Rainfall for {country} (Admin Level {admin_level}) - {year}-{month:02d}", fontsize=16)
         st.pyplot(fig)
 
-        # Download GeoDataFrame as CSV
+        # Download options
         csv_data = BytesIO()
         gdf.to_csv(csv_data)
         st.download_button(
-            label="Download Shapefile Data as CSV",
+            label="Download Rainfall Data as CSV",
             data=csv_data.getvalue(),
-            file_name=f"{file_base}.csv",
+            file_name=f"rainfall_{country_code}_{admin_level}_{year}_{month:02d}.csv",
             mime="text/csv"
         )
     else:
