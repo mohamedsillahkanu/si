@@ -9,10 +9,10 @@ def calculate_match(column1, column2, threshold):
     results = []
     for value1 in column1:
         if value1 in column2.values:
-            results.append((value1, value1, 100, "Match"))
+            results.append((value1, value1, 100, "Replace"))
         else:
             best_match, best_score = process.extractOne(value1, column2.values, scorer=fuzz.token_set_ratio)
-            match_status = "Replace" if best_score >= threshold else "Manual"
+            match_status = "Replace" if best_score >= threshold else "No Match"
             results.append((value1, best_match, best_score, match_status))
     return pd.DataFrame(results, columns=["Col1_MFL", "Col2_DHIS2", "Match_Score", "Match_Status"])
 
@@ -91,29 +91,24 @@ if st.session_state.master_hf_list is not None and st.session_state.health_facil
         # Perform matching
         matching_results = calculate_match(master_hf_list[column1], health_facilities_dhis2_list[column2], match_threshold)
 
-        # Allow user to confirm replacements
-        st.subheader("Matching Results")
-        updated_rows = []
+        # Add replacement column
+        matching_results["Replacement_Column"] = matching_results.apply(
+            lambda row: row["Col2_DHIS2"] if row["Match_Status"] == "Replace" else row["Col1_MFL"], axis=1
+        )
+
+        # Update Master HF List
         for index, row in matching_results.iterrows():
             if row["Match_Status"] == "Replace":
-                master_hf_list.loc[master_hf_list[column1] == row["Col1_MFL"], column1] = row["Col2_DHIS2"]
-            else:
-                user_input = st.text_input(
-                    f"Manual Replacement for {row['Col1_MFL']} (Matched: {row['Match_Score']}%)",
-                    value=row["Col2_DHIS2"],
-                    key=f"manual_replace_{index}"
-                )
-                if user_input:
-                    updated_rows.append((row["Col1_MFL"], user_input))
-
-        # Apply manual replacements
-        for old_value, new_value in updated_rows:
-            master_hf_list.loc[master_hf_list[column1] == old_value, column1] = new_value
+                master_hf_list.loc[master_hf_list[column1] == row["Col1_MFL"], column1] = row["Replacement_Column"]
 
         # Save updated DataFrame
         st.session_state.master_hf_list = master_hf_list
 
-        # Display updated DataFrame
+        # Display matching results
+        st.subheader("Matching Results with Replacement")
+        st.dataframe(matching_results)
+
+        # Display updated Master HF List
         st.subheader("Updated Master HF List")
         st.dataframe(master_hf_list)
 
@@ -142,18 +137,8 @@ if st.session_state.master_hf_list is not None and st.session_state.health_facil
         )
 
         # Display classification results
-        st.subheader("Health Facility Classification Results")
+        st.subheader("Health Facility Classification Results (Tabular)")
         st.dataframe(classified_results)
-
-        # Bar chart for classification
-        st.subheader("Classification Summary")
-        classification_counts = classified_results["Classification"].value_counts()
-        fig, ax = plt.subplots()
-        classification_counts.plot(kind="bar", ax=ax, color="skyblue")
-        ax.set_title("Classification Summary")
-        ax.set_xlabel("Classification")
-        ax.set_ylabel("Count")
-        st.pyplot(fig)
 
         # Option to download classification results
         st.subheader("Download Classification Results")
