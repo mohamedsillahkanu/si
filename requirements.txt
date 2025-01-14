@@ -27,4 +27,5 @@ pmdarima
 pingouin
 PyGithub
 xlrd
+fuzzywuzzy
 
