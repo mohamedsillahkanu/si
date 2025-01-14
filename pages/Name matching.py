@@ -16,44 +16,42 @@ def calculate_match(column1, column2, threshold):
             results.append((value1, best_match, best_score, match_status))
     return pd.DataFrame(results, columns=["Col1", "Col2", "Match_Score", "Match_Status"])
 
+# Function to rename columns interactively
+def rename_columns_interactively(df, df_name):
+    st.header(f"Rename Columns for {df_name}")
+    renamed_columns = {}
+    for col in df.columns:
+        new_name = st.text_input(f"Rename column '{col}'", col, key=f"{df_name}_{col}")
+        renamed_columns[col] = new_name
+    df.rename(columns=renamed_columns, inplace=True)
+    st.write(f"Updated {df_name}:")
+    st.dataframe(df)
+    return df
+
 # Streamlit app setup
 st.title("Health Facility Matching and Column Replacement Tool")
 
 # Upload datasets
 st.header("Upload Datasets")
-master_file = st.file_uploader("Upload Master HF List (Excel)", type=["xlsx"])
-dhis2_file = st.file_uploader("Upload DHIS2 HF List (Excel)", type=["xlsx"])
+master_file = st.file_uploader("Upload Master HF List (Excel)", type=["xlsx"], key="master")
+dhis2_file = st.file_uploader("Upload DHIS2 HF List (Excel)", type=["xlsx"], key="dhis2")
 
-if master_file and dhis2_file:
+master_hf_list = None
+health_facilities_dhis2_list = None
+
+if master_file:
     master_hf_list = pd.read_excel(master_file)
+    master_hf_list = rename_columns_interactively(master_hf_list, "Master HF List")
+
+if dhis2_file:
     health_facilities_dhis2_list = pd.read_excel(dhis2_file)
+    health_facilities_dhis2_list = rename_columns_interactively(health_facilities_dhis2_list, "DHIS2 HF List")
 
-    # User-defined column renaming
-    st.header("Rename Columns")
-    master_columns = master_hf_list.columns.tolist()
-    dhis2_columns = health_facilities_dhis2_list.columns.tolist()
-
-    st.info("Hint: For matching to work effectively, column names must represent similar data (e.g., 'Facility Name' in both datasets).")
-
-    master_rename = {col: st.text_input(f"Rename column '{col}' in Master List", col) for col in master_columns}
-    dhis2_rename = {col: st.text_input(f"Rename column '{col}' in DHIS2 List", col) for col in dhis2_columns}
-
-    master_hf_list.rename(columns=master_rename, inplace=True)
-    health_facilities_dhis2_list.rename(columns=dhis2_rename, inplace=True)
-
-    # Display uploaded and renamed data
-    st.subheader("Renamed Datasets")
-    st.write("Master HF List:", master_hf_list.head())
-    st.write("DHIS2 HF List:", health_facilities_dhis2_list.head())
-
-    # Ensure data consistency
-    master_hf_list = master_hf_list.astype(str)
-    health_facilities_dhis2_list = health_facilities_dhis2_list.astype(str)
-
+if master_hf_list is not None and health_facilities_dhis2_list is not None:
     # Column selection and threshold
     st.header("Matching Options")
-    column1 = st.selectbox("Select Column from Master HF List", master_hf_list.columns)
-    column2 = st.selectbox("Select Column from DHIS2 HF List", health_facilities_dhis2_list.columns)
+    column1 = st.selectbox("Select Column from Master HF List", master_hf_list.columns, key="master_column")
+    column2 = st.selectbox("Select Column from DHIS2 HF List", health_facilities_dhis2_list.columns, key="dhis2_column")
     match_threshold = st.slider("Set Match Threshold (0-100)", min_value=0, max_value=100, value=90)
 
     if st.button("Perform Matching"):
