@@ -16,17 +16,40 @@ def calculate_match(column1, column2, threshold):
             results.append((value1, best_match, best_score, match_status))
     return pd.DataFrame(results, columns=["Col1", "Col2", "Match_Score", "Match_Status"])
 
-# Function to rename columns interactively
-def rename_columns_interactively(df, df_name):
-    st.header(f"Rename Columns for {df_name}")
-    renamed_columns = {}
-    for col in df.columns:
-        new_name = st.text_input(f"Rename column '{col}'", col, key=f"{df_name}_{col}")
-        renamed_columns[col] = new_name
-    df.rename(columns=renamed_columns, inplace=True)
-    st.write(f"Updated {df_name}:")
-    st.dataframe(df)
-    return df
+# Function to rename or recode columns interactively
+def handle_recode_and_rename(df, df_name):
+    st.header(f"Recode or Rename Columns for {df_name}")
+    recode_option = st.selectbox("Choose an option:", ["Rename a Column", "Recode Values in a Column"], key=f"{df_name}_recode_option")
+
+    if recode_option == "Rename a Column":
+        column = st.selectbox("Select column to rename", df.columns, key=f"{df_name}_rename_column")
+        new_name = st.text_input("New name for the selected column", key=f"{df_name}_new_column_name")
+        if st.button("Rename", key=f"{df_name}_rename_button"):
+            if new_name:
+                df.rename(columns={column: new_name}, inplace=True)
+                st.write(f"Column '{column}' renamed to '{new_name}'.")
+                st.dataframe(df)
+            else:
+                st.error("Please enter a new column name.")
+
+    elif recode_option == "Recode Values in a Column":
+        column = st.selectbox("Select column to recode", df.columns, key=f"{df_name}_recode_column")
+        old_values = st.text_input(f"Old values for {column} (comma-separated)", key=f"{df_name}_old_values")
+        new_values = st.text_input(f"New values for {column} (comma-separated)", key=f"{df_name}_new_values")
+
+        if old_values and new_values:
+            old_values_list = old_values.split(",")
+            new_values_list = new_values.split(",")
+
+            if len(old_values_list) == len(new_values_list):
+                recode_map = dict(zip(old_values_list, new_values_list))
+
+                if st.button("Recode", key=f"{df_name}_recode_button"):
+                    df[column] = df[column].replace(recode_map)
+                    st.write(f"Values in column '{column}' have been recoded.")
+                    st.dataframe(df)
+            else:
+                st.error("Number of old values and new values must match.")
 
 # Streamlit app setup
 st.title("Health Facility Matching and Column Replacement Tool")
@@ -41,11 +64,11 @@ health_facilities_dhis2_list = None
 
 if master_file:
     master_hf_list = pd.read_excel(master_file)
-    master_hf_list = rename_columns_interactively(master_hf_list, "Master HF List")
+    handle_recode_and_rename(master_hf_list, "Master HF List")
 
 if dhis2_file:
     health_facilities_dhis2_list = pd.read_excel(dhis2_file)
-    health_facilities_dhis2_list = rename_columns_interactively(health_facilities_dhis2_list, "DHIS2 HF List")
+    handle_recode_and_rename(health_facilities_dhis2_list, "DHIS2 HF List")
 
 if master_hf_list is not None and health_facilities_dhis2_list is not None:
     # Column selection and threshold
