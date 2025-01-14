@@ -17,7 +17,8 @@ def calculate_match(column1, column2, threshold):
     return pd.DataFrame(results, columns=["Col1", "Col2", "Match_Score", "Match_Status"])
 
 # Function to rename or recode columns interactively
-def handle_recode_and_rename(df, df_name):
+def handle_recode_and_rename(df_name):
+    df = st.session_state[df_name]
     st.header(f"Recode or Rename Columns for {df_name}")
     recode_option = st.selectbox("Choose an option:", ["Rename a Column", "Recode Values in a Column"], key=f"{df_name}_recode_option")
 
@@ -27,7 +28,7 @@ def handle_recode_and_rename(df, df_name):
         if st.button("Rename", key=f"{df_name}_rename_button"):
             if new_name:
                 df.rename(columns={column: new_name}, inplace=True)
-                st.session_state[df_name] = df.copy()  # Save changes to session state
+                st.session_state[df_name] = df  # Save changes to session state
                 st.write(f"Column '{column}' renamed to '{new_name}'.")
                 st.dataframe(df)
             else:
@@ -47,7 +48,7 @@ def handle_recode_and_rename(df, df_name):
 
                 if st.button("Recode", key=f"{df_name}_recode_button"):
                     df[column] = df[column].replace(recode_map)
-                    st.session_state[df_name] = df.copy()  # Save changes to session state
+                    st.session_state[df_name] = df  # Save changes to session state
                     st.write(f"Values in column '{column}' have been recoded.")
                     st.dataframe(df)
             else:
@@ -67,12 +68,14 @@ if "health_facilities_dhis2_list" not in st.session_state:
     st.session_state.health_facilities_dhis2_list = None
 
 if master_file:
-    st.session_state.master_hf_list = pd.read_excel(master_file)
-    handle_recode_and_rename(st.session_state.master_hf_list, "master_hf_list")
+    if st.session_state.master_hf_list is None:
+        st.session_state.master_hf_list = pd.read_excel(master_file)
+    handle_recode_and_rename("master_hf_list")
 
 if dhis2_file:
-    st.session_state.health_facilities_dhis2_list = pd.read_excel(dhis2_file)
-    handle_recode_and_rename(st.session_state.health_facilities_dhis2_list, "health_facilities_dhis2_list")
+    if st.session_state.health_facilities_dhis2_list is None:
+        st.session_state.health_facilities_dhis2_list = pd.read_excel(dhis2_file)
+    handle_recode_and_rename("health_facilities_dhis2_list")
 
 if st.session_state.master_hf_list is not None and st.session_state.health_facilities_dhis2_list is not None:
     # Ensure renaming reflects in matching options
