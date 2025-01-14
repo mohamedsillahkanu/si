@@ -12,7 +12,7 @@ def calculate_match(column1, column2, threshold):
             results.append((value1, value1, 100, "Replace"))
         else:
             best_match, best_score = process.extractOne(value1, column2.values, scorer=fuzz.token_set_ratio)
-            match_status = "Replace" if best_score >= threshold else "No Match"
+            match_status = "Match" if best_score >= threshold else "No Match"
             results.append((value1, best_match, best_score, match_status))
     return pd.DataFrame(results, columns=["Col1_MFL", "Col2_DHIS2", "Match_Score", "Match_Status"])
 
