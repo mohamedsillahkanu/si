@@ -19,23 +19,24 @@ def calculate_match(column1, column2, threshold):
 # Streamlit app setup
 st.title("Health Facility Matching and Column Replacement Tool")
 
-st.sidebar.header("Upload Datasets")
-master_file = st.sidebar.file_uploader("Upload Master HF List (Excel)", type=["xlsx"])
-dhis2_file = st.sidebar.file_uploader("Upload DHIS2 HF List (Excel)", type=["xlsx"])
+# Upload datasets
+st.header("Upload Datasets")
+master_file = st.file_uploader("Upload Master HF List (Excel)", type=["xlsx"])
+dhis2_file = st.file_uploader("Upload DHIS2 HF List (Excel)", type=["xlsx"])
 
 if master_file and dhis2_file:
     master_hf_list = pd.read_excel(master_file)
     health_facilities_dhis2_list = pd.read_excel(dhis2_file)
 
     # User-defined column renaming
-    st.sidebar.header("Rename Columns")
+    st.header("Rename Columns")
     master_columns = master_hf_list.columns.tolist()
     dhis2_columns = health_facilities_dhis2_list.columns.tolist()
 
-    st.sidebar.info("Hint: For matching to work effectively, column names must represent similar data (e.g., 'Facility Name' in both datasets).")
+    st.info("Hint: For matching to work effectively, column names must represent similar data (e.g., 'Facility Name' in both datasets).")
 
-    master_rename = {col: st.sidebar.text_input(f"Rename column '{col}' in Master List", col) for col in master_columns}
-    dhis2_rename = {col: st.sidebar.text_input(f"Rename column '{col}' in DHIS2 List", col) for col in dhis2_columns}
+    master_rename = {col: st.text_input(f"Rename column '{col}' in Master List", col) for col in master_columns}
+    dhis2_rename = {col: st.text_input(f"Rename column '{col}' in DHIS2 List", col) for col in dhis2_columns}
 
     master_hf_list.rename(columns=master_rename, inplace=True)
     health_facilities_dhis2_list.rename(columns=dhis2_rename, inplace=True)
@@ -49,13 +50,13 @@ if master_file and dhis2_file:
     master_hf_list = master_hf_list.astype(str)
     health_facilities_dhis2_list = health_facilities_dhis2_list.astype(str)
 
-    # User option for column selection and threshold
-    st.sidebar.header("Matching Options")
-    column1 = st.sidebar.selectbox("Select Column from Master HF List", master_hf_list.columns)
-    column2 = st.sidebar.selectbox("Select Column from DHIS2 HF List", health_facilities_dhis2_list.columns)
-    match_threshold = st.sidebar.slider("Set Match Threshold (0-100)", min_value=0, max_value=100, value=90)
+    # Column selection and threshold
+    st.header("Matching Options")
+    column1 = st.selectbox("Select Column from Master HF List", master_hf_list.columns)
+    column2 = st.selectbox("Select Column from DHIS2 HF List", health_facilities_dhis2_list.columns)
+    match_threshold = st.slider("Set Match Threshold (0-100)", min_value=0, max_value=100, value=90)
 
-    if st.sidebar.button("Perform Matching"):
+    if st.button("Perform Matching"):
         # Perform matching
         matching_results = calculate_match(master_hf_list[column1], health_facilities_dhis2_list[column2], match_threshold)
 
@@ -82,7 +83,7 @@ if master_file and dhis2_file:
             st.download_button(label="Download Excel File", data=file, file_name=output_file, mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
     # Classification logic
-    if st.sidebar.button("Classify Health Facilities"):
+    if st.button("Classify Health Facilities"):
         all_unique_names = pd.DataFrame({
             "Health_Facility_Name": pd.concat([
                 master_hf_list[column1],
