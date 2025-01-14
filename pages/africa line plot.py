@@ -113,26 +113,25 @@ if st.button("Generate Line Plot"):
                 for year in years:
                     for month in months:
                         processed_gdf = process_chirps_data(gdf.copy(), year, month)
-                        mean_rain = processed_gdf["mean_rain"].mean()
-                        rainfall_data.append({"Year": year, "Month": month, "Mean Rainfall": mean_rain})
+                        processed_gdf["Month"] = month
+                        processed_gdf["Year"] = year
+                        rainfall_data.append(processed_gdf)
                 st.success("CHIRPS rainfall data processed successfully!")
             except Exception as e:
                 st.error(f"Error processing CHIRPS data: {str(e)}")
                 st.stop()
 
-        # Convert rainfall data to DataFrame
-        df = pd.DataFrame(rainfall_data)
-
-        # Sort data for proper line plotting
-        df = df.sort_values(by=["Year", "Month"])
+        # Combine all rainfall data into a single GeoDataFrame
+        combined_gdf = gpd.GeoDataFrame(pd.concat(rainfall_data, ignore_index=True))
 
         # Line Plot
+        df = combined_gdf[["Year", "Month", "mean_rain"]].groupby(["Year", "Month"]).mean().reset_index()
         fig, ax = plt.subplots(figsize=(12, 6))
         for year in df["Year"].unique():
             year_data = df[df["Year"] == year]
             ax.plot(
                 year_data["Month"],
-                year_data["Mean Rainfall"],
+                year_data["mean_rain"],
                 marker="o",
                 label=f"Year {year}"
             )
@@ -144,12 +143,12 @@ if st.button("Generate Line Plot"):
 
         st.pyplot(fig)
 
-        # Download options
+        # Export all data as CSV
         csv_data = BytesIO()
-        df.to_csv(csv_data, index=False)
+        combined_gdf.to_csv(csv_data, index=False)
         st.download_button(
-            label="Download Rainfall Data as CSV",
+            label="Download Full Rainfall Data as CSV",
             data=csv_data.getvalue(),
-            file_name=f"rainfall_line_plot_{country_code}_admin{admin_level}.csv",
+            file_name=f"rainfall_data_{country_code}_admin{admin_level}.csv",
             mime="text/csv"
         )
