@@ -68,7 +68,7 @@ def process_chirps_data(gdf, year, month):
     return gdf
 
 # Streamlit app layout
-st.title("CHIRPS Rainfall Data Line Plot Generation by Subcategory")
+st.title("CHIRPS Rainfall Data Line Plot by Admin Levels")
 
 # Define GitHub links and country codes
 github_links = {
@@ -129,13 +129,16 @@ if st.button("Generate Line Plot"):
         preview_df = combined_gdf.drop(columns=["geometry"], errors="ignore")
         st.dataframe(preview_df)
 
-        # Generate line plots for each NAME_1 subcategory
-        if "NAME_1" in combined_gdf.columns:
-            unique_names = combined_gdf["NAME_1"].unique()
+        # Define the column for subcategory plotting
+        subcategory_column = f"NAME_{admin_level}"
+
+        # Generate line plots for each subcategory
+        if subcategory_column in combined_gdf.columns:
+            unique_names = combined_gdf[subcategory_column].unique()
             for subcategory in unique_names:
                 st.write(f"### Rainfall Line Plot for {subcategory}")
 
-                subcategory_df = combined_gdf[combined_gdf["NAME_1"] == subcategory]
+                subcategory_df = combined_gdf[combined_gdf[subcategory_column] == subcategory]
                 df = subcategory_df[["Year", "Month", "mean_rain"]].groupby(["Year", "Month"]).mean().reset_index()
 
                 fig, ax = plt.subplots(figsize=(12, 6))
@@ -155,7 +158,7 @@ if st.button("Generate Line Plot"):
 
                 st.pyplot(fig)
         else:
-            st.warning("No 'NAME_1' column found in the shapefile to generate subcategory plots.")
+            st.warning(f"No '{subcategory_column}' column found in the shapefile to generate subcategory plots.")
 
         # Export all data as CSV
         csv_data = BytesIO()
