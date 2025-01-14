@@ -123,3 +123,41 @@ if st.session_state.master_hf_list is not None and st.session_state.health_facil
         master_hf_list.to_excel(output_file, index=False)
         with open(output_file, "rb") as file:
             st.download_button(label="Download Excel File", data=file, file_name=output_file, mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
+    # Classification logic
+    if st.button("Classify Health Facilities"):
+        all_unique_names = pd.DataFrame({
+            "Health_Facility_Name": pd.concat([
+                master_hf_list[column1],
+                health_facilities_dhis2_list[column2]
+            ]).unique()
+        })
+
+        classified_results = all_unique_names.copy()
+        classified_results["Classification"] = classified_results["Health_Facility_Name"].apply(
+            lambda x: "HF in both DHIS2 and MFL" if x in master_hf_list[column1].values and x in health_facilities_dhis2_list[column2].values
+            else "HF in MFL and not in DHIS2" if x in master_hf_list[column1].values
+            else "HF in DHIS2 and not in MFL" if x in health_facilities_dhis2_list[column2].values
+            else "Unclassified"
+        )
+
+        # Display classification results
+        st.subheader("Health Facility Classification Results")
+        st.dataframe(classified_results)
+
+        # Bar chart for classification
+        st.subheader("Classification Summary")
+        classification_counts = classified_results["Classification"].value_counts()
+        fig, ax = plt.subplots()
+        classification_counts.plot(kind="bar", ax=ax, color="skyblue")
+        ax.set_title("Classification Summary")
+        ax.set_xlabel("Classification")
+        ax.set_ylabel("Count")
+        st.pyplot(fig)
+
+        # Option to download classification results
+        st.subheader("Download Classification Results")
+        output_file_classification = "classification_results.xlsx"
+        classified_results.to_excel(output_file_classification, index=False)
+        with open(output_file_classification, "rb") as file:
+            st.download_button(label="Download Excel File", data=file, file_name=output_file_classification, mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
