@@ -28,6 +28,7 @@ def handle_recode_and_rename(df, df_name):
             if new_name:
                 df.rename(columns={column: new_name}, inplace=True)
                 st.write(f"Column '{column}' renamed to '{new_name}'.")
+                st.session_state[f"{df_name}_df"] = df  # Update session state with the renamed dataframe
                 st.dataframe(df)
             else:
                 st.error("Please enter a new column name.")
@@ -47,6 +48,7 @@ def handle_recode_and_rename(df, df_name):
                 if st.button("Recode", key=f"{df_name}_recode_button"):
                     df[column] = df[column].replace(recode_map)
                     st.write(f"Values in column '{column}' have been recoded.")
+                    st.session_state[f"{df_name}_df"] = df  # Update session state with the recoded dataframe
                     st.dataframe(df)
             else:
                 st.error("Number of old values and new values must match.")
@@ -74,18 +76,18 @@ if dhis2_file:
 
 if st.session_state.master_hf_list is not None and st.session_state.health_facilities_dhis2_list is not None:
     # Ensure renaming reflects in matching options
-    st.session_state.master_hf_list.columns = st.session_state.master_hf_list.columns
-    st.session_state.health_facilities_dhis2_list.columns = st.session_state.health_facilities_dhis2_list.columns
+    master_hf_list = st.session_state.master_hf_list
+    health_facilities_dhis2_list = st.session_state.health_facilities_dhis2_list
 
     # Column selection and threshold
     st.header("Matching Options")
-    column1 = st.selectbox("Select Column from Master HF List", st.session_state.master_hf_list.columns, key="master_column")
-    column2 = st.selectbox("Select Column from DHIS2 HF List", st.session_state.health_facilities_dhis2_list.columns, key="dhis2_column")
+    column1 = st.selectbox("Select Column from Master HF List", master_hf_list.columns, key="master_column")
+    column2 = st.selectbox("Select Column from DHIS2 HF List", health_facilities_dhis2_list.columns, key="dhis2_column")
     match_threshold = st.slider("Set Match Threshold (0-100)", min_value=0, max_value=100, value=90)
 
     if st.button("Perform Matching"):
         # Perform matching
-        matching_results = calculate_match(st.session_state.master_hf_list[column1], st.session_state.health_facilities_dhis2_list[column2], match_threshold)
+        matching_results = calculate_match(master_hf_list[column1], health_facilities_dhis2_list[column2], match_threshold)
 
         # Display results
         st.subheader("Matching Results")
@@ -113,16 +115,16 @@ if st.session_state.master_hf_list is not None and st.session_state.health_facil
     if st.button("Classify Health Facilities"):
         all_unique_names = pd.DataFrame({
             "Health_Facility_Name": pd.concat([
-                st.session_state.master_hf_list[column1],
-                st.session_state.health_facilities_dhis2_list[column2]
+                master_hf_list[column1],
+                health_facilities_dhis2_list[column2]
             ]).unique()
         })
 
         classified_results = all_unique_names.copy()
         classified_results["Classification"] = classified_results["Health_Facility_Name"].apply(
-            lambda x: "HF in both DHIS2 and MFL" if x in st.session_state.master_hf_list[column1].values and x in st.session_state.health_facilities_dhis2_list[column2].values
-            else "HF in MFL and not in DHIS2" if x in st.session_state.master_hf_list[column1].values
-            else "HF in DHIS2 and not in MFL" if x in st.session_state.health_facilities_dhis2_list[column2].values
+            lambda x: "HF in both DHIS2 and MFL" if x in master_hf_list[column1].values and x in health_facilities_dhis2_list[column2].values
+            else "HF in MFL and not in DHIS2" if x in master_hf_list[column1].values
+            else "HF in DHIS2 and not in MFL" if x in health_facilities_dhis2_list[column2].values
             else "Unclassified"
         )
 
