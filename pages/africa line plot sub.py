@@ -124,38 +124,10 @@ if st.button("Generate Line Plot"):
         # Combine all rainfall data into a single GeoDataFrame
         combined_gdf = gpd.GeoDataFrame(pd.concat(rainfall_data, ignore_index=True))
 
-        # Preview the DataFrame in the app
+        # **Preview the DataFrame in the app**
         st.write("### Preview of Rainfall Data")
-        st.dataframe(combined_gdf)
-
-        # Generate line plots for each subcategory
-        if "name" in combined_gdf.columns:
-            unique_names = combined_gdf["name"].unique()
-            for subcategory in unique_names:
-                st.write(f"### Rainfall Line Plot for {subcategory}")
-
-                subcategory_df = combined_gdf[combined_gdf["name"] == subcategory]
-                df = subcategory_df[["Year", "Month", "mean_rain"]].groupby(["Year", "Month"]).mean().reset_index()
-
-                fig, ax = plt.subplots(figsize=(12, 6))
-                for year in df["Year"].unique():
-                    year_data = df[df["Year"] == year]
-                    ax.plot(
-                        year_data["Month"],
-                        year_data["mean_rain"],
-                        marker="o",
-                        label=f"Year {year}"
-                    )
-                ax.set_title(f"Mean Rainfall for {subcategory} (Admin Level {admin_level})", fontsize=16)
-                ax.set_xlabel("Month")
-                ax.set_ylabel("Mean Rainfall (mm)")
-                ax.legend(title="Year")
-                ax.grid()
-
-                st.pyplot(fig)
-
-        else:
-            st.warning("No 'name' column found in the shapefile to generate subcategory plots.")
+        preview_df = combined_gdf.drop(columns=["geometry"], errors="ignore")
+        st.dataframe(preview_df)
 
         # Export all data as CSV
         csv_data = BytesIO()
