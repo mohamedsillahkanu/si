@@ -73,6 +73,10 @@ if dhis2_file:
     handle_recode_and_rename(st.session_state.health_facilities_dhis2_list, "DHIS2 HF List")
 
 if st.session_state.master_hf_list is not None and st.session_state.health_facilities_dhis2_list is not None:
+    # Ensure renaming reflects in matching options
+    st.session_state.master_hf_list.columns = st.session_state.master_hf_list.columns
+    st.session_state.health_facilities_dhis2_list.columns = st.session_state.health_facilities_dhis2_list.columns
+
     # Column selection and threshold
     st.header("Matching Options")
     column1 = st.selectbox("Select Column from Master HF List", st.session_state.master_hf_list.columns, key="master_column")
