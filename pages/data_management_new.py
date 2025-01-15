@@ -117,20 +117,11 @@ elif data_management_option == "Data Cleaning":
         st.header("Compute or Create New Variable")
         if st.session_state.df is not None:
             expression = ""
-            st.write("Build your expression step-by-step:")
 
-            while True:
-                col = st.selectbox("Select a column:", st.session_state.df.columns, key=f"col_{len(expression)}")
-                expression += col
+            col = st.selectbox("Select columns to include in your expression (hold Ctrl or Cmd for multiple):", st.session_state.df.columns, key="col_selection")
+            operators = st.text_input("Type your expression using the selected columns (e.g., A + B - (C * D)):")
 
-                operator = st.text_input("Enter an operator (+, -, *, /, or parentheses):", key=f"op_{len(expression)}")
-                expression += operator
-
-                add_more = st.radio("Add more components?", ["Yes", "No"], key=f"add_more_{len(expression)}")
-                if add_more == "No":
-                    break
-
-            st.write("Your expression:", expression)
+            expression = operators
 
             if st.checkbox("Add conditional logic?"):
                 condition = st.text_input("Enter the condition (e.g., A > B):", key="condition")
