@@ -113,6 +113,36 @@ elif data_management_option == "Data Cleaning":
         else:
             st.warning("No dataset available. Please import and merge datasets first.")
 
+    elif cleaning_option == "Compute or Create New Variable":
+        st.header("Compute or Create New Variable")
+        if st.session_state.df is not None:
+            expression = st.text_area("Enter your expression for the new variable:", key="expression")
+
+            if st.checkbox("Add conditional logic?"):
+                condition = st.text_input("Enter the condition (e.g., A - B):", key="condition")
+                true_value = st.text_input("Enter the value when condition is true (number or text):", key="true_value")
+                false_value = st.text_input("Enter the value when condition is false (number or text):", key="false_value")
+                if condition and true_value and false_value:
+                    expression = f"np.where({condition}, {true_value}, {false_value})"
+
+            new_var_name = st.text_input("Enter the name for the new variable:", key="new_var_name")
+
+            if st.button("Compute New Variable"):
+                try:
+                    if not new_var_name:
+                        st.error("Please enter a name for the new variable.")
+                    elif not expression:
+                        st.error("Please enter a valid expression.")
+                    else:
+                        st.session_state.df[new_var_name] = st.session_state.df.eval(expression, engine='python')
+                        st.success(f"Computed new variable '{new_var_name}':")
+                        st.dataframe(st.session_state.df)
+                        save_data()
+                except Exception as e:
+                    st.error(f"Error computing new variable: {e}")
+        else:
+            st.warning("No dataset available. Please import and merge datasets first.")
+
     elif cleaning_option == "Recode Variables":
         if st.session_state.df is not None:
             recode_option = st.selectbox("Choose recoding option:", ["Recode a Column", "Recode Values in a Column"])
@@ -156,47 +186,6 @@ elif data_management_option == "Data Cleaning":
                     save_data()
                 except ValueError as e:
                     st.error(f"Error: {e}")
-        else:
-            st.warning("No dataset available. Please import and merge datasets first.")
-
-    elif cleaning_option == "Compute or Create New Variable":
-        st.header("Compute or Create New Variable")
-        if st.session_state.df is not None:
-            st.subheader("Define New Variable")
-            columns_selected = st.multiselect("Select columns to include in computation:", st.session_state.df.columns)
-            operation = st.radio("Choose an operation:", ["Add (+)", "Subtract (-)", "Multiply (*)", "Divide (/)"])
-            use_parentheses = st.checkbox("Use parentheses?")
-            parentheses_expression = ""
-            if use_parentheses:
-                parentheses_expression = st.text_input("Enter parentheses expression (e.g., (A+B)*C):", key="parentheses_expression")
-            use_if_else = st.checkbox("Add conditional logic?")
-            if_condition = ""
-            else_value = ""
-            if use_if_else:
-                if_condition = st.text_input("Enter the if-condition (e.g., A-B):", key="if_condition")
-                else_value = st.text_input("Enter the value to replace if the condition is met (e.g., 0):", key="else_value")
-            new_var_name = st.text_input("Enter the name for the new variable:", key="new_var_name")
-            if st.button("Compute New Variable"):
-                try:
-                    if not new_var_name:
-                        st.error("Please enter a name for the new variable.")
-                    elif not columns_selected:
-                        st.error("Please select at least one column.")
-                    else:
-                        if use_parentheses and parentheses_expression:
-                            expression = parentheses_expression
-                        else:
-                            operations_map = {"Add (+)": "+", "Subtract (-)": "-", "Multiply (*)": "*", "Divide (/)": "/"}
-                            operator = operations_map[operation]
-                            expression = f" {operator} ".join(columns_selected)
-                        if use_if_else and if_condition and else_value:
-                            expression = f"np.where({if_condition} >= 0, {if_condition}, {else_value})"
-                        st.session_state.df[new_var_name] = st.session_state.df.eval(expression)
-                        st.success(f"Computed new variable '{new_var_name}':")
-                        st.dataframe(st.session_state.df)
-                        save_data()
-                except Exception as e:
-                    st.error(f"Error computing new variable: {e}")
         else:
             st.warning("No dataset available. Please import and merge datasets first.")
 
