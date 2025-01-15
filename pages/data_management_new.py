@@ -10,7 +10,7 @@ from scipy.stats import probplot, norm
 st.sidebar.title("Data Management")
 data_management_option = st.sidebar.radio(
     "Choose an option:",
-    ["Import Dataset", "Data Cleaning"]
+    ["Import Dataset", "Sanity Checks", "Merge Datasets", "Data Cleaning", "Quality Control/Checks"]
 )
 
 # Initialize session state variables
@@ -20,6 +20,8 @@ if 'saved_df' not in st.session_state:
     st.session_state.saved_df = None
 if 'history' not in st.session_state:
     st.session_state.history = []
+if 'dfs' not in st.session_state:
+    st.session_state.dfs = []
 
 def save_data():
     if st.session_state.df is not None:
@@ -42,53 +44,138 @@ st.title("Data Processing App")
 
 if data_management_option == "Import Dataset":
     st.header("Import Dataset")
-    file = st.file_uploader("Upload a CSV or Excel file", type=["csv", "xlsx"])
+    files = st.file_uploader("Upload files", type=["csv", "xlsx", "xls"], accept_multiple_files=True)
+    if files:
+        st.session_state.dfs = []
+        for file in files:
+            if file.name.endswith(".csv"):
+                st.session_state.dfs.append(pd.read_csv(file))
+            elif file.name.endswith(".xlsx") or file.name.endswith(".xls"):
+                st.session_state.dfs.append(pd.read_excel(file))
+            else:
+                st.error(f"Unsupported file format: {file.name}")
+        st.success("Datasets uploaded successfully!")
+        for i, df in enumerate(st.session_state.dfs):
+            st.write(f"Preview of Dataset {i + 1}:")
+            st.dataframe(df)
 
-    if file:
-        if file.name.endswith(".csv"):
-            st.session_state.df = pd.read_csv(file)
-        elif file.name.endswith(".xlsx"):
-            st.session_state.df = pd.read_excel(file)
-        st.success("Dataset uploaded successfully!")
-        st.write("Preview of the uploaded dataset:")
+elif data_management_option == "Sanity Checks":
+    st.header("Sanity Checks")
+    if st.session_state.dfs:
+        column_lengths = [len(df.columns) for df in st.session_state.dfs]
+        column_names = [set(df.columns) for df in st.session_state.dfs]
+        if len(set(column_lengths)) == 1 and len(set(frozenset(names) for names in column_names)) == 1:
+            st.success("All datasets have consistent columns. Ready to merge!")
+            if st.button("Merge Datasets"):
+                st.session_state.df = pd.concat(st.session_state.dfs, ignore_index=True)
+                st.write("Merged Data:")
+                st.dataframe(st.session_state.df)
+                save_data()
+        else:
+            st.error("Inconsistency detected in columns across the datasets.")
+    else:
+        st.warning("Please upload datasets first.")
+
+elif data_management_option == "Merge Datasets":
+    st.header("Merge Datasets")
+    if st.session_state.df is not None:
+        st.write("Merged Data:")
         st.dataframe(st.session_state.df)
+    else:
+        st.warning("No merged dataset available. Please perform sanity checks and merge the datasets.")
 
 elif data_management_option == "Data Cleaning":
     st.header("Data Cleaning")
-    cleaning_option = st.selectbox("Choose a cleaning option:", ["Compute or Create New Variable"])
+    cleaning_option = st.selectbox("Choose a cleaning option:", ["EDA", "Recode Variables", "Change Data Type", "Compute or Create New Variable", "Delete Column", "Sort Columns"])
 
-    if cleaning_option == "Compute or Create New Variable":
+    if cleaning_option == "EDA":
+        if st.session_state.df is not None:
+            option = st.radio("Choose analysis type:", ["Summary Statistics", "Variable Info", "Null Values Chart"])
+            if option == "Summary Statistics":
+                st.write("Summary Statistics:")
+                st.write(st.session_state.df.describe())
+            elif option == "Variable Info":
+                st.write("Variable Info:")
+                buffer = io.StringIO()
+                st.session_state.df.info(buf=buffer)
+                info_str = buffer.getvalue()
+                st.text(info_str)
+            elif option == "Null Values Chart":
+                st.write("Null Values Chart:")
+                for column in st.session_state.df.columns:
+                    null_count = st.session_state.df[column].isnull().sum()
+                    non_null_count = st.session_state.df[column].notnull().sum()
+                    fig, ax = plt.subplots()
+                    ax.bar(['Missing Values', 'Non-missing Values'], [null_count, non_null_count], color=['red', 'green'])
+                    ax.set_title(f'Null vs Non-null Values for {column}')
+                    ax.set_ylabel('Count')
+                    st.pyplot(fig)
+        else:
+            st.warning("No dataset available. Please import and merge datasets first.")
+
+    elif cleaning_option == "Recode Variables":
+        if st.session_state.df is not None:
+            recode_option = st.selectbox("Choose recoding option:", ["Recode a Column", "Recode Values in a Column"])
+            if recode_option == "Recode a Column":
+                column = st.selectbox("Select column to recode", st.session_state.df.columns)
+                new_name = st.text_input("New name for the selected column")
+                if st.button("Recode"):
+                    if new_name:
+                        st.session_state.df.rename(columns={column: new_name}, inplace=True)
+                        st.success("Column name updated:")
+                        st.dataframe(st.session_state.df)
+                        save_data()
+                    else:
+                        st.error("Please enter a new column name.")
+
+            elif recode_option == "Recode Values in a Column":
+                column = st.selectbox("Select column to recode", st.session_state.df.columns)
+                old_values = st.text_input(f"Old values for {column} (comma-separated)")
+                new_values = st.text_input(f"New values for {column} (comma-separated)")
+                if old_values and new_values:
+                    old_values_list = old_values.split(",")
+                    new_values_list = new_values.split(",")
+                    recode_map = dict(zip(old_values_list, new_values_list))
+                    if st.button("Recode"):
+                        st.session_state.df[column] = st.session_state.df[column].replace(recode_map)
+                        st.success("Recoded Data:")
+                        st.dataframe(st.session_state.df)
+                        save_data()
+                else:
+                    st.error("Ensure you provide both old and new values.")
+
+    elif cleaning_option == "Change Data Type":
+        if st.session_state.df is not None:
+            col = st.selectbox("Select column to change data type:", st.session_state.df.columns)
+            dtype = st.selectbox("Select new data type:", ["int", "float", "str", "bool"])
+            if st.button("Change Data Type"):
+                try:
+                    st.session_state.df[col] = st.session_state.df[col].astype(dtype)
+                    st.success(f"Changed data type of {col} to {dtype}.")
+                    st.dataframe(st.session_state.df)
+                    save_data()
+                except ValueError as e:
+                    st.error(f"Error: {e}")
+        else:
+            st.warning("No dataset available. Please import and merge datasets first.")
+
+    elif cleaning_option == "Compute or Create New Variable":
         st.header("Compute or Create New Variable")
         if st.session_state.df is not None:
             st.subheader("Define New Variable")
-
-            # Step 1: Select columns
             columns_selected = st.multiselect("Select columns to include in computation:", st.session_state.df.columns)
-
-            # Step 2: Specify operations
             operation = st.radio("Choose an operation:", ["Add (+)", "Subtract (-)", "Multiply (*)", "Divide (/)"])
-
-            # Step 3: Add parentheses (optional)
             use_parentheses = st.checkbox("Use parentheses?")
             parentheses_expression = ""
             if use_parentheses:
-                parentheses_expression = st.text_input(
-                    "Enter parentheses expression (e.g., (A+B)*C):",
-                    key="parentheses_expression"
-                )
-
-            # Step 4: Add conditional logic (if-else statement)
+                parentheses_expression = st.text_input("Enter parentheses expression (e.g., (A+B)*C):", key="parentheses_expression")
             use_if_else = st.checkbox("Add conditional logic?")
             if_condition = ""
             else_value = ""
             if use_if_else:
                 if_condition = st.text_input("Enter the if-condition (e.g., A-B):", key="if_condition")
                 else_value = st.text_input("Enter the value to replace if the condition is met (e.g., 0):", key="else_value")
-
-            # Step 5: Enter a new variable name
             new_var_name = st.text_input("Enter the name for the new variable:", key="new_var_name")
-
-            # Step 6: Compute the variable
             if st.button("Compute New Variable"):
                 try:
                     if not new_var_name:
@@ -96,24 +183,14 @@ elif data_management_option == "Data Cleaning":
                     elif not columns_selected:
                         st.error("Please select at least one column.")
                     else:
-                        # Build the computation expression
                         if use_parentheses and parentheses_expression:
                             expression = parentheses_expression
                         else:
-                            operations_map = {
-                                "Add (+)": "+",
-                                "Subtract (-)": "-",
-                                "Multiply (*)": "*",
-                                "Divide (/)": "/"
-                            }
+                            operations_map = {"Add (+)": "+", "Subtract (-)": "-", "Multiply (*)": "*", "Divide (/)": "/"}
                             operator = operations_map[operation]
                             expression = f" {operator} ".join(columns_selected)
-
-                        # Add conditional logic if enabled
                         if use_if_else and if_condition and else_value:
                             expression = f"np.where({if_condition} >= 0, {if_condition}, {else_value})"
-
-                        # Safely evaluate the expression
                         st.session_state.df[new_var_name] = st.session_state.df.eval(expression)
                         st.success(f"Computed new variable '{new_var_name}':")
                         st.dataframe(st.session_state.df)
@@ -123,19 +200,61 @@ elif data_management_option == "Data Cleaning":
         else:
             st.warning("No dataset available. Please import and merge datasets first.")
 
-# Add Undo Button
+    elif cleaning_option == "Delete Column":
+        if st.session_state.df is not None:
+            columns_to_delete = st.multiselect("Select columns to delete:", st.session_state.df.columns)
+            if st.button("Delete"):
+                if columns_to_delete:
+                    st.session_state.df.drop(columns=columns_to_delete, inplace=True)
+                    st.success(f"Deleted columns: {', '.join(columns_to_delete)}")
+                    st.dataframe(st.session_state.df)
+                    save_data()
+                else:
+                    st.error("Please select at least one column to delete.")
+        else:
+            st.warning("No dataset available. Please import and merge datasets first.")
+
+    elif cleaning_option == "Sort Columns":
+        if st.session_state.df is not None:
+            st.write("Current Column Order:")
+            st.dataframe(st.session_state.df.head())
+            new_order = st.multiselect("Rearrange columns by selecting them in the desired order:", st.session_state.df.columns, default=list(st.session_state.df.columns))
+            if st.button("Rearrange Columns"):
+                if len(new_order) == len(st.session_state.df.columns):
+                    st.session_state.df = st.session_state.df[new_order]
+                    st.success("Columns rearranged successfully.")
+                    st.dataframe(st.session_state.df)
+                    save_data()
+                else:
+                    st.error("Please select all columns to ensure the DataFrame structure is preserved.")
+        else:
+            st.warning("No dataset available. Please import and merge datasets first.")
+
+elif data_management_option == "Quality Control/Checks":
+    st.header("Quality Control/Checks")
+    quality_control_option = st.selectbox("Choose a quality control option:", ["", "Check for Normality", "Outlier Detection", "Outlier Correction"])
+    if quality_control_option == "Check for Normality":
+        if st.session_state.df is not None:
+            column = st.selectbox("Select column to check normality:", st.session_state.df.columns)
+            if column:
+                data = st.session_state.df[column].dropna()
+                from scipy.stats import shapiro, normaltest, anderson
+                p_value, _, _ = shapiro(data)
+                st.write(f"Shapiro-Wilk Test p-value: {p_value:.8f}")
+                if p_value > 0.05:
+                    st.success("Data is likely normally distributed.")
+                else:
+                    st.warning("Data is not normally distributed.")
+        else:
+            st.warning("No dataset available. Please import and merge datasets first.")
+
 if st.session_state.df is not None:
     if st.button("Undo Last Action"):
         undo_last_action()
         st.dataframe(st.session_state.df)
-
-# Always show Save and Download buttons
-if st.session_state.df is not None:
-    st.write("Save and Download Updated Data:")
     if st.button("Save"):
         save_data()
         st.success("Data saved successfully.")
-
     if st.session_state.saved_df is not None:
         st.download_button(
             label="Download Updated Data",
