@@ -116,10 +116,25 @@ elif data_management_option == "Data Cleaning":
     elif cleaning_option == "Compute or Create New Variable":
         st.header("Compute or Create New Variable")
         if st.session_state.df is not None:
-            expression = st.text_area("Enter your expression for the new variable:", key="expression")
+            components = []
+            st.write("Build your expression step-by-step:")
+
+            # Allow users to select columns and build expressions
+            while True:
+                col = st.selectbox("Select a column to add to the expression:", st.session_state.df.columns, key=f"col_{len(components)}")
+                operator = st.text_input("Enter an operator (+, -, *, /, or parentheses):", key=f"op_{len(components)}")
+                components.append(col)
+                components.append(operator)
+
+                add_more = st.radio("Add more components?", ["Yes", "No"], key=f"add_more_{len(components)}")
+                if add_more == "No":
+                    break
+
+            expression = " ".join(components)
+            st.write("Your expression:", expression)
 
             if st.checkbox("Add conditional logic?"):
-                condition = st.text_input("Enter the condition (e.g., A - B):", key="condition")
+                condition = st.text_input("Enter the condition (e.g., A > B):", key="condition")
                 true_value = st.text_input("Enter the value when condition is true (number or text):", key="true_value")
                 false_value = st.text_input("Enter the value when condition is false (number or text):", key="false_value")
                 if condition and true_value and false_value:
