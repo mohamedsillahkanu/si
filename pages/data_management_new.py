@@ -116,6 +116,9 @@ elif data_management_option == "Data Cleaning":
     elif cleaning_option == "Compute or Create New Variable":
         st.header("Compute or Create New Variable")
         if st.session_state.df is not None:
+            st.write("Available columns:")
+            st.write(list(st.session_state.df.columns))
+
             expression = st.text_input("Write your expression using column names (e.g., A + B - (C * D)):")
 
             if st.checkbox("Add conditional logic?"):
