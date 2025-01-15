@@ -152,7 +152,7 @@ elif data_management_option == "Data Cleaning":
                 if st.button("Recode"):
                     if new_name:
                         st.session_state.df.rename(columns={column: new_name}, inplace=True)
-                        st.success("Column name updated:")
+                        st.success(f"Column name updated:")
                         st.dataframe(st.session_state.df)
                         save_data()
                     else:
@@ -181,4 +181,73 @@ elif data_management_option == "Data Cleaning":
             if st.button("Change Data Type"):
                 try:
                     st.session_state.df[col] = st.session_state.df[col].astype(dtype)
-                    st.success(f"Changed data type of
+                    st.success(f"Changed data type of {col} to {dtype}.")
+                    st.dataframe(st.session_state.df)
+                    save_data()
+                except ValueError as e:
+                    st.error(f"Error: {e}")
+        else:
+            st.warning("No dataset available. Please import and merge datasets first.")
+
+    elif cleaning_option == "Delete Column":
+        if st.session_state.df is not None:
+            columns_to_delete = st.multiselect("Select columns to delete:", st.session_state.df.columns)
+            if st.button("Delete"):
+                if columns_to_delete:
+                    st.session_state.df.drop(columns=columns_to_delete, inplace=True)
+                    st.success(f"Deleted columns: {', '.join(columns_to_delete)}")
+                    st.dataframe(st.session_state.df)
+                    save_data()
+                else:
+                    st.error("Please select at least one column to delete.")
+        else:
+            st.warning("No dataset available. Please import and merge datasets first.")
+
+    elif cleaning_option == "Sort Columns":
+        if st.session_state.df is not None:
+            st.write("Current Column Order:")
+            st.dataframe(st.session_state.df.head())
+            new_order = st.multiselect("Rearrange columns by selecting them in the desired order:", st.session_state.df.columns, default=list(st.session_state.df.columns))
+            if st.button("Rearrange Columns"):
+                if len(new_order) == len(st.session_state.df.columns):
+                    st.session_state.df = st.session_state.df[new_order]
+                    st.success("Columns rearranged successfully.")
+                    st.dataframe(st.session_state.df)
+                    save_data()
+                else:
+                    st.error("Please select all columns to ensure the DataFrame structure is preserved.")
+        else:
+            st.warning("No dataset available. Please import and merge datasets first.")
+
+elif data_management_option == "Quality Control/Checks":
+    st.header("Quality Control/Checks")
+    quality_control_option = st.selectbox("Choose a quality control option:", ["", "Check for Normality", "Outlier Detection", "Outlier Correction"])
+    if quality_control_option == "Check for Normality":
+        if st.session_state.df is not None:
+            column = st.selectbox("Select column to check normality:", st.session_state.df.columns)
+            if column:
+                data = st.session_state.df[column].dropna()
+                from scipy.stats import shapiro, normaltest, anderson
+                p_value, _, _ = shapiro(data)
+                st.write(f"Shapiro-Wilk Test p-value: {p_value:.8f}")
+                if p_value > 0.05:
+                    st.success("Data is likely normally distributed.")
+                else:
+                    st.warning("Data is not normally distributed.")
+        else:
+            st.warning("No dataset available. Please import and merge datasets first.")
+
+if st.session_state.df is not None:
+    if st.button("Undo Last Action"):
+        undo_last_action()
+        st.dataframe(st.session_state.df)
+    if st.button("Save"):
+        save_data()
+        st.success("Data saved successfully.")
+    if st.session_state.saved_df is not None:
+        st.download_button(
+            label="Download Updated Data",
+            data=st.session_state.saved_df.to_csv(index=False),
+            file_name="updated_data.csv",
+            mime="text/csv"
+        )
