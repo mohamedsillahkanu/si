@@ -116,35 +116,36 @@ elif data_management_option == "Data Cleaning":
     elif cleaning_option == "Compute or Create New Variable":
         st.header("Compute or Create New Variable")
         if st.session_state.df is not None:
-            expression = ""
+            selected_columns = st.multiselect("Select columns to include in your expression:", st.session_state.df.columns, key="columns")
 
-            col = st.selectbox("Select columns to include in your expression (hold Ctrl or Cmd for multiple):", st.session_state.df.columns, key="col_selection")
-            operators = st.text_input("Type your expression using the selected columns (e.g., A + B - (C * D)):")
+            if selected_columns:
+                expression = st.text_input("Write your expression using the selected columns (e.g., A + B - (C * D)):")
 
-            expression = operators
+                if st.checkbox("Add conditional logic?"):
+                    condition = st.text_input("Enter the condition (e.g., A > B):", key="condition")
+                    true_value = st.text_input("Enter the value when condition is true (number or text):", key="true_value")
+                    false_value = st.text_input("Enter the value when condition is false (number or text):", key="false_value")
+                    if condition and true_value and false_value:
+                        expression = f"np.where({condition}, {true_value}, {false_value})"
 
-            if st.checkbox("Add conditional logic?"):
-                condition = st.text_input("Enter the condition (e.g., A > B):", key="condition")
-                true_value = st.text_input("Enter the value when condition is true (number or text):", key="true_value")
-                false_value = st.text_input("Enter the value when condition is false (number or text):", key="false_value")
-                if condition and true_value and false_value:
-                    expression = f"np.where({condition}, {true_value}, {false_value})"
+                new_var_name = st.text_input("Enter the name for the new variable:", key="new_var_name")
 
-            new_var_name = st.text_input("Enter the name for the new variable:", key="new_var_name")
+                if st.button("Compute New Variable"):
+                    try:
+                        if not new_var_name:
+                            st.error("Please enter a name for the new variable.")
+                        elif not expression:
+                            st.error("Please enter a valid expression.")
+                        else:
+                            st.session_state.df[new_var_name] = st.session_state.df.eval(expression, engine='python')
+                            st.success(f"Computed new variable '{new_var_name}':")
+                            st.dataframe(st.session_state.df)
+                            save_data()
+                    except Exception as e:
+                        st.error(f"Error computing new variable: {e}")
+            else:
+                st.warning("Please select at least one column to proceed.")
 
-            if st.button("Compute New Variable"):
-                try:
-                    if not new_var_name:
-                        st.error("Please enter a name for the new variable.")
-                    elif not expression:
-                        st.error("Please enter a valid expression.")
-                    else:
-                        st.session_state.df[new_var_name] = st.session_state.df.eval(expression, engine='python')
-                        st.success(f"Computed new variable '{new_var_name}':")
-                        st.dataframe(st.session_state.df)
-                        save_data()
-                except Exception as e:
-                    st.error(f"Error computing new variable: {e}")
         else:
             st.warning("No dataset available. Please import and merge datasets first.")
 
