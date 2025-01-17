@@ -66,18 +66,20 @@ if uploaded_shp and uploaded_shx and uploaded_dbf:
 
     if uploaded_raster:
         # Use uploaded raster file
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".tif") as tmp_raster:
-            tmp_raster.write(uploaded_raster.read())
-            raster_file_path = tmp_raster.name
+        with tempfile.TemporaryDirectory() as tmpdir:
+            raster_file_path = os.path.join(tmpdir, "uploaded_raster.tif")
+            with open(raster_file_path, "wb") as f:
+                f.write(uploaded_raster.read())
         st.success("Raster file uploaded successfully!")
     else:
         # Download the raster file from the URL
         try:
-            raster_response = requests.get(raster_path, timeout=30)
-            raster_response.raise_for_status()
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".tif") as tmp_raster:
-                tmp_raster.write(raster_response.content)
-                raster_file_path = tmp_raster.name
+            with tempfile.TemporaryDirectory() as tmpdir:
+                raster_file_path = os.path.join(tmpdir, "downloaded_raster.tif")
+                raster_response = requests.get(raster_path, timeout=30)
+                raster_response.raise_for_status()
+                with open(raster_file_path, "wb") as f:
+                    f.write(raster_response.content)
             st.success("Raster file downloaded successfully!")
         except requests.exceptions.RequestException as e:
             st.error(f"Failed to download raster file: {e}")
