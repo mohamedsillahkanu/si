@@ -29,19 +29,32 @@ def load_shapefile(shp_file, shx_file, dbf_file):
 
 # Function to process raster data
 def process_raster_data(gdf, raster_path):
-    with rasterio.open(raster_path) as src:
-        # Reproject shapefile to match raster data CRS
-        gdf = gdf.to_crs(src.crs)
+    # Ensure the raster file exists
+    if not os.path.exists(raster_path):
+        raise FileNotFoundError(f"Raster file not found: {raster_path}")
 
-        # Mask the raster data using the shapefile geometry
-        mean_values = []
-        for geom in gdf.geometry:
-            masked_data, _ = rasterio.mask.mask(src, [geom], crop=True)
-            masked_data = masked_data.flatten()
-            masked_data = masked_data[masked_data != src.nodata]  # Exclude nodata values
-            mean_values.append(masked_data.mean())
+    # Validate the file size
+    file_size = os.path.getsize(raster_path)
+    if file_size == 0:
+        raise ValueError(f"Raster file is empty: {raster_path}")
 
-        gdf['mean_value'] = mean_values
+    try:
+        with rasterio.open(raster_path) as src:
+            # Reproject shapefile to match raster data CRS
+            gdf = gdf.to_crs(src.crs)
+
+            # Mask the raster data using the shapefile geometry
+            mean_values = []
+            for geom in gdf.geometry:
+                masked_data, _ = rasterio.mask.mask(src, [geom], crop=True)
+                masked_data = masked_data.flatten()
+                masked_data = masked_data[masked_data != src.nodata]  # Exclude nodata values
+                mean_values.append(masked_data.mean())
+
+            gdf['mean_value'] = mean_values
+
+    except rasterio.errors.RasterioIOError as e:
+        raise RuntimeError(f"Failed to open or process the raster file: {e}")
 
     return gdf
 
@@ -85,11 +98,18 @@ if uploaded_shp and uploaded_shx and uploaded_dbf:
             st.error(f"Failed to download raster file: {e}")
             st.stop()
 
-    # Process the raster data
-    with st.spinner("Processing raster data..."):
-        gdf = process_raster_data(gdf, raster_file_path)
+    # Display debug info
+    st.write(f"Raster file path: {raster_file_path}")
+    st.write(f"File size: {os.path.getsize(raster_file_path)} bytes")
 
-    st.success("Raster data processed successfully!")
+    # Process the raster data
+    try:
+        with st.spinner("Processing raster data..."):
+            gdf = process_raster_data(gdf, raster_file_path)
+        st.success("Raster data processed successfully!")
+    except Exception as e:
+        st.error(f"An error occurred while processing the raster data: {e}")
+        st.stop()
 
     # Display the mean population data
     st.write(gdf[['geometry', 'mean_value']])
