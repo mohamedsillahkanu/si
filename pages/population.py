@@ -7,6 +7,7 @@ import os
 import tempfile
 from io import BytesIO
 from matplotlib import pyplot as plt
+import requests
 
 # Function to load and process the shapefile
 def load_shapefile(shp_file, shx_file, dbf_file):
@@ -52,8 +53,9 @@ uploaded_shp = st.file_uploader("Upload .shp file", type="shp")
 uploaded_shx = st.file_uploader("Upload .shx file", type="shx")
 uploaded_dbf = st.file_uploader("Upload .dbf file", type="dbf")
 
-# Colormap selection
-cmap = st.selectbox("Select Colormap", ['Blues', 'Greens', 'Reds', 'Purples', 'Oranges', 'YlGnBu', 'cividis', 'plasma', 'viridis'])
+# Option to download the raster or upload manually
+raster_path = "https://github.com/mohamedsillahkanu/si/raw/7740ae4363176a51346ba54459add49a3102aa52/SLE_population_v2_0_gridded.tif"
+uploaded_raster = st.file_uploader("Upload the raster file (.tif) or use the default linked file", type="tif")
 
 if uploaded_shp and uploaded_shx and uploaded_dbf:
     # Load and process the shapefile
@@ -62,21 +64,36 @@ if uploaded_shp and uploaded_shx and uploaded_dbf:
 
     st.success("Shapefile loaded successfully!")
 
-    # Process SLE raster data
-    raster_path = "https://github.com/mohamedsillahkanu/si/raw/7740ae4363176a51346ba54459add49a3102aa52/SLE_population_v2_0_gridded.tif"
-    with tempfile.NamedTemporaryFile(suffix=".tif") as tmp_raster:
-        # Download raster data
-        raster_response = requests.get(raster_path)
-        tmp_raster.write(raster_response.content)
-        tmp_raster.flush()
+    if uploaded_raster:
+        # Use uploaded raster file
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".tif") as tmp_raster:
+            tmp_raster.write(uploaded_raster.read())
+            raster_file_path = tmp_raster.name
+        st.success("Raster file uploaded successfully!")
+    else:
+        # Download the raster file from the URL
+        try:
+            raster_response = requests.get(raster_path, timeout=30)
+            raster_response.raise_for_status()
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".tif") as tmp_raster:
+                tmp_raster.write(raster_response.content)
+                raster_file_path = tmp_raster.name
+            st.success("Raster file downloaded successfully!")
+        except requests.exceptions.RequestException as e:
+            st.error(f"Failed to download raster file: {e}")
+            st.stop()
 
-        with st.spinner("Processing raster data..."):
-            gdf = process_raster_data(gdf, tmp_raster.name)
+    # Process the raster data
+    with st.spinner("Processing raster data..."):
+        gdf = process_raster_data(gdf, raster_file_path)
 
     st.success("Raster data processed successfully!")
 
     # Display the mean population data
     st.write(gdf[['geometry', 'mean_value']])
+
+    # Colormap selection
+    cmap = st.selectbox("Select Colormap", ['Blues', 'Greens', 'Reds', 'Purples', 'Oranges', 'YlGnBu', 'cividis', 'plasma', 'viridis'])
 
     # Plot the map
     fig, ax = plt.subplots(1, 1, figsize=(10, 10))
@@ -100,3 +117,5 @@ if uploaded_shp and uploaded_shx and uploaded_dbf:
                        data=image_output.getvalue(),
                        file_name="mean_population_data.png",
                        mime="image/png")
+else:
+    st.info("Please upload all components of the shapefile to proceed.")
