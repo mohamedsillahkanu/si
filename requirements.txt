@@ -33,4 +33,4 @@ stringdist
 python-Levenshtein==0.21.0
 jellyfish
 xlrd
-
+Shapely
