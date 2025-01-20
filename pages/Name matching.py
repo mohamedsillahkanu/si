@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from jellyfish import jaro_winkler_similarity
+from io import BytesIO
 
 def calculate_match(column1, column2, threshold):
     """Calculate matching scores between two columns using Jaro-Winkler similarity."""
@@ -101,7 +102,11 @@ def main():
             st.dataframe(hf_name_match_results)
 
             # Download results
-            output = hf_name_match_results.to_excel(index=False, engine='openpyxl')
+            output = BytesIO()
+            with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                hf_name_match_results.to_excel(writer, index=False)
+            output.seek(0)
+
             st.download_button(
                 label="Download Matching Results as Excel",
                 data=output,
