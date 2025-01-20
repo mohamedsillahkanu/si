@@ -45,100 +45,144 @@ def calculate_match(column1, column2, threshold):
 def main():
     st.title("Health Facility Name Matching")
 
-    # File upload
-    st.sidebar.header("Upload Files")
-    mfl_file = st.sidebar.file_uploader("Upload Master HF List (CSV, Excel):", type=['csv', 'xlsx', 'xls'])
-    dhis2_file = st.sidebar.file_uploader("Upload DHIS2 HF List (CSV, Excel):", type=['csv', 'xlsx', 'xls'])
+    # Initialize session state
+    if 'step' not in st.session_state:
+        st.session_state.step = 1
+    if 'master_hf_list' not in st.session_state:
+        st.session_state.master_hf_list = None
+    if 'health_facilities_dhis2_list' not in st.session_state:
+        st.session_state.health_facilities_dhis2_list = None
 
-    if mfl_file and dhis2_file:
-        # Read files
-        try:
-            if mfl_file.name.endswith('.csv'):
-                master_hf_list = pd.read_csv(mfl_file)
-            else:
-                master_hf_list = pd.read_excel(mfl_file)
+    # Step 1: File Upload
+    if st.session_state.step == 1:
+        st.header("Step 1: Upload Files")
+        mfl_file = st.file_uploader("Upload Master HF List (CSV, Excel):", type=['csv', 'xlsx', 'xls'])
+        dhis2_file = st.file_uploader("Upload DHIS2 HF List (CSV, Excel):", type=['csv', 'xlsx', 'xls'])
 
-            if dhis2_file.name.endswith('.csv'):
-                health_facilities_dhis2_list = pd.read_csv(dhis2_file)
-            else:
-                health_facilities_dhis2_list = pd.read_excel(dhis2_file)
+        if mfl_file and dhis2_file:
+            try:
+                # Read files
+                if mfl_file.name.endswith('.csv'):
+                    st.session_state.master_hf_list = pd.read_csv(mfl_file)
+                else:
+                    st.session_state.master_hf_list = pd.read_excel(mfl_file)
 
-            # Display the DataFrames
-            st.write("### Master HF List")
-            st.dataframe(master_hf_list)
+                if dhis2_file.name.endswith('.csv'):
+                    st.session_state.health_facilities_dhis2_list = pd.read_csv(dhis2_file)
+                else:
+                    st.session_state.health_facilities_dhis2_list = pd.read_excel(dhis2_file)
 
-            st.write("### DHIS2 HF List")
-            st.dataframe(health_facilities_dhis2_list)
+                st.success("Files uploaded successfully!")
+                
+                # Display previews
+                st.subheader("Preview of Master HF List")
+                st.dataframe(st.session_state.master_hf_list.head())
+                st.subheader("Preview of DHIS2 HF List")
+                st.dataframe(st.session_state.health_facilities_dhis2_list.head())
 
-            # Allow user to rename columns
-            st.sidebar.header("Rename Columns")
-            renamed_mfl_columns = {}
-            renamed_dhis2_columns = {}
+                if st.button("Proceed to Column Renaming"):
+                    st.session_state.step = 2
+                    st.experimental_rerun()
 
-            for col in master_hf_list.columns:
-                new_col = st.sidebar.text_input(f"Rename column '{col}' in Master HF List:", col)
-                renamed_mfl_columns[col] = new_col
+            except Exception as e:
+                st.error(f"Error reading files: {e}")
 
-            for col in health_facilities_dhis2_list.columns:
-                new_col = st.sidebar.text_input(f"Rename column '{col}' in DHIS2 HF List:", col)
-                renamed_dhis2_columns[col] = new_col
+    # Step 2: Column Renaming
+    elif st.session_state.step == 2:
+        st.header("Step 2: Rename Columns (Optional)")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.subheader("Master HF List Columns")
+            mfl_renamed_columns = {}
+            for col in st.session_state.master_hf_list.columns:
+                new_col = st.text_input(f"Rename '{col}' to:", key=f"mfl_{col}", value=col)
+                mfl_renamed_columns[col] = new_col
 
-            master_hf_list = master_hf_list.rename(columns=renamed_mfl_columns)
-            health_facilities_dhis2_list = health_facilities_dhis2_list.rename(columns=renamed_dhis2_columns)
+        with col2:
+            st.subheader("DHIS2 HF List Columns")
+            dhis2_renamed_columns = {}
+            for col in st.session_state.health_facilities_dhis2_list.columns:
+                new_col = st.text_input(f"Rename '{col}' to:", key=f"dhis2_{col}", value=col)
+                dhis2_renamed_columns[col] = new_col
 
-            # User selects columns for matching
-            st.sidebar.header("Column Selection")
-            mfl_col = st.sidebar.selectbox("Select HF Name column in Master HF List:", master_hf_list.columns)
-            dhis2_col = st.sidebar.selectbox("Select HF Name column in DHIS2 HF List:", health_facilities_dhis2_list.columns)
+        if st.button("Apply Changes and Continue"):
+            st.session_state.master_hf_list = st.session_state.master_hf_list.rename(columns=mfl_renamed_columns)
+            st.session_state.health_facilities_dhis2_list = st.session_state.health_facilities_dhis2_list.rename(
+                columns=dhis2_renamed_columns)
+            st.session_state.step = 3
+            st.experimental_rerun()
 
-            # Set matching threshold
-            st.sidebar.header("Settings")
-            threshold = st.sidebar.slider("Set Match Threshold (0-100):", min_value=0, max_value=100, value=70)
+        if st.button("Skip Renaming"):
+            st.session_state.step = 3
+            st.experimental_rerun()
 
+    # Step 3: Column Selection and Matching
+    elif st.session_state.step == 3:
+        st.header("Step 3: Select Columns for Matching")
+        
+        mfl_col = st.selectbox("Select HF Name column in Master HF List:", 
+                              st.session_state.master_hf_list.columns)
+        dhis2_col = st.selectbox("Select HF Name column in DHIS2 HF List:", 
+                                st.session_state.health_facilities_dhis2_list.columns)
+        
+        threshold = st.slider("Set Match Threshold (0-100):", 
+                            min_value=0, max_value=100, value=70)
+
+        if st.button("Perform Matching"):
             # Process data
-            master_hf_list[mfl_col] = master_hf_list[mfl_col].astype(str).drop_duplicates()
-            health_facilities_dhis2_list[dhis2_col] = health_facilities_dhis2_list[dhis2_col].astype(str)
+            master_hf_list_clean = st.session_state.master_hf_list.copy()
+            dhis2_list_clean = st.session_state.health_facilities_dhis2_list.copy()
+            
+            master_hf_list_clean[mfl_col] = master_hf_list_clean[mfl_col].astype(str)
+            master_hf_list_clean = master_hf_list_clean.drop_duplicates(subset=[mfl_col])
+            dhis2_list_clean[dhis2_col] = dhis2_list_clean[dhis2_col].astype(str)
 
             st.write("### Counts of Health Facilities")
-            st.write(f"Count of HFs in DHIS2 list: {len(health_facilities_dhis2_list)}")
-            st.write(f"Count of HFs in MFL list: {len(master_hf_list)}")
+            st.write(f"Count of HFs in DHIS2 list: {len(dhis2_list_clean)}")
+            st.write(f"Count of HFs in MFL list: {len(master_hf_list_clean)}")
 
             # Perform matching
-            hf_name_match_results = calculate_match(
-                master_hf_list[mfl_col],
-                health_facilities_dhis2_list[dhis2_col],
-                threshold
-            )
+            with st.spinner("Performing matching..."):
+                hf_name_match_results = calculate_match(
+                    master_hf_list_clean[mfl_col],
+                    dhis2_list_clean[dhis2_col],
+                    threshold
+                )
 
-            # Rename columns and add new column for replacements
-            hf_name_match_results = hf_name_match_results.rename(
-                columns={'Col1': 'HF_Name_in_MFL', 'Col2': 'HF_Name_in_DHIS2'}
-            )
-            hf_name_match_results['New_HF_Name_in_MFL'] = np.where(
-                hf_name_match_results['Match_Score'] >= threshold,
-                hf_name_match_results['HF_Name_in_DHIS2'],
-                hf_name_match_results['HF_Name_in_MFL']
-            )
+                # Rename columns and add new column for replacements
+                hf_name_match_results = hf_name_match_results.rename(
+                    columns={'Col1': 'HF_Name_in_MFL', 'Col2': 'HF_Name_in_DHIS2'}
+                )
+                hf_name_match_results['New_HF_Name_in_MFL'] = np.where(
+                    hf_name_match_results['Match_Score'] >= threshold,
+                    hf_name_match_results['HF_Name_in_DHIS2'],
+                    hf_name_match_results['HF_Name_in_MFL']
+                )
 
-            # Display results
-            st.write("### Matching Results")
-            st.dataframe(hf_name_match_results)
+                # Display results
+                st.write("### Matching Results")
+                st.dataframe(hf_name_match_results)
 
-            # Download results
-            output = BytesIO()
-            with pd.ExcelWriter(output, engine='openpyxl') as writer:
-                hf_name_match_results.to_excel(writer, index=False)
-            output.seek(0)
+                # Download results
+                output = BytesIO()
+                with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                    hf_name_match_results.to_excel(writer, index=False)
+                output.seek(0)
 
-            st.download_button(
-                label="Download Matching Results as Excel",
-                data=output,
-                file_name="hf_name_matching_results.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
+                st.download_button(
+                    label="Download Matching Results as Excel",
+                    data=output,
+                    file_name="hf_name_matching_results.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
 
-        except Exception as e:
-            st.error(f"An error occurred while processing the files: {e}")
+        if st.button("Start Over"):
+            st.session_state.step = 1
+            st.session_state.master_hf_list = None
+            st.session_state.health_facilities_dhis2_list = None
+            st.experimental_rerun()
 
 if __name__ == "__main__":
     main()
