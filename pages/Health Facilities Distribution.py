@@ -3,6 +3,7 @@ import geopandas as gpd
 import pandas as pd
 import matplotlib.pyplot as plt
 from shapely.geometry import Point
+import numpy as np
 
 st.title("Interactive Health Facility Map Generator")
 
@@ -35,6 +36,13 @@ if shp_file and shx_file and dbf_file and excel_file:
     longitude_column = st.sidebar.selectbox("Select Longitude Column", coordinates_data.columns)
     latitude_column = st.sidebar.selectbox("Select Latitude Column", coordinates_data.columns)
 
+    # Convert selected columns to numeric
+    coordinates_data[longitude_column] = pd.to_numeric(coordinates_data[longitude_column], errors='coerce')
+    coordinates_data[latitude_column] = pd.to_numeric(coordinates_data[latitude_column], errors='coerce')
+
+    # Drop rows with invalid or missing coordinates
+    coordinates_data = coordinates_data.dropna(subset=[longitude_column, latitude_column])
+
     # User provides map customization options
     st.sidebar.header("Map Customization")
     map_title = st.sidebar.text_input("Enter the title of the map", "Health Facility Coordinates")
@@ -46,9 +54,6 @@ if shp_file and shx_file and dbf_file and excel_file:
     # Predefined point color options
     point_colors = ["lightblue", "lightgreen", "yellow", "brown", "red", "blue", "purple"]
     point_color = st.sidebar.selectbox("Select point color", point_colors)
-
-    # Filter out rows with missing coordinates
-    coordinates_data = coordinates_data.dropna(subset=[longitude_column, latitude_column])
 
     # Convert DataFrame to GeoDataFrame
     geometry = [Point(xy) for xy in zip(coordinates_data[longitude_column], coordinates_data[latitude_column])]
