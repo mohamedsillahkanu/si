@@ -4,91 +4,173 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from shapely.geometry import Point
 import numpy as np
+from matplotlib.colors import LinearSegmentedColormap
+
+def create_custom_colormap(color):
+    """Create a custom colormap with transparency gradient"""
+    return LinearSegmentedColormap.from_list('custom', ['white', color])
+
+st.set_page_config(layout="wide", page_title="Health Facility Map Generator")
 
 st.title("Interactive Health Facility Map Generator")
+st.write("Upload your shapefiles and health facility data to generate a customized map.")
 
-# Upload shapefiles
-st.header("Upload Shapefiles")
-shp_file = st.file_uploader("Upload .shp file", type=["shp"], key="shp")
-shx_file = st.file_uploader("Upload .shx file", type=["shx"], key="shx")
-dbf_file = st.file_uploader("Upload .dbf file", type=["dbf"], key="dbf")
+# Create two columns for file uploads
+col1, col2 = st.columns(2)
 
-# Upload data file (Excel or CSV)
-st.header("Upload Data File")
-data_file = st.file_uploader("Upload Excel or CSV file", type=["xlsx", "xls", "csv"], key="data")
+with col1:
+    st.header("Upload Shapefiles")
+    shp_file = st.file_uploader("Upload .shp file", type=["shp"], key="shp")
+    shx_file = st.file_uploader("Upload .shx file", type=["shx"], key="shx")
+    dbf_file = st.file_uploader("Upload .dbf file", type=["dbf"], key="dbf")
 
-# Check if all shapefile components and data file are uploaded
-if shp_file and shx_file and dbf_file and data_file:
-    # Read shapefile
-    with open("temp.shp", "wb") as f:
-        f.write(shp_file.read())
-    with open("temp.shx", "wb") as f:
-        f.write(shx_file.read())
-    with open("temp.dbf", "wb") as f:
-        f.write(dbf_file.read())
-    shapefile = gpd.read_file("temp.shp")
+with col2:
+    st.header("Upload Health Facility Data")
+    facility_file = st.file_uploader("Upload Excel file (.xlsx)", type=["xlsx"], key="facility")
 
-    # Read data file
-    file_extension = data_file.name.split(".")[-1].lower()
-    if file_extension in ["xlsx", "xls"]:
-        coordinates_data = pd.read_excel(data_file)
-    elif file_extension == "csv":
-        coordinates_data = pd.read_csv(data_file)
+# Check if all required files are uploaded
+if all([shp_file, shx_file, dbf_file, facility_file]):
+    try:
+        # Read shapefiles
+        with open("temp.shp", "wb") as f:
+            f.write(shp_file.read())
+        with open("temp.shx", "wb") as f:
+            f.write(shx_file.read())
+        with open("temp.dbf", "wb") as f:
+            f.write(dbf_file.read())
+        shapefile = gpd.read_file("temp.shp")
 
-    # User selects longitude and latitude columns
-    st.header("Select Coordinate Columns")
-    longitude_column = st.selectbox("Select Longitude Column", coordinates_data.columns, key="longitude")
-    latitude_column = st.selectbox("Select Latitude Column", coordinates_data.columns, key="latitude")
+        # Read facility data
+        coordinates_data = pd.read_excel(facility_file)
 
-    # Convert selected columns to numeric
-    coordinates_data[longitude_column] = pd.to_numeric(coordinates_data[longitude_column], errors='coerce')
-    coordinates_data[latitude_column] = pd.to_numeric(coordinates_data[latitude_column], errors='coerce')
+        # Display data preview
+        st.subheader("Data Preview")
+        st.dataframe(coordinates_data.head())
 
-    # Drop rows with invalid or missing coordinates
-    coordinates_data = coordinates_data.dropna(subset=[longitude_column, latitude_column])
-    coordinates_data = coordinates_data[
-        (coordinates_data[longitude_column].between(-180, 180)) &
-        (coordinates_data[latitude_column].between(-90, 90))
-    ]
+        # Map customization options
+        st.header("Map Customization")
+        
+        col3, col4, col5 = st.columns(3)
+        
+        with col3:
+            # Coordinate column selection
+            longitude_col = st.selectbox(
+                "Select Longitude Column",
+                coordinates_data.columns,
+                index=coordinates_data.columns.get_loc("w_long") if "w_long" in coordinates_data.columns else 0
+            )
+            latitude_col = st.selectbox(
+                "Select Latitude Column",
+                coordinates_data.columns,
+                index=coordinates_data.columns.get_loc("w_lat") if "w_lat" in coordinates_data.columns else 0
+            )
 
-    # User provides map customization options
-    st.header("Map Customization")
-    map_title = st.text_input("Enter the title of the map", "Health Facility Coordinates", key="map_title")
-    
-    # Predefined background color options
-    background_colors = ["white", "black", "gray", "lightgray"]
-    background_color = st.selectbox("Select background color of the map", background_colors, key="background")
+        with col4:
+            # Visual customization
+            map_title = st.text_input("Map Title", "Health Facility Distribution")
+            point_size = st.slider("Point Size", 10, 200, 50)
+            point_alpha = st.slider("Point Transparency", 0.1, 1.0, 0.7)
 
-    # Predefined point color options
-    point_colors = ["lightblue", "lightgreen", "yellow", "brown", "red", "blue", "purple"]
-    point_color = st.selectbox("Select point color", point_colors, key="points")
+        with col5:
+            # Color selection
+            background_colors = ["white", "lightgray", "beige", "lightblue"]
+            point_colors = ["#47B5FF", "red", "green", "purple", "orange"]
+            
+            background_color = st.selectbox("Background Color", background_colors)
+            point_color = st.selectbox("Point Color", point_colors)
 
-    # Convert DataFrame to GeoDataFrame
-    geometry = [Point(xy) for xy in zip(coordinates_data[longitude_column], coordinates_data[latitude_column])]
-    coordinates_gdf = gpd.GeoDataFrame(coordinates_data, geometry=geometry, crs="EPSG:4326")
+        # Data processing
+        # Remove missing coordinates
+        coordinates_data = coordinates_data.dropna(subset=[longitude_col, latitude_col])
+        
+        # Filter invalid coordinates
+        coordinates_data = coordinates_data[
+            (coordinates_data[longitude_col].between(-180, 180)) &
+            (coordinates_data[latitude_col].between(-90, 90))
+        ]
 
-    # Ensure shapefile CRS is set or transformed to EPSG:4326
-    if shapefile.crs is None:
-        shapefile.set_crs(epsg=4326, inplace=True)
-    else:
-        shapefile = shapefile.to_crs(epsg=4326)
+        if len(coordinates_data) == 0:
+            st.error("No valid coordinates found in the data after filtering.")
+            st.stop()
 
-    # Plot the map
-    fig, ax = plt.subplots(figsize=(12, 8))
-    shapefile.plot(ax=ax, color=background_color, edgecolor='black', linewidth=0.5)
-    coordinates_gdf.plot(ax=ax, color=point_color, markersize=50, alpha=0.7)
+        # Convert to GeoDataFrame
+        geometry = [Point(xy) for xy in zip(coordinates_data[longitude_col], coordinates_data[latitude_col])]
+        coordinates_gdf = gpd.GeoDataFrame(coordinates_data, geometry=geometry, crs="EPSG:4326")
 
-    plt.title(map_title, fontsize=20, fontweight='bold')
-    plt.axis('off')
+        # Ensure consistent CRS
+        if shapefile.crs is None:
+            shapefile = shapefile.set_crs(epsg=4326)
+        else:
+            shapefile = shapefile.to_crs(epsg=4326)
 
-    # Display the map
-    st.pyplot(fig)
+        # Create the map
+        fig, ax = plt.subplots(figsize=(15, 10))
 
-    # Provide download option for the map
-    output_path = "health_facility_coordinates.png"
-    plt.savefig(output_path, dpi=300, bbox_inches='tight')
-    with open(output_path, "rb") as file:
-        st.download_button(label="Download Map as PNG", data=file, file_name="health_facility_coordinates.png", mime="image/png")
+        # Plot shapefile with custom style
+        shapefile.plot(ax=ax, color=background_color, edgecolor='black', linewidth=0.5)
+
+        # Plot points with custom style
+        coordinates_gdf.plot(
+            ax=ax,
+            color=point_color,
+            markersize=point_size,
+            alpha=point_alpha
+        )
+
+        # Customize map appearance
+        plt.title(map_title, fontsize=20, pad=20)
+        plt.axis('off')
+
+        # Add statistics
+        stats_text = (
+            f"Total Facilities: {len(coordinates_data)}\n"
+            f"Coordinates Range:\n"
+            f"Longitude: {coordinates_data[longitude_col].min():.2f}° to {coordinates_data[longitude_col].max():.2f}°\n"
+            f"Latitude: {coordinates_data[latitude_col].min():.2f}° to {coordinates_data[latitude_col].max():.2f}°"
+        )
+        plt.figtext(0.02, 0.02, stats_text, fontsize=8, bbox=dict(facecolor='white', alpha=0.8))
+
+        # Display the map
+        st.pyplot(fig)
+
+        # Download options
+        col6, col7 = st.columns(2)
+        
+        with col6:
+            # Save high-resolution PNG
+            output_path_png = "health_facility_map.png"
+            plt.savefig(output_path_png, dpi=300, bbox_inches='tight', pad_inches=0.1)
+            with open(output_path_png, "rb") as file:
+                st.download_button(
+                    label="Download Map (PNG)",
+                    data=file,
+                    file_name="health_facility_map.png",
+                    mime="image/png"
+                )
+
+        with col7:
+            # Export coordinates as CSV
+            csv = coordinates_data.to_csv(index=False)
+            st.download_button(
+                label="Download Processed Data (CSV)",
+                data=csv,
+                file_name="processed_coordinates.csv",
+                mime="text/csv"
+            )
+
+    except Exception as e:
+        st.error(f"An error occurred: {str(e)}")
+        st.write("Please check your input files and try again.")
 
 else:
-    st.write("Please upload all required files to generate the map.")
+    st.info("Please upload all required files to generate the map.")
+    
+    # Show example data format
+    st.subheader("Expected Data Format")
+    st.write("""
+    Your Excel file should contain at minimum:
+    - A column for longitude (e.g., 'w_long')
+    - A column for latitude (e.g., 'w_lat')
+    
+    The coordinates should be in decimal degrees format.
+    """)
