@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from scipy.stats import iqr
+from io import BytesIO
 
 # Helper functions
 def detect_outliers_scatterplot(series, threshold=1.5):
@@ -67,6 +68,14 @@ def process_column(df, column, threshold=1.5, window=3):
 
     return df
 
+@st.cache_data
+def convert_df_to_excel(df):
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False)
+    output.seek(0)
+    return output
+
 # Streamlit app
 st.title("Outlier Detection and Correction Tool")
 
@@ -91,7 +100,7 @@ if uploaded_file:
         )
 
         window = st.slider(
-            "Select window size for moving average:", min_value=2, max_value=6, step=1, value=3
+            "Select window size for moving average:", min_value=2, max_value=10, step=1, value=3
         )
 
         methods = st.multiselect(
@@ -118,15 +127,11 @@ if uploaded_file:
             st.write("### Processed Data Preview")
             st.dataframe(df.head())
 
-            @st.cache_data
-            def convert_df_to_excel(df):
-                return df.to_excel(index=False, engine='openpyxl')
-
             processed_data = convert_df_to_excel(df)
 
             st.download_button(
                 label="Download Processed Data",
                 data=processed_data,
-                file_name="clean_routine_data.xlsx",
+                file_name="processed_data.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
