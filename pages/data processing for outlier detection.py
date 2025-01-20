@@ -8,24 +8,57 @@ import plotly.graph_objects as go
 from datetime import datetime
 
 # Set page config
-st.set_page_config(layout="wide", page_title="Interactive Outlier Tool")
+st.set_page_config(layout="wide", page_title="Advanced Outlier Tool")
 
-# Custom CSS for better styling
-st.markdown("""
-    <style>
-    .main {
-        padding: 0rem 1rem;
-    }
-    .stAlert {
-        margin-top: 1rem;
-    }
-    .plot-container {
-        margin: 1rem 0;
-    }
-    </style>
-""", unsafe_allow_html=True)
+# Helper functions for median methods
+def calculate_median_all(series):
+    """Calculate median including outliers"""
+    return series.median()
 
-# Helper functions
+def calculate_median_excluding_outliers(series, threshold=1.5):
+    """Calculate median excluding outliers"""
+    lower_bound, upper_bound = detect_outliers_scatterplot(series, threshold)
+    clean_series = series[(series >= lower_bound) & (series <= upper_bound)]
+    return clean_series.median()
+
+def calculate_rolling_median(series, window):
+    """Calculate rolling median"""
+    return series.rolling(window=window, min_periods=1).median()
+
+def calculate_weighted_median(series, window):
+    """Calculate weighted median with more weight on recent values"""
+    weights = np.linspace(1, 2, window)
+    return series.rolling(window=window, min_periods=1).apply(
+        lambda x: np.average(x, weights=weights[-len(x):])
+    )
+
+# Helper functions for moving average methods
+def calculate_simple_ma(series, window):
+    """Calculate simple moving average"""
+    return series.rolling(window=window, min_periods=1).mean()
+
+def calculate_exponential_ma(series, span):
+    """Calculate exponential moving average"""
+    return series.ewm(span=span, adjust=False).mean()
+
+def calculate_double_ma(series, window):
+    """Calculate double moving average"""
+    first_ma = calculate_simple_ma(series, window)
+    return calculate_simple_ma(first_ma, window)
+
+def calculate_triple_ma(series, window):
+    """Calculate triple moving average"""
+    first_ma = calculate_simple_ma(series, window)
+    second_ma = calculate_simple_ma(first_ma, window)
+    return calculate_simple_ma(second_ma, window)
+
+def calculate_weighted_ma(series, window):
+    """Calculate weighted moving average"""
+    weights = np.linspace(1, 2, window)
+    return series.rolling(window=window, min_periods=1).apply(
+        lambda x: np.average(x, weights=weights[-len(x):])
+    )
+
 def detect_outliers_scatterplot(series, threshold=1.5):
     """Detect outliers using IQR method"""
     Q1 = series.quantile(0.25)
@@ -35,19 +68,6 @@ def detect_outliers_scatterplot(series, threshold=1.5):
     upper_bound = Q3 + threshold * IQR
     return lower_bound, upper_bound
 
-def calculate_moving_avg(series, window):
-    """Calculate moving average with handling for missing values"""
-    filled_series = series.fillna(method='bfill').fillna(method='ffill')
-    moving_avg = filled_series.rolling(window=window, min_periods=1).mean()
-    return moving_avg.where(series.notna(), np.nan)
-
-def calculate_moving_avg_excluding_outliers(series, window, threshold=1.5):
-    """Calculate moving average excluding outliers"""
-    lower_bound, upper_bound = detect_outliers_scatterplot(series, threshold)
-    clean_series = series.copy()
-    clean_series[(series < lower_bound) | (series > upper_bound)] = np.nan
-    return calculate_moving_avg(clean_series, window)
-
 def process_group(group, settings):
     """Process a group of data with the specified settings"""
     column = settings['column']
@@ -55,30 +75,39 @@ def process_group(group, settings):
     window = settings['window']
     method = settings['correction_method']
     
+    # Detect outliers
     lower_bound, upper_bound = detect_outliers_scatterplot(group[column], threshold)
-    
     is_outlier = (group[column] < lower_bound) | (group[column] > upper_bound)
     group['outlier_status'] = np.where(is_outlier, 'Outlier', 'Normal')
     
-    if method == 'Mean (Including Outliers)':
-        corrected_values = group[column].mean()
-    elif method == 'Mean (Excluding Outliers)':
-        corrected_values = group[column][~is_outlier].mean()
-    elif method == 'Median':
-        corrected_values = group[column].median()
-    elif method == 'Moving Average':
-        corrected_values = calculate_moving_avg(group[column], window)
-    elif method == 'Moving Average (Excluding Outliers)':
-        corrected_values = calculate_moving_avg_excluding_outliers(group[column], window, threshold)
-    else:  # Winsorization
+    # Apply selected correction method
+    if method == 'Median (All Values)':
+        corrected_values = calculate_median_all(group[column])
+    elif method == 'Median (Excluding Outliers)':
+        corrected_values = calculate_median_excluding_outliers(group[column], threshold)
+    elif method == 'Rolling Median':
+        corrected_values = calculate_rolling_median(group[column], window)
+    elif method == 'Weighted Median':
+        corrected_values = calculate_weighted_median(group[column], window)
+    elif method == 'Simple Moving Average':
+        corrected_values = calculate_simple_ma(group[column], window)
+    elif method == 'Exponential Moving Average':
+        corrected_values = calculate_exponential_ma(group[column], window)
+    elif method == 'Double Moving Average':
+        corrected_values = calculate_double_ma(group[column], window)
+    elif method == 'Triple Moving Average':
+        corrected_values = calculate_triple_ma(group[column], window)
+    elif method == 'Weighted Moving Average':
+        corrected_values = calculate_weighted_ma(group[column], window)
+    else:  # Default to winsorization
         corrected_values = group[column].clip(lower=lower_bound, upper=upper_bound)
     
+    # Apply corrections only to outliers
     group['corrected_values'] = np.where(is_outlier, corrected_values, group[column])
     return group
 
 # Main app
-st.title("🔍 Interactive Outlier Detection and Correction Tool")
-st.write("Upload your data and customize the outlier detection process")
+st.title("🔍 Advanced Outlier Detection and Correction Tool")
 
 # File upload section
 with st.expander("📤 Upload Data", expanded=True):
@@ -97,7 +126,6 @@ with st.expander("📤 Upload Data", expanded=True):
             
             st.success("✅ File uploaded successfully!")
             
-            # Display basic info
             col1, col2, col3 = st.columns(3)
             col1.metric("Rows", df.shape[0])
             col2.metric("Columns", df.shape[1])
@@ -109,9 +137,9 @@ with st.expander("📤 Upload Data", expanded=True):
         st.info("Please upload a file to begin analysis")
         st.stop()
 
-# Create tabs for different operations
+# Create tabs
 tab1, tab2, tab3 = st.tabs([
-    "⚙️ Settings",
+    "⚙️ Method Selection",
     "📊 Analysis & Visualization",
     "💾 Export Options"
 ])
@@ -137,41 +165,63 @@ with tab1:
         )
     
     with col2:
-        # Method selection
-        correction_method = st.selectbox(
-            "Select correction method:",
-            [
-                "Mean (Including Outliers)",
-                "Mean (Excluding Outliers)",
-                "Median",
-                "Moving Average",
-                "Moving Average (Excluding Outliers)",
-                "Winsorization"
-            ]
+        # Method selection with categorized options
+        method_category = st.selectbox(
+            "Select method category:",
+            ["Median Methods", "Moving Average Methods", "Other Methods"]
         )
         
-        # Advanced settings
+        if method_category == "Median Methods":
+            correction_method = st.selectbox(
+                "Select median method:",
+                [
+                    "Median (All Values)",
+                    "Median (Excluding Outliers)",
+                    "Rolling Median",
+                    "Weighted Median"
+                ]
+            )
+        elif method_category == "Moving Average Methods":
+            correction_method = st.selectbox(
+                "Select moving average method:",
+                [
+                    "Simple Moving Average",
+                    "Exponential Moving Average",
+                    "Double Moving Average",
+                    "Triple Moving Average",
+                    "Weighted Moving Average"
+                ]
+            )
+        else:
+            correction_method = st.selectbox(
+                "Select other method:",
+                [
+                    "Winsorization",
+                    "Mean (Including Outliers)",
+                    "Mean (Excluding Outliers)"
+                ]
+            )
+        
+        # Advanced settings based on method
         threshold = st.slider(
             "Outlier detection threshold:",
             min_value=1.0,
             max_value=3.0,
             value=1.5,
-            step=0.1,
-            help="Higher values are more permissive"
+            step=0.1
         )
         
         window_size = st.slider(
-            "Moving average window size:",
+            "Window size:",
             min_value=2,
-            max_value=10,
+            max_value=12,
             value=3,
-            help="Larger windows create smoother results"
+            help="Used for moving averages and rolling calculations"
         )
 
 with tab2:
     if st.button("Run Analysis"):
         with st.spinner("Processing data..."):
-            # Store settings
             settings = {
                 'column': selected_column,
                 'threshold': threshold,
@@ -179,54 +229,55 @@ with tab2:
                 'correction_method': correction_method
             }
             
-            # Process data
             grouped = df.groupby(grouping_cols)
             processed_df = grouped.apply(
                 lambda x: process_group(x, settings)
             ).reset_index(drop=True)
             
-            # Display results
+            # Results display
             st.subheader("Results Overview")
             
             # Summary statistics
-            col1, col2 = st.columns(2)
+            col1, col2, col3 = st.columns(3)
             with col1:
                 n_outliers = (processed_df['outlier_status'] == 'Outlier').sum()
-                st.metric("Number of Outliers", n_outliers)
+                st.metric("Outliers Detected", n_outliers)
                 st.metric("Outlier Percentage", f"{(n_outliers/len(processed_df))*100:.1f}%")
             
             with col2:
                 st.metric("Original Mean", f"{processed_df[selected_column].mean():.2f}")
                 st.metric("Corrected Mean", f"{processed_df['corrected_values'].mean():.2f}")
             
-            # Visualization
-            st.subheader("Visualization")
+            with col3:
+                st.metric("Original Std", f"{processed_df[selected_column].std():.2f}")
+                st.metric("Corrected Std", f"{processed_df['corrected_values'].std():.2f}")
             
-            # Time series plot if date column exists
+            # Visualization
             fig = go.Figure()
             
-            # Add original values
+            # Original values with outliers highlighted
             fig.add_trace(go.Scatter(
                 x=processed_df.index,
                 y=processed_df[selected_column],
                 mode='markers',
                 name='Original Values',
                 marker=dict(
-                    color=np.where(processed_df['outlier_status'] == 'Outlier', 'red', 'blue')
+                    color=np.where(processed_df['outlier_status'] == 'Outlier', 'red', 'blue'),
+                    size=np.where(processed_df['outlier_status'] == 'Outlier', 10, 6)
                 )
             ))
             
-            # Add corrected values
+            # Corrected values
             fig.add_trace(go.Scatter(
                 x=processed_df.index,
                 y=processed_df['corrected_values'],
                 mode='lines',
                 name='Corrected Values',
-                line=dict(color='green')
+                line=dict(color='green', width=2)
             ))
             
             fig.update_layout(
-                title=f"{selected_column} - Original vs Corrected Values",
+                title=f"{selected_column} - Original vs Corrected Values using {correction_method}",
                 xaxis_title="Index",
                 yaxis_title="Value",
                 hovermode='x unified'
@@ -234,24 +285,23 @@ with tab2:
             
             st.plotly_chart(fig, use_container_width=True)
             
-            # Store processed data in session state
+            # Store processed data
             st.session_state['processed_df'] = processed_df
 
 with tab3:
     if 'processed_df' in st.session_state:
         st.subheader("Export Options")
         
-        # Export format selection
         export_format = st.radio(
             "Select export format:",
             ["Excel", "CSV"]
         )
         
-        # Filename customization
-        default_filename = f"processed_data_{datetime.now().strftime('%Y%m%d')}"
-        filename = st.text_input("Enter filename:", default_filename)
+        filename = st.text_input(
+            "Enter filename:",
+            f"processed_data_{datetime.now().strftime('%Y%m%d')}"
+        )
         
-        # Column selection for export
         columns_to_export = st.multiselect(
             "Select columns to export:",
             st.session_state.processed_df.columns,
