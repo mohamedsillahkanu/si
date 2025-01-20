@@ -53,19 +53,27 @@ if uploaded_file_dhis2 and uploaded_file_mfl:
     new_mfl_col = st.text_input("Rename MFL Column", value=st.session_state.renamed_mfl_col or mfl_col)
 
     if st.button("Apply Renaming"):
+        # Save renamed column names in session state
         st.session_state.renamed_dhis2_col = new_dhis2_col
         st.session_state.renamed_mfl_col = new_mfl_col
+
+        # Rename columns in the DataFrame
         health_facilities_dhis2_list.rename(columns={dhis2_col: new_dhis2_col}, inplace=True)
         master_hf_list.rename(columns={mfl_col: new_mfl_col}, inplace=True)
-        st.success("Column names updated!")
+
+        # Save renamed DataFrames back to session state
+        st.session_state.health_facilities_dhis2_list = health_facilities_dhis2_list.copy()
+        st.session_state.master_hf_list = master_hf_list.copy()
+
+        st.success("Column names updated and saved in both original and renamed DataFrames!")
 
     # Use renamed columns in operations
-    if st.session_state.renamed_dhis2_col:
+    if "health_facilities_dhis2_list" in st.session_state:
         st.write("Renamed DHIS2 File:")
-        st.dataframe(health_facilities_dhis2_list.head())
-    if st.session_state.renamed_mfl_col:
+        st.dataframe(st.session_state.health_facilities_dhis2_list.head())
+    if "master_hf_list" in st.session_state:
         st.write("Renamed MFL File:")
-        st.dataframe(master_hf_list.head())
+        st.dataframe(st.session_state.master_hf_list.head())
 
     # Matching threshold
     st.header("Set Matching Threshold")
@@ -117,17 +125,17 @@ if uploaded_file_dhis2 and uploaded_file_mfl:
         # Debugging: Display session state and column names
         st.write("Session State Renamed DHIS2 Column:", st.session_state.renamed_dhis2_col)
         st.write("Session State Renamed MFL Column:", st.session_state.renamed_mfl_col)
-        st.write("DHIS2 Columns:", health_facilities_dhis2_list.columns)
-        st.write("MFL Columns:", master_hf_list.columns)
+        st.write("DHIS2 Columns:", st.session_state.health_facilities_dhis2_list.columns)
+        st.write("MFL Columns:", st.session_state.master_hf_list.columns)
 
         # Check if renamed columns exist in the DataFrame
         if (
-            st.session_state.renamed_dhis2_col in health_facilities_dhis2_list.columns
-            and st.session_state.renamed_mfl_col in master_hf_list.columns
+            st.session_state.renamed_dhis2_col in st.session_state.health_facilities_dhis2_list.columns
+            and st.session_state.renamed_mfl_col in st.session_state.master_hf_list.columns
         ):
             hf_name_match_results = calculate_match(
-                master_hf_list[st.session_state.renamed_mfl_col],
-                health_facilities_dhis2_list[st.session_state.renamed_dhis2_col],
+                st.session_state.master_hf_list[st.session_state.renamed_mfl_col],
+                st.session_state.health_facilities_dhis2_list[st.session_state.renamed_dhis2_col],
             )
 
             hf_name_match_results["New_HF_Name_in_MFL"] = np.where(
