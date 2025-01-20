@@ -63,6 +63,13 @@ def main():
             else:
                 health_facilities_dhis2_list = pd.read_excel(dhis2_file)
 
+            # Display the DataFrames
+            st.write("### Master HF List")
+            st.dataframe(master_hf_list)
+
+            st.write("### DHIS2 HF List")
+            st.dataframe(health_facilities_dhis2_list)
+
             # User selects columns for matching
             st.sidebar.header("Column Selection")
             mfl_col = st.sidebar.selectbox("Select HF Name column in Master HF List:", master_hf_list.columns)
