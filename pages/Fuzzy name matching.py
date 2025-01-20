@@ -1,108 +1,120 @@
 import streamlit as st
 import pandas as pd
-from rapidfuzz import fuzz, process
+import numpy as np
+from stringdist import levenshtein
 
-# Streamlit UI
-def main():
-    st.title("Interactive Data Processing and Matching Tool")
+# Streamlit app
+st.title("Health Facility Name Matching")
 
-    # File upload
-    st.subheader("Upload Files")
-    dhis2_file = st.file_uploader("Upload the DHIS2 file (Excel or CSV):", type=["xlsx", "xls", "csv"])
-    mfl_file = st.file_uploader("Upload the MFL file (Excel or CSV):", type=["xlsx", "xls", "csv"])
+# File upload
+st.header("Upload Your Files")
+uploaded_file_dhis2 = st.file_uploader("Upload DHIS2 File (CSV, XLS, XLSX)", type=["csv", "xls", "xlsx"])
+uploaded_file_mfl = st.file_uploader("Upload MFL File (CSV, XLS, XLSX)", type=["csv", "xls", "xlsx"])
 
-    if dhis2_file and mfl_file:
-        # Load data
-        if dhis2_file.name.endswith(('xlsx', 'xls')):
-            dhis2_df = pd.read_excel(dhis2_file)
+if uploaded_file_dhis2 and uploaded_file_mfl:
+    # Read the uploaded files
+    try:
+        if uploaded_file_dhis2.name.endswith(".csv"):
+            health_facilities_dhis2_list = pd.read_csv(uploaded_file_dhis2)
         else:
-            dhis2_df = pd.read_csv(dhis2_file)
+            health_facilities_dhis2_list = pd.read_excel(uploaded_file_dhis2)
 
-        if mfl_file.name.endswith(('xlsx', 'xls')):
-            mfl_df = pd.read_excel(mfl_file)
+        if uploaded_file_mfl.name.endswith(".csv"):
+            master_hf_list = pd.read_csv(uploaded_file_mfl)
         else:
-            mfl_df = pd.read_csv(mfl_file)
+            master_hf_list = pd.read_excel(uploaded_file_mfl)
 
-        # Store data in session state
-        if 'df' not in st.session_state:
-            st.session_state.df = dhis2_df
+        st.success("Files uploaded successfully!")
+    except Exception as e:
+        st.error(f"Error reading files: {e}")
+        st.stop()
 
-        # Display initial previews
-        st.subheader("Preview of Uploaded Data")
-        st.write("### DHIS2 Data:")
-        st.dataframe(dhis2_df)
+    # Display data
+    st.subheader("Preview of Uploaded Files")
+    st.write("DHIS2 File:")
+    st.dataframe(health_facilities_dhis2_list.head())
+    st.write("MFL File:")
+    st.dataframe(master_hf_list.head())
 
-        st.write("### MFL Data:")
-        st.dataframe(mfl_df)
+    # Column selection and renaming
+    st.header("Select and Rename Columns")
+    dhis2_col = st.selectbox("Select DHIS2 Name Column", health_facilities_dhis2_list.columns, key="dhis2_col")
+    mfl_col = st.selectbox("Select MFL Name Column", master_hf_list.columns, key="mfl_col")
 
-        # Cleaning Options
-        st.subheader("Data Cleaning Options")
-        cleaning_option = st.selectbox("Choose a cleaning option:", ["None", "Recode Variables", "Delete Column", "Sort Columns"])
+    new_dhis2_col = st.text_input("Rename DHIS2 Column", value=dhis2_col)
+    new_mfl_col = st.text_input("Rename MFL Column", value=mfl_col)
 
-        if cleaning_option == "Recode Variables":
-            if st.session_state.df is not None:
-                recode_option = st.selectbox("Choose recoding option:", ["Recode a Column", "Recode Values in a Column"])
+    health_facilities_dhis2_list.rename(columns={dhis2_col: new_dhis2_col}, inplace=True)
+    master_hf_list.rename(columns={mfl_col: new_mfl_col}, inplace=True)
 
-                if recode_option == "Recode a Column":
-                    st.write("Recode a Column:")
-                    column = st.selectbox("Select column to recode", st.session_state.df.columns)
-                    new_name = st.text_input("New name for the selected column")
-                    if st.button("Recode"):
-                        if new_name:
-                            st.session_state.df.rename(columns={column: new_name}, inplace=True)
-                            st.write("Column name updated:")
-                            st.dataframe(st.session_state.df)
-                        else:
-                            st.error("Please enter a new column name.")
+    st.write("Renamed DHIS2 File:")
+    st.dataframe(health_facilities_dhis2_list.head())
+    st.write("Renamed MFL File:")
+    st.dataframe(master_hf_list.head())
 
-                elif recode_option == "Recode Values in a Column":
-                    st.write("Recode Values in a Column:")
-                    column = st.selectbox("Select column to recode", st.session_state.df.columns)
-                    old_values = st.text_input(f"Old values for {column} (comma-separated)", "")
-                    new_values = st.text_input(f"New values for {column} (comma-separated)", "")
+    # Matching threshold
+    st.header("Set Matching Threshold")
+    threshold = st.slider("Set Matching Threshold (0 to 100)", min_value=0, max_value=100, value=70, step=1)
 
-                    if old_values and new_values:
-                        old_values_list = old_values.split(",")
-                        new_values_list = new_values.split(",")
-                        recode_map = dict(zip(old_values_list, new_values_list))
+    # Matching function
+    def calculate_match(column1, column2):
+        results = []
 
-                        if st.button("Recode"):
-                            st.session_state.df[column] = st.session_state.df[column].replace(recode_map)
-                            st.write("Recoded Data:")
-                            st.dataframe(st.session_state.df)
-                        else:
-                            st.error("Ensure you provide both old and new values.")
+        for value1 in column1:
+            if value1 in column2.values:
+                results.append({
+                    "Col1": value1,
+                    "Col2": value1,
+                    "Match_Score": 100,
+                    "Match_Status": "Match"
+                })
+            else:
+                best_score = 0
+                best_match = None
+                for value2 in column2:
+                    score = levenshtein(value1, value2)
+                    similarity = (1 - score / max(len(value1), len(value2))) * 100
+                    if similarity > best_score:
+                        best_score = similarity
+                        best_match = value2
+                results.append({
+                    "Col1": value1,
+                    "Col2": best_match,
+                    "Match_Score": round(best_score, 2),
+                    "Match_Status": "Unmatch"
+                })
 
-        elif cleaning_option == "Delete Column":
-            st.header("Delete Column")
-            if st.session_state.df is not None:
-                columns_to_delete = st.multiselect("Select columns to delete:", st.session_state.df.columns)
+        for value2 in column2:
+            if value2 not in [result["Col2"] for result in results if result["Col2"] is not None]:
+                results.append({
+                    "Col1": None,
+                    "Col2": value2,
+                    "Match_Score": 0,
+                    "Match_Status": "Unmatch"
+                })
 
-                if st.button("Delete"):
-                    if columns_to_delete:
-                        st.session_state.df.drop(columns=columns_to_delete, inplace=True)
-                        st.success(f"Deleted columns: {', '.join(columns_to_delete)}")
-                        st.dataframe(st.session_state.df)
-                    else:
-                        st.error("Please select at least one column to delete.")
+        return pd.DataFrame(results)
 
-        elif cleaning_option == "Sort Columns":
-            st.header("Sort Columns")
-            if st.session_state.df is not None:
-                st.write("Current Column Order:")
-                st.dataframe(st.session_state.df.head())
+    # Perform matching
+    st.header("Matching Results")
+    if st.button("Run Matching"):
+        hf_name_match_results = calculate_match(
+            master_hf_list[new_mfl_col], health_facilities_dhis2_list[new_dhis2_col]
+        )
 
-                new_order = st.multiselect("Rearrange columns by selecting them in the desired order:",
-                                           st.session_state.df.columns,
-                                           default=list(st.session_state.df.columns))
+        hf_name_match_results["New_HF_Name_in_MFL"] = np.where(
+            hf_name_match_results["Match_Score"] > threshold,
+            hf_name_match_results["Col2"],
+            hf_name_match_results["Col1"]
+        )
 
-                if st.button("Rearrange Columns"):
-                    if len(new_order) == len(st.session_state.df.columns):
-                        st.session_state.df = st.session_state.df[new_order]
-                        st.success("Columns rearranged successfully.")
-                        st.dataframe(st.session_state.df)
-                    else:
-                        st.error("Please select all columns to ensure the DataFrame structure is preserved.")
+        st.write("Matching Results:")
+        st.dataframe(hf_name_match_results)
 
-if __name__ == "__main__":
-    main()
+        # Download results
+        st.download_button(
+            label="Download Matching Results",
+            data=hf_name_match_results.to_csv(index=False),
+            file_name="matching_results.csv",
+            mime="text/csv"
+        )
