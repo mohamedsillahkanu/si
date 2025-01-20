@@ -13,12 +13,12 @@ shp_file = st.file_uploader("Upload .shp file", type=["shp"], key="shp")
 shx_file = st.file_uploader("Upload .shx file", type=["shx"], key="shx")
 dbf_file = st.file_uploader("Upload .dbf file", type=["dbf"], key="dbf")
 
-# Upload Excel file
-st.header("Upload Excel File")
-excel_file = st.file_uploader("Upload Excel file", type=["xlsx"], key="excel")
+# Upload data file (Excel or CSV)
+st.header("Upload Data File")
+data_file = st.file_uploader("Upload Excel or CSV file", type=["xlsx", "xls", "csv"], key="data")
 
-# Check if all shapefile components and Excel file are uploaded
-if shp_file and shx_file and dbf_file and excel_file:
+# Check if all shapefile components and data file are uploaded
+if shp_file and shx_file and dbf_file and data_file:
     # Read shapefile
     with open("temp.shp", "wb") as f:
         f.write(shp_file.read())
@@ -28,8 +28,12 @@ if shp_file and shx_file and dbf_file and excel_file:
         f.write(dbf_file.read())
     shapefile = gpd.read_file("temp.shp")
 
-    # Read Excel file
-    coordinates_data = pd.read_excel(excel_file)
+    # Read data file
+    file_extension = data_file.name.split(".")[-1].lower()
+    if file_extension in ["xlsx", "xls"]:
+        coordinates_data = pd.read_excel(data_file)
+    elif file_extension == "csv":
+        coordinates_data = pd.read_csv(data_file)
 
     # User selects longitude and latitude columns
     st.header("Select Coordinate Columns")
@@ -42,6 +46,10 @@ if shp_file and shx_file and dbf_file and excel_file:
 
     # Drop rows with invalid or missing coordinates
     coordinates_data = coordinates_data.dropna(subset=[longitude_column, latitude_column])
+    coordinates_data = coordinates_data[
+        (coordinates_data[longitude_column].between(-180, 180)) &
+        (coordinates_data[latitude_column].between(-90, 90))
+    ]
 
     # User provides map customization options
     st.header("Map Customization")
@@ -66,11 +74,11 @@ if shp_file and shx_file and dbf_file and excel_file:
         shapefile = shapefile.to_crs(epsg=4326)
 
     # Plot the map
-    fig, ax = plt.subplots(figsize=(10, 7))
-    shapefile.plot(ax=ax, color=background_color, edgecolor='black')
-    coordinates_gdf.plot(ax=ax, color=point_color, markersize=10)
+    fig, ax = plt.subplots(figsize=(12, 8))
+    shapefile.plot(ax=ax, color=background_color, edgecolor='black', linewidth=0.5)
+    coordinates_gdf.plot(ax=ax, color=point_color, markersize=50, alpha=0.7)
 
-    plt.title(map_title, fontsize=16)
+    plt.title(map_title, fontsize=20, fontweight='bold')
     plt.axis('off')
 
     # Display the map
