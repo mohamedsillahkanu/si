@@ -20,8 +20,9 @@ if 'settings' not in st.session_state:
 if 'processed_df' not in st.session_state:
     st.session_state.processed_df = None
 
-# Helper functions (same as before, just showing first few for brevity)
+# Helper functions
 def detect_outliers_scatterplot(series, threshold=1.5):
+    """Detect outliers using IQR method"""
     Q1 = series.quantile(0.25)
     Q3 = series.quantile(0.75)
     IQR = Q3 - Q1
@@ -29,7 +30,72 @@ def detect_outliers_scatterplot(series, threshold=1.5):
     upper_bound = Q3 + threshold * IQR
     return lower_bound, upper_bound
 
-[... other helper functions remain the same ...]
+def calculate_moving_avg(series, window):
+    """Calculate moving average with handling for missing values"""
+    filled_series = series.fillna(method='bfill').fillna(method='ffill')
+    moving_avg = filled_series.rolling(window=window, min_periods=1).mean()
+    return moving_avg.where(series.notna(), np.nan)
+
+def calculate_moving_avg_excluding_outliers(series, window, threshold=1.5):
+    """Calculate moving average excluding outliers"""
+    lower_bound, upper_bound = detect_outliers_scatterplot(series, threshold)
+    clean_series = series.copy()
+    clean_series[(series < lower_bound) | (series > upper_bound)] = np.nan
+    return calculate_moving_avg(clean_series, window)
+
+def calculate_exponential_ma(series, span):
+    """Calculate exponential moving average"""
+    return series.ewm(span=span, adjust=False).mean()
+
+def calculate_double_ma(series, window):
+    """Calculate double moving average"""
+    first_ma = calculate_moving_avg(series, window)
+    return calculate_moving_avg(first_ma, window)
+
+def calculate_triple_ma(series, window):
+    """Calculate triple moving average"""
+    first_ma = calculate_moving_avg(series, window)
+    second_ma = calculate_moving_avg(first_ma, window)
+    return calculate_moving_avg(second_ma, window)
+
+def calculate_weighted_ma(series, window):
+    """Calculate weighted moving average"""
+    weights = np.linspace(1, 2, window)
+    return series.rolling(window=window, min_periods=1).apply(
+        lambda x: np.average(x, weights=weights[-len(x):])
+    )
+
+def process_group(group, settings):
+    """Process a group of data with the specified settings"""
+    column = settings['column']
+    threshold = settings['threshold']
+    window = settings['window']
+    method = settings['correction_method']
+    
+    # Detect outliers
+    lower_bound, upper_bound = detect_outliers_scatterplot(group[column], threshold)
+    is_outlier = (group[column] < lower_bound) | (group[column] > upper_bound)
+    group['outlier_status'] = np.where(is_outlier, 'Outlier', 'Normal')
+    
+    # Apply selected correction method
+    if method == 'Simple Moving Average':
+        corrected_values = calculate_moving_avg(group[column], window)
+    elif method == 'Exponential Moving Average':
+        corrected_values = calculate_exponential_ma(group[column], window)
+    elif method == 'Double Moving Average':
+        corrected_values = calculate_double_ma(group[column], window)
+    elif method == 'Triple Moving Average':
+        corrected_values = calculate_triple_ma(group[column], window)
+    elif method == 'Weighted Moving Average':
+        corrected_values = calculate_weighted_ma(group[column], window)
+    elif method == 'Moving Average (Excluding Outliers)':
+        corrected_values = calculate_moving_avg_excluding_outliers(group[column], window, threshold)
+    else:  # Default to winsorization
+        corrected_values = group[column].clip(lower=lower_bound, upper=upper_bound)
+    
+    # Apply corrections only to outliers
+    group['corrected_values'] = np.where(is_outlier, corrected_values, group[column])
+    return group
 
 # Main app
 st.title("🔍 Step-by-Step Outlier Detection and Correction")
@@ -103,30 +169,18 @@ elif st.session_state.step == 2:
     
     with col2:
         # Method selection
-        method_category = st.selectbox(
-            "Select method category:",
-            ["Median Methods", "Moving Average Methods", "Other Methods"]
+        correction_method = st.selectbox(
+            "Select correction method:",
+            [
+                "Simple Moving Average",
+                "Exponential Moving Average",
+                "Double Moving Average",
+                "Triple Moving Average",
+                "Weighted Moving Average",
+                "Moving Average (Excluding Outliers)",
+                "Winsorization"
+            ]
         )
-        
-        if method_category == "Median Methods":
-            correction_method = st.selectbox(
-                "Select median method:",
-                ["Median (All Values)", "Median (Excluding Outliers)", 
-                 "Rolling Median", "Weighted Median"]
-            )
-        elif method_category == "Moving Average Methods":
-            correction_method = st.selectbox(
-                "Select moving average method:",
-                ["Simple Moving Average", "Exponential Moving Average",
-                 "Double Moving Average", "Triple Moving Average",
-                 "Weighted Moving Average"]
-            )
-        else:
-            correction_method = st.selectbox(
-                "Select other method:",
-                ["Winsorization", "Mean (Including Outliers)",
-                 "Mean (Excluding Outliers)"]
-            )
     
     # Advanced settings
     st.subheader("Advanced Settings")
