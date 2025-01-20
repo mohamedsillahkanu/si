@@ -46,14 +46,11 @@ if uploaded_file_dhis2 and uploaded_file_mfl:
     # Column selection and renaming
     st.header("Select and Rename Columns")
     dhis2_col = st.selectbox("Select DHIS2 Name Column", health_facilities_dhis2_list.columns, key="dhis2_col")
-    new_dhis2_col = st.text_input("Rename DHIS2 Column", value=st.session_state.renamed_dhis2_col or dhis2_col)
+    mfl_col = st.selectbox("Select MFL Name Column", master_hf_list.columns, key="mfl_col")
 
     # Update renamed column names in session state
-    mfl_col = st.selectbox("Select MFL Name Column", master_hf_list.columns, key="mfl_col")
+    new_dhis2_col = st.text_input("Rename DHIS2 Column", value=st.session_state.renamed_dhis2_col or dhis2_col)
     new_mfl_col = st.text_input("Rename MFL Column", value=st.session_state.renamed_mfl_col or mfl_col)
-  
-   
- 
 
     if st.button("Apply Renaming"):
         st.session_state.renamed_dhis2_col = new_dhis2_col
@@ -115,24 +112,39 @@ if uploaded_file_dhis2 and uploaded_file_mfl:
 
     # Perform matching
     st.header("Matching Results")
+
     if st.button("Run Matching"):
-        hf_name_match_results = calculate_match(
-            master_hf_list[st.session_state.renamed_mfl_col], health_facilities_dhis2_list[st.session_state.renamed_dhis2_col]
-        )
+        # Debugging: Display session state and column names
+        st.write("Session State Renamed DHIS2 Column:", st.session_state.renamed_dhis2_col)
+        st.write("Session State Renamed MFL Column:", st.session_state.renamed_mfl_col)
+        st.write("DHIS2 Columns:", health_facilities_dhis2_list.columns)
+        st.write("MFL Columns:", master_hf_list.columns)
 
-        hf_name_match_results["New_HF_Name_in_MFL"] = np.where(
-            hf_name_match_results["Match_Score"] > threshold,
-            hf_name_match_results["Col2"],
-            hf_name_match_results["Col1"]
-        )
+        # Check if renamed columns exist in the DataFrame
+        if (
+            st.session_state.renamed_dhis2_col in health_facilities_dhis2_list.columns
+            and st.session_state.renamed_mfl_col in master_hf_list.columns
+        ):
+            hf_name_match_results = calculate_match(
+                master_hf_list[st.session_state.renamed_mfl_col],
+                health_facilities_dhis2_list[st.session_state.renamed_dhis2_col],
+            )
 
-        st.write("Matching Results:")
-        st.dataframe(hf_name_match_results)
+            hf_name_match_results["New_HF_Name_in_MFL"] = np.where(
+                hf_name_match_results["Match_Score"] > threshold,
+                hf_name_match_results["Col2"],
+                hf_name_match_results["Col1"],
+            )
 
-        # Download results
-        st.download_button(
-            label="Download Matching Results",
-            data=hf_name_match_results.to_csv(index=False),
-            file_name="matching_results.csv",
-            mime="text/csv"
-        )
+            st.write("Matching Results:")
+            st.dataframe(hf_name_match_results)
+
+            # Download results
+            st.download_button(
+                label="Download Matching Results",
+                data=hf_name_match_results.to_csv(index=False),
+                file_name="matching_results.csv",
+                mime="text/csv",
+            )
+        else:
+            st.error("Renamed columns not found in the DataFrame. Please ensure renaming is applied.")
