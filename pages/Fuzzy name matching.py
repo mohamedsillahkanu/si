@@ -29,6 +29,13 @@ if uploaded_file_dhis2 and uploaded_file_mfl:
         st.error(f"Error reading files: {e}")
         st.stop()
 
+    # Initialize session state for renamed columns
+    if "renamed_dhis2_col" not in st.session_state:
+        st.session_state.renamed_dhis2_col = None
+
+    if "renamed_mfl_col" not in st.session_state:
+        st.session_state.renamed_mfl_col = None
+
     # Display data
     st.subheader("Preview of Uploaded Files")
     st.write("DHIS2 File:")
@@ -39,18 +46,29 @@ if uploaded_file_dhis2 and uploaded_file_mfl:
     # Column selection and renaming
     st.header("Select and Rename Columns")
     dhis2_col = st.selectbox("Select DHIS2 Name Column", health_facilities_dhis2_list.columns, key="dhis2_col")
+    new_dhis2_col = st.text_input("Rename DHIS2 Column", value=st.session_state.renamed_dhis2_col or dhis2_col)
+
+    # Update renamed column names in session state
     mfl_col = st.selectbox("Select MFL Name Column", master_hf_list.columns, key="mfl_col")
+    new_mfl_col = st.text_input("Rename MFL Column", value=st.session_state.renamed_mfl_col or mfl_col)
+  
+   
+ 
 
-    new_dhis2_col = st.text_input("Rename DHIS2 Column", value=dhis2_col)
-    new_mfl_col = st.text_input("Rename MFL Column", value=mfl_col)
+    if st.button("Apply Renaming"):
+        st.session_state.renamed_dhis2_col = new_dhis2_col
+        st.session_state.renamed_mfl_col = new_mfl_col
+        health_facilities_dhis2_list.rename(columns={dhis2_col: new_dhis2_col}, inplace=True)
+        master_hf_list.rename(columns={mfl_col: new_mfl_col}, inplace=True)
+        st.success("Column names updated!")
 
-    health_facilities_dhis2_list.rename(columns={dhis2_col: new_dhis2_col}, inplace=True)
-    master_hf_list.rename(columns={mfl_col: new_mfl_col}, inplace=True)
-
-    st.write("Renamed DHIS2 File:")
-    st.dataframe(health_facilities_dhis2_list.head())
-    st.write("Renamed MFL File:")
-    st.dataframe(master_hf_list.head())
+    # Use renamed columns in operations
+    if st.session_state.renamed_dhis2_col:
+        st.write("Renamed DHIS2 File:")
+        st.dataframe(health_facilities_dhis2_list.head())
+    if st.session_state.renamed_mfl_col:
+        st.write("Renamed MFL File:")
+        st.dataframe(master_hf_list.head())
 
     # Matching threshold
     st.header("Set Matching Threshold")
@@ -99,7 +117,7 @@ if uploaded_file_dhis2 and uploaded_file_mfl:
     st.header("Matching Results")
     if st.button("Run Matching"):
         hf_name_match_results = calculate_match(
-            master_hf_list[new_mfl_col], health_facilities_dhis2_list[new_dhis2_col]
+            master_hf_list[st.session_state.renamed_mfl_col], health_facilities_dhis2_list[st.session_state.renamed_dhis2_col]
         )
 
         hf_name_match_results["New_HF_Name_in_MFL"] = np.where(
