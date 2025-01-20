@@ -14,7 +14,8 @@ def detect_outliers_scatterplot(series, threshold=1.5):
 
 def calculate_moving_avg(series, window):
     filled_series = series.fillna(method='bfill').fillna(method='ffill')
-    return filled_series.rolling(window=window, min_periods=1).mean()
+    moving_avg = filled_series.rolling(window=window, min_periods=1).mean()
+    return moving_avg.where(series.notna(), np.nan)
 
 def calculate_moving_avg_excluding_outliers(series, window, threshold=1.5):
     Q1 = series.quantile(0.25)
@@ -24,8 +25,9 @@ def calculate_moving_avg_excluding_outliers(series, window, threshold=1.5):
     upper_bound = Q3 + threshold * IQR
 
     clean_series = series[(series >= lower_bound) & (series <= upper_bound)]
-    moving_avg = clean_series.rolling(window=window, min_periods=1).mean()
-    return moving_avg.fillna(method='bfill').fillna(method='ffill')
+    filled_series = clean_series.fillna(method='bfill').fillna(method='ffill')
+    moving_avg = filled_series.rolling(window=window, min_periods=1).mean()
+    return moving_avg.where(series.notna(), np.nan)
 
 def winsorize_series(series, threshold=1.5):
     Q1 = series.quantile(0.25)
@@ -89,7 +91,7 @@ if uploaded_file:
         )
 
         window = st.slider(
-            "Select window size for moving average:", min_value=2, max_value=10, step=1, value=3
+            "Select window size for moving average:", min_value=2, max_value=6, step=1, value=3
         )
 
         methods = st.multiselect(
@@ -116,9 +118,15 @@ if uploaded_file:
             st.write("### Processed Data Preview")
             st.dataframe(df.head())
 
-            download_button = st.download_button(
+            @st.cache_data
+            def convert_df_to_excel(df):
+                return df.to_excel(index=False, engine='openpyxl')
+
+            processed_data = convert_df_to_excel(df)
+
+            st.download_button(
                 label="Download Processed Data",
-                data=df.to_excel(index=False, engine='openpyxl'),
-                file_name="processed_data.xlsx",
+                data=processed_data,
+                file_name="clean_routine_data.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
