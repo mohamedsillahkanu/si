@@ -8,13 +8,11 @@ import matplotlib.pyplot as plt
 def calculate_match(column1, column2, threshold):
     results = []
     for value1 in column1:
-        if value1 in column2.values:
-            results.append((value1, value1, 100, "Replace"))
-        else:
-            best_match, best_score = process.extractOne(value1, column2.values, scorer=fuzz.token_set_ratio)
-            match_status = "Match" if best_score >= threshold else "No Match"
-            results.append((value1, best_match, best_score, match_status))
-    return pd.DataFrame(results, columns=["HF_in_MFL", "HF_in_DHIS2", "Match_Score", "Match_Status"])
+        best_match, best_score = process.extractOne(value1, column2.values, scorer=fuzz.token_set_ratio)
+        match_status = "Match" if best_score >= threshold else "Unmatch"
+        new_name = best_match if match_status == "Match" else value1
+        results.append((value1, best_match, best_score, match_status, new_name))
+    return pd.DataFrame(results, columns=["HF_in_MFL", "HF_in_DHIS2", "Match_Score", "Match_Status", "new_MFL_name"])
 
 # Streamlit app setup
 st.title("Health Facility Matching and Replacement Tool")
@@ -51,25 +49,16 @@ if st.session_state.master_hf_list is not None and st.session_state.health_facil
         # Perform matching
         matching_results = calculate_match(master_hf_list[column1], health_facilities_dhis2_list[column2], match_threshold)
 
-        # Add replacement column
-        matching_results["Replacement_Column"] = matching_results.apply(
-            lambda row: row["HF_in_DHIS2"] if row["Match_Status"] == "Replace" else row["HF_in_MFL"], axis=1
-        )
-
-        # Update Master HF List
-        for index, row in matching_results.iterrows():
-            if row["Match_Status"] == "Replace":
-                master_hf_list.loc[master_hf_list[column1] == row["HF_in_MFL"], column1] = row["Replacement_Column"]
-
-        # Save updated DataFrame
+        # Update Master HF List with new_MFL_name
+        master_hf_list["new_MFL_name"] = matching_results["new_MFL_name"]
         st.session_state.master_hf_list = master_hf_list
 
         # Display matching results
-        st.subheader("Matching Results with Replacement")
+        st.subheader("Matching Results with new_MFL_name")
         st.dataframe(matching_results)
 
         # Display updated Master HF List
-        st.subheader("Updated Master HF List")
+        st.subheader("Updated Master HF List with new_MFL_name")
         st.dataframe(master_hf_list)
 
         # Option to download updated DataFrame
@@ -83,15 +72,15 @@ if st.session_state.master_hf_list is not None and st.session_state.health_facil
     if st.button("Classify Health Facilities"):
         all_unique_names = pd.DataFrame({
             "Health_Facility_Name": pd.concat([
-                master_hf_list[column1],
+                master_hf_list["new_MFL_name"],
                 health_facilities_dhis2_list[column2]
             ]).unique()
         })
 
         classified_results = all_unique_names.copy()
         classified_results["Classification"] = classified_results["Health_Facility_Name"].apply(
-            lambda x: "HF in both DHIS2 and MFL" if x in master_hf_list[column1].values and x in health_facilities_dhis2_list[column2].values
-            else "HF in MFL and not in DHIS2" if x in master_hf_list[column1].values
+            lambda x: "HF in both DHIS2 and MFL" if x in master_hf_list["new_MFL_name"].values and x in health_facilities_dhis2_list[column2].values
+            else "HF in MFL and not in DHIS2" if x in master_hf_list["new_MFL_name"].values
             else "HF in DHIS2 and not in MFL" if x in health_facilities_dhis2_list[column2].values
             else "Unclassified"
         )
@@ -108,13 +97,21 @@ if st.session_state.master_hf_list is not None and st.session_state.health_facil
         st.subheader("Summary of Classification")
         st.dataframe(summary)
 
-        # Bar chart for counts and percentages
-        st.subheader("Bar Chart of Classification Results")
-        fig, ax = plt.subplots()
-        summary.plot(kind="bar", x="Classification", y=["Count", "Percentage"], ax=ax)
-        plt.title("Classification Results")
-        plt.ylabel("Count/Percentage")
-        st.pyplot(fig)
+        # Count bar chart
+        st.subheader("Count Bar Chart of Classification Results")
+        fig_count, ax_count = plt.subplots()
+        summary.plot(kind="bar", x="Classification", y="Count", ax=ax_count)
+        plt.title("Count of Classification Results")
+        plt.ylabel("Count")
+        st.pyplot(fig_count)
+
+        # Percentage bar chart
+        st.subheader("Percentage Bar Chart of Classification Results")
+        fig_percentage, ax_percentage = plt.subplots()
+        summary.plot(kind="bar", x="Classification", y="Percentage", ax=ax_percentage)
+        plt.title("Percentage of Classification Results")
+        plt.ylabel("Percentage")
+        st.pyplot(fig_percentage)
 
         # Option to download classification results
         st.subheader("Download Classification Results")
