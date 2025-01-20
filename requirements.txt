@@ -28,4 +28,5 @@ pingouin
 PyGithub
 xlrd
 fuzzywuzzy
+rapidfuzz
 
