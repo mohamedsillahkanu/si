@@ -6,10 +6,6 @@ from shapely.geometry import Point
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
 
-def create_custom_colormap(color):
-    """Create a custom colormap with transparency gradient"""
-    return LinearSegmentedColormap.from_list('custom', ['white', color])
-
 st.set_page_config(layout="wide", page_title="Health Facility Map Generator")
 
 st.title("Interactive Health Facility Map Generator")
@@ -103,11 +99,26 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
         else:
             shapefile = shapefile.to_crs(epsg=4326)
 
-        # Create the map
+        # Create the map with fixed aspect
         fig, ax = plt.subplots(figsize=(15, 10))
 
         # Plot shapefile with custom style
         shapefile.plot(ax=ax, color=background_color, edgecolor='black', linewidth=0.5)
+
+        # Calculate and set appropriate aspect ratio
+        bounds = shapefile.total_bounds
+        mid_y = np.mean([bounds[1], bounds[3]])  # middle latitude
+        aspect = 1.0  # default aspect ratio
+        
+        if -90 < mid_y < 90:  # check if latitude is valid
+            try:
+                aspect = 1 / np.cos(np.radians(mid_y))
+                if not np.isfinite(aspect) or aspect <= 0:
+                    aspect = 1.0
+            except:
+                aspect = 1.0
+        
+        ax.set_aspect(aspect)
 
         # Plot points with custom style
         coordinates_gdf.plot(
