@@ -30,4 +30,5 @@ xlrd
 fuzzywuzzy
 rapidfuzz
 stringdist
+python-Levenshtein==0.21.0
 
