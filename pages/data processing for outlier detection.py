@@ -38,35 +38,36 @@ def winsorize_series(series, threshold=1.5):
     upper_bound = Q3 + threshold * IQR
     return series.clip(lower=lower_bound, upper=upper_bound)
 
-def process_column(df, column, threshold=1.5, window=3):
-    lower_bound, upper_bound = detect_outliers_scatterplot(df[column], threshold)
-    df[f"{column}_lower_bound"] = lower_bound
-    df[f"{column}_upper_bound"] = upper_bound
+def process_group(group, columns, threshold=1.5, window=3):
+    for column in columns:
+        lower_bound, upper_bound = detect_outliers_scatterplot(group[column], threshold)
+        group[f"{column}_lower_bound"] = lower_bound
+        group[f"{column}_upper_bound"] = upper_bound
 
-    df[f"{column}_category"] = np.where(
-        (df[column] < lower_bound) | (df[column] > upper_bound),
-        "Outlier", "Non-Outlier"
-    )
+        group[f"{column}_category"] = np.where(
+            (group[column] < lower_bound) | (group[column] > upper_bound),
+            "Outlier", "Non-Outlier"
+        )
 
-    non_outliers = df[column][(df[column] >= lower_bound) & (df[column] <= upper_bound)]
+        non_outliers = group[column][(group[column] >= lower_bound) & (group[column] <= upper_bound)]
 
-    df[f"{column}_corrected_mean_include"] = np.where(
-        df[f"{column}_category"] == "Outlier", df[column].mean(), df[column]
-    )
-    df[f"{column}_corrected_mean_exclude"] = np.where(
-        df[f"{column}_category"] == "Outlier", non_outliers.mean(), df[column]
-    )
-    df[f"{column}_corrected_median_include"] = np.where(
-        df[f"{column}_category"] == "Outlier", df[column].median(), df[column]
-    )
-    df[f"{column}_corrected_median_exclude"] = np.where(
-        df[f"{column}_category"] == "Outlier", non_outliers.median(), df[column]
-    )
-    df[f"{column}_corrected_moving_avg_include"] = calculate_moving_avg(df[column], window)
-    df[f"{column}_corrected_moving_avg_exclude"] = calculate_moving_avg_excluding_outliers(df[column], window, threshold)
-    df[f"{column}_corrected_winsorized"] = winsorize_series(df[column], threshold)
+        group[f"{column}_corrected_mean_include"] = np.where(
+            group[f"{column}_category"] == "Outlier", group[column].mean(), group[column]
+        )
+        group[f"{column}_corrected_mean_exclude"] = np.where(
+            group[f"{column}_category"] == "Outlier", non_outliers.mean(), group[column]
+        )
+        group[f"{column}_corrected_median_include"] = np.where(
+            group[f"{column}_category"] == "Outlier", group[column].median(), group[column]
+        )
+        group[f"{column}_corrected_median_exclude"] = np.where(
+            group[f"{column}_category"] == "Outlier", non_outliers.median(), group[column]
+        )
+        group[f"{column}_corrected_moving_avg_include"] = calculate_moving_avg(group[column], window)
+        group[f"{column}_corrected_moving_avg_exclude"] = calculate_moving_avg_excluding_outliers(group[column], window, threshold)
+        group[f"{column}_corrected_winsorized"] = winsorize_series(group[column], threshold)
 
-    return df
+    return group
 
 @st.cache_data
 def convert_df_to_excel(df):
@@ -90,10 +91,12 @@ if uploaded_file:
     st.write("### Dataset Preview")
     st.dataframe(df.head())
 
+    # Allow user to select columns to process
     columns_to_process = st.multiselect(
         "Select columns to process:", options=df.columns, default=df.columns[0] if len(df.columns) > 0 else None
     )
 
+    # Configure outlier detection threshold and window size
     if columns_to_process:
         threshold = st.slider(
             "Select threshold for outlier detection (IQR multiplier):", min_value=1.0, max_value=3.0, step=0.1, value=1.5
@@ -103,35 +106,28 @@ if uploaded_file:
             "Select window size for moving average:", min_value=2, max_value=10, step=1, value=3
         )
 
-        methods = st.multiselect(
-            "Select correction methods:",
-            options=[
-                "Mean (Include Outliers)", 
-                "Mean (Exclude Outliers)", 
-                "Median (Include Outliers)", 
-                "Median (Exclude Outliers)",
-                "Moving Average (Include Outliers)",
-                "Moving Average (Exclude Outliers)",
-                "Winsorization"
-            ]
-        )
-
-        process_button = st.button("Process Selected Columns")
-
-        if process_button:
+        # Add button to apply all methods
+        if st.button("Apply All Methods"):
             with st.spinner("Processing data..."):
-                for column in columns_to_process:
-                    df = process_column(df, column, threshold, window)
+                grouped_df = df.groupby(['hf_uid', 'year'])
+                df = grouped_df.apply(lambda group: process_group(group, columns_to_process, threshold, window)).reset_index(drop=True)
 
-            st.success("Processing complete!")
+            st.success("All methods applied successfully!")
+
+            # Display processed data
             st.write("### Processed Data Preview")
             st.dataframe(df.head())
 
+            # Prepare data for download
             processed_data = convert_df_to_excel(df)
 
+            # Add download button
             st.download_button(
                 label="Download Processed Data",
                 data=processed_data,
-                file_name="processed_data.xlsx",
+                file_name="clean_routine_data.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
+
+else:
+    st.info("Please upload a dataset to begin.")
