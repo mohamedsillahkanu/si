@@ -29,4 +29,5 @@ PyGithub
 xlrd
 fuzzywuzzy
 rapidfuzz
+stringdist
 
