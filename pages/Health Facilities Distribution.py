@@ -8,14 +8,14 @@ import numpy as np
 st.title("Interactive Health Facility Map Generator")
 
 # Upload shapefiles
-st.sidebar.header("Upload Shapefiles")
-shp_file = st.sidebar.file_uploader("Upload .shp file", type=["shp"])
-shx_file = st.sidebar.file_uploader("Upload .shx file", type=["shx"])
-dbf_file = st.sidebar.file_uploader("Upload .dbf file", type=["dbf"])
+st.header("Upload Shapefiles")
+shp_file = st.file_uploader("Upload .shp file", type=["shp"], key="shp")
+shx_file = st.file_uploader("Upload .shx file", type=["shx"], key="shx")
+dbf_file = st.file_uploader("Upload .dbf file", type=["dbf"], key="dbf")
 
 # Upload Excel file
-st.sidebar.header("Upload Excel File")
-excel_file = st.sidebar.file_uploader("Upload Excel file", type=["xlsx"])
+st.header("Upload Excel File")
+excel_file = st.file_uploader("Upload Excel file", type=["xlsx"], key="excel")
 
 # Check if all shapefile components and Excel file are uploaded
 if shp_file and shx_file and dbf_file and excel_file:
@@ -32,9 +32,9 @@ if shp_file and shx_file and dbf_file and excel_file:
     coordinates_data = pd.read_excel(excel_file)
 
     # User selects longitude and latitude columns
-    st.sidebar.header("Select Coordinate Columns")
-    longitude_column = st.sidebar.selectbox("Select Longitude Column", coordinates_data.columns)
-    latitude_column = st.sidebar.selectbox("Select Latitude Column", coordinates_data.columns)
+    st.header("Select Coordinate Columns")
+    longitude_column = st.selectbox("Select Longitude Column", coordinates_data.columns, key="longitude")
+    latitude_column = st.selectbox("Select Latitude Column", coordinates_data.columns, key="latitude")
 
     # Convert selected columns to numeric
     coordinates_data[longitude_column] = pd.to_numeric(coordinates_data[longitude_column], errors='coerce')
@@ -44,16 +44,16 @@ if shp_file and shx_file and dbf_file and excel_file:
     coordinates_data = coordinates_data.dropna(subset=[longitude_column, latitude_column])
 
     # User provides map customization options
-    st.sidebar.header("Map Customization")
-    map_title = st.sidebar.text_input("Enter the title of the map", "Health Facility Coordinates")
+    st.header("Map Customization")
+    map_title = st.text_input("Enter the title of the map", "Health Facility Coordinates", key="map_title")
     
     # Predefined background color options
     background_colors = ["white", "black", "gray", "lightgray"]
-    background_color = st.sidebar.selectbox("Select background color of the map", background_colors)
+    background_color = st.selectbox("Select background color of the map", background_colors, key="background")
 
     # Predefined point color options
     point_colors = ["lightblue", "lightgreen", "yellow", "brown", "red", "blue", "purple"]
-    point_color = st.sidebar.selectbox("Select point color", point_colors)
+    point_color = st.selectbox("Select point color", point_colors, key="points")
 
     # Convert DataFrame to GeoDataFrame
     geometry = [Point(xy) for xy in zip(coordinates_data[longitude_column], coordinates_data[latitude_column])]
