@@ -70,6 +70,22 @@ def main():
             st.write("### DHIS2 HF List")
             st.dataframe(health_facilities_dhis2_list)
 
+            # Allow user to rename columns
+            st.sidebar.header("Rename Columns")
+            renamed_mfl_columns = {}
+            renamed_dhis2_columns = {}
+
+            for col in master_hf_list.columns:
+                new_col = st.sidebar.text_input(f"Rename column '{col}' in Master HF List:", col)
+                renamed_mfl_columns[col] = new_col
+
+            for col in health_facilities_dhis2_list.columns:
+                new_col = st.sidebar.text_input(f"Rename column '{col}' in DHIS2 HF List:", col)
+                renamed_dhis2_columns[col] = new_col
+
+            master_hf_list = master_hf_list.rename(columns=renamed_mfl_columns)
+            health_facilities_dhis2_list = health_facilities_dhis2_list.rename(columns=renamed_dhis2_columns)
+
             # User selects columns for matching
             st.sidebar.header("Column Selection")
             mfl_col = st.sidebar.selectbox("Select HF Name column in Master HF List:", master_hf_list.columns)
