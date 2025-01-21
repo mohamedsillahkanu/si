@@ -109,7 +109,7 @@ if uploaded_file:
         # Add button to apply all methods
         if st.button("Apply All Methods"):
             with st.spinner("Processing data..."):
-                grouped_df = df.groupby(['hf_uid', 'year'])
+                grouped_df = df.groupby(['hf_uid', 'Year'])
                 df = grouped_df.apply(lambda group: process_group(group, columns_to_process, threshold, window)).reset_index(drop=True)
 
             st.success("All methods applied successfully!")
