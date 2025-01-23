@@ -26,7 +26,6 @@ def validate_and_combine_files(files):
         return None
         
     reference_columns = list(reference_df.columns)
-    reference_length = len(reference_df)
     
     dfs.append(reference_df)
     
@@ -39,10 +38,8 @@ def validate_and_combine_files(files):
             st.error(f"Column mismatch in {file.name}")
             st.write("Expected columns:", reference_columns)
             st.write("Found columns:", list(df.columns))
-            return None
-            
-        if len(df) != reference_length:
-            st.error(f"Row count mismatch in {file.name}. Expected {reference_length}, found {len(df)}")
+            st.write("Missing columns:", set(reference_columns) - set(df.columns))
+            st.write("Extra columns:", set(df.columns) - set(reference_columns))
             return None
             
         dfs.append(df)
@@ -61,7 +58,6 @@ if uploaded_files:
         st.write("Preview of combined data:")
         st.dataframe(combined_df.head())
         
-        # Download button
         csv = combined_df.to_csv(index=False)
         st.download_button(
             label="Download Combined Data",
