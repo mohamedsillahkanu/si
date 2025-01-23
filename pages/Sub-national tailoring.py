@@ -46,6 +46,24 @@ def validate_and_combine_files(files):
     
     return pd.concat(dfs, ignore_index=True)
 
+def process_dataframe_with_integer_month(df, column_to_split, drop_column):
+    try:
+        month_map = {
+            'January': '01', 'February': '02', 'March': '03', 'April': '04',
+            'May': '05', 'June': '06', 'July': '07', 'August': '08',
+            'September': '09', 'October': '10', 'November': '11', 'December': '12'
+        }
+
+        df[['month', 'year']] = df[column_to_split].str.split(' ', expand=True)
+        df['month'] = df['month'].map(month_map)
+        df['year'] = pd.to_numeric(df['year'], errors='raise')
+        df['Date'] = pd.to_datetime(df['year'].astype(str) + '-' + df['month'], format='%Y-%m')
+        df.drop(columns=[drop_column], inplace=True)
+        return df
+    except Exception as e:
+        st.error(f"Error processing DataFrame: {e}")
+        return None
+
 st.title("File Validator and Combiner")
 
 uploaded_files = st.file_uploader("Upload files", type=['xlsx', 'xls', 'csv'], accept_multiple_files=True)
@@ -55,13 +73,20 @@ if uploaded_files:
     
     if combined_df is not None:
         st.success("Files successfully combined!")
-        st.write("Preview of combined data:")
-        st.dataframe(combined_df.head())
         
-        csv = combined_df.to_csv(index=False)
-        st.download_button(
-            label="Download Combined Data",
-            data=csv,
-            file_name="combined_data.csv",
-            mime="text/csv"
-        )
+        if st.button("Create Date Column"):
+            processed_df = process_dataframe_with_integer_month(combined_df, 'periodname', 'orgunitlevel5')
+            if processed_df is not None:
+                st.success("Date column created successfully!")
+                st.write("Preview of processed data:")
+                st.dataframe(processed_df.head())
+                
+                csv = processed_df.to_csv(index=False)
+                st.download_button(
+                    label="Download Processed Data",
+                    data=csv,
+                    file_name="processed_data.csv",
+                    mime="text/csv"
+                )
+            else:
+                st.error("Failed to process data")
