@@ -7,7 +7,7 @@ def read_file(file):
         if file_type == 'csv':
             return pd.read_csv(file)
         elif file_type in ['xlsx', 'xls']:
-            return pd.read_excel(file)
+            return pd.read_excel(file, engine='openpyxl' if file_type == 'xlsx' else 'xlrd')
         else:
             st.error(f"Unsupported file type: {file_type}")
             return None
@@ -35,79 +35,48 @@ def validate_and_combine_files(files):
             
         if list(df.columns) != reference_columns:
             st.error(f"Column mismatch in {file.name}")
-            st.write("Expected columns:", reference_columns)
-            st.write("Found columns:", list(df.columns))
-            st.write("Missing columns:", set(reference_columns) - set(df.columns))
-            st.write("Extra columns:", set(df.columns) - set(reference_columns))
+            col_diff = set(df.columns).symmetric_difference(set(reference_columns))
+            st.write("Mismatched columns:", col_diff)
             return None
             
         dfs.append(df)
     
-    return pd.concat(dfs, ignore_index=True)
+    combined_df = pd.concat(dfs, ignore_index=True)
+    
+    # Process date immediately after combining
+    month_map = {
+        'January': '01', 'February': '02', 'March': '03', 'April': '04',
+        'May': '05', 'June': '06', 'July': '07', 'August': '08',
+        'September': '09', 'October': '10', 'November': '11', 'December': '12'
+    }
+
+    combined_df[['month', 'year']] = combined_df['periodname'].str.split(' ', expand=True)
+    combined_df['month'] = combined_df['month'].map(month_map)
+    combined_df['year'] = pd.to_numeric(combined_df['year'])
+    combined_df['Date'] = combined_df['year'].astype(str) + '-' + combined_df['month']
+    combined_df = combined_df.drop(columns=['periodname', 'orgunitlevel5'])
+    
+    return combined_df
 
 if 'combined_df' not in st.session_state:
     st.session_state.combined_df = None
 
-st.title("File Combiner")
-uploaded_files = st.file_uploader("Upload files", type=['xlsx', 'xls', 'csv'], accept_multiple_files=True)
+st.title("Malaria Data Processor")
+uploaded_files = st.file_uploader("Upload Excel or CSV files", type=['xlsx', 'xls', 'csv'], accept_multiple_files=True)
 
 if uploaded_files:
     combined_df = validate_and_combine_files(uploaded_files)
     
     if combined_df is not None:
         st.session_state.combined_df = combined_df.copy()
-        st.success("Files successfully combined!")
-        st.write("Preview of combined data:")
-        st.dataframe(st.session_state.combined_df.head())
+        st.success("Files processed successfully!")
+        with st.expander("View Processed Data"):
+            st.dataframe(st.session_state.combined_df)
         
-        csv = st.session_state.combined_df.to_csv(index=False)
+        csv = combined_df.to_csv(index=False).encode('utf-8')
         st.download_button(
-            label="Download Combined Data",
-            data=csv,
-            file_name="combined_data.csv",
-            mime="text/csv"
+            "Download Processed Data",
+            csv,
+            "merge_routine_data_processed.csv",
+            "text/csv"
         )
-import streamlit as st
-import pandas as pd
-
-def process_dataframe_with_integer_month(df, column_to_split, drop_column):
-    try:
-        month_map = {
-            'January': '01', 'February': '02', 'March': '03', 'April': '04',
-            'May': '05', 'June': '06', 'July': '07', 'August': '08',
-            'September': '09', 'October': '10', 'November': '11', 'December': '12'
-        }
-
-        df = df.copy()
-        df[['month', 'year']] = df[column_to_split].str.split(' ', expand=True)
-        df['month'] = df['month'].map(month_map)
-        df['year'] = pd.to_numeric(df['year'], errors='raise')
-        df['Date'] = df['year'].astype(str) + '-' + df['month']
-        df.drop(columns=[drop_column], inplace=True)
-        return df
-    except Exception as e:
-        st.error(f"Error processing DataFrame: {e}")
-        return None
-
-st.title("Date Processor")
-
-if 'combined_df' in st.session_state and st.session_state.combined_df is not None:
-    if st.button("Create Date Column"):
-        processed_df = process_dataframe_with_integer_month(
-            st.session_state.combined_df, 'periodname', 'orgunitlevel5'
-        )
-        if processed_df is not None:
-            st.session_state.processed_df = processed_df.copy()
-            st.success("Date column created successfully!")
-            st.write("Preview of processed data:")
-            st.dataframe(processed_df.head())
-            
-            csv = processed_df.to_csv(index=False)
-            st.download_button(
-                label="Download Processed Data",
-                data=csv,
-                file_name="processed_data.csv",
-                mime="text/csv"
-            )
-else:
-    st.warning("Please combine files first in the File Combiner app.")
