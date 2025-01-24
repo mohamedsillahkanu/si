@@ -56,11 +56,11 @@ def create_hfid_variable_subplots(df, variables, hfid, year, plot_labels):
                 axes[i].scatter(
                     hfid_df['month'], hfid_df[method], alpha=0.7, color='blue', label='Non-Outlier'
                 )
-                if not outliers.empty:
+                if method == column and not outliers.empty:
                     axes[i].scatter(
                         outliers['month'], outliers[method], color='red', label='Outlier', zorder=3
                     )
-                if not corrected_points.empty:
+                elif method != column and not corrected_points.empty:
                     axes[i].scatter(
                         corrected_points['month'], corrected_points[method], color='green', label='Corrected Outlier', zorder=4
                     )
