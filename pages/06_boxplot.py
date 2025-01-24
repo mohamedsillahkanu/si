@@ -22,13 +22,11 @@ def generate_box_plot(df, column, hf_uid, year):
     axes[0].boxplot(filtered_df[column], patch_artist=True, notch=True, boxprops=dict(facecolor="lightblue"))
     axes[0].set_title(f"Box Plot for {column} (Original)")
     axes[0].set_ylabel(column)
-    axes[0].set_xlabel("Data Points")
 
     # Box plot for the winsorized column
     axes[1].boxplot(filtered_df[f'{column}_winsorized'], patch_artist=True, notch=True, boxprops=dict(facecolor="lightgreen"))
     axes[1].set_title(f"Box Plot for {column}_winsorized (Winsorized)")
     axes[1].set_ylabel(column)
-    axes[1].set_xlabel("Data Points")
 
     plt.tight_layout()
     st.pyplot(fig)
