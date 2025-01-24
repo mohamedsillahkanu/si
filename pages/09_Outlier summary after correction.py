@@ -66,7 +66,7 @@ def generate_outlier_charts(df, column, chart_type):
                 ax = axes[i]
                 year_data = grouped.loc[year]
                 wedges, _, autotexts = ax.pie(year_data, colors=colors_list,
-                                            autopct='%1.1f%%')
+                                            autopct='%1.2f%%')
                 ax.set_title(f"Year: {year}")
                 
         for j in range(len(years), len(axes)):
