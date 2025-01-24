@@ -12,26 +12,12 @@ def detect_outliers_scatterplot(df, col):
     upper_bound = Q3 + 1.5 * IQR
     return lower_bound, upper_bound
 
-# Function to calculate moving average
-def calculate_moving_avg(series, window):
-    ma = series.rolling(window=window, min_periods=1).mean()
-    return ma.combine_first(series)
+# Function to apply winsorization to a column
+def winsorize_series(series, lower_bound, upper_bound):
+    return series.clip(lower=lower_bound, upper=upper_bound)
 
-# Improved function to calculate moving average excluding outliers
-def calculate_moving_avg_excluding_outliers(series, window, threshold=1.5):
-    q1 = series.quantile(0.25)
-    q3 = series.quantile(0.75)
-    iqr = q3 - q1
-    lower_bound = q1 - threshold * iqr
-    upper_bound = q3 + threshold * iqr
-
-    non_outlier_mask = (series >= lower_bound) & (series <= upper_bound)
-    clean_series = series.where(non_outlier_mask)
-    ma = clean_series.rolling(window=window, min_periods=1).mean()
-    return ma.combine_first(series)
-
-# Function to process and export the results for a single column
-def process_column(df, column):
+# Function to process and export the results for a single column using Winsorization
+def process_column_winsorization(df, column):
     grouped = df.groupby(['adm1', 'adm2', 'adm3', 'hf_uid', 'year'])
 
     results = []
@@ -44,39 +30,23 @@ def process_column(df, column):
             (group[column] < lower_bound) | (group[column] > upper_bound), 'Outlier', 'Non-Outlier'
         )
 
-        mean_include_outliers = group[column].mean()
-        mean_exclude_outliers = group[(group[column] >= lower_bound) & (group[column] <= upper_bound)][column].mean()
-        median_include_outliers = group[column].median()
-        median_exclude_outliers = group[(group[column] >= lower_bound) & (group[column] <= upper_bound)][column].median()
-        moving_avg_include_outliers = calculate_moving_avg(group[column], window=3)
-        moving_avg_exclude_outliers = calculate_moving_avg_excluding_outliers(group[column], window=3)
-        winsorised = group[column].clip(lower=lower_bound, upper=upper_bound)
-
-        group[f'{column}_corrected_mean_include'] = group[column].where(group[f'{column}_category'] == 'Non-Outlier', mean_include_outliers)
-        group[f'{column}_corrected_mean_exclude'] = group[column].where(group[f'{column}_category'] == 'Non-Outlier', mean_exclude_outliers)
-        group[f'{column}_corrected_median_include'] = group[column].where(group[f'{column}_category'] == 'Non-Outlier', median_include_outliers)
-        group[f'{column}_corrected_median_exclude'] = group[column].where(group[f'{column}_category'] == 'Non-Outlier', median_exclude_outliers)
-        group[f'{column}_corrected_moving_avg_include'] = moving_avg_include_outliers
-        group[f'{column}_corrected_moving_avg_exclude'] = moving_avg_exclude_outliers
-        group[f'{column}_corrected_winsorised'] = group[column].where(group[f'{column}_category'] == 'Non-Outlier', winsorised)
+        # Apply winsorization
+        group[f'{column}_winsorized'] = winsorize_series(group[column], lower_bound, upper_bound)
 
         results.append(group)
 
     final_df = pd.concat(results)
 
     export_columns = [
-        'adm1', 'adm2', 'adm3', 'hf', 'hf_uid','year','month', 'Date', column,
+        'adm1', 'adm2', 'adm3', 'hf', 'hf_uid', 'year', column,
         f'{column}_category', f'{column}_lower_bound', f'{column}_upper_bound',
-        f'{column}_corrected_mean_include', f'{column}_corrected_mean_exclude',
-        f'{column}_corrected_median_include', f'{column}_corrected_median_exclude',
-        f'{column}_corrected_moving_avg_include', f'{column}_corrected_moving_avg_exclude',
-        f'{column}_corrected_winsorised'
+        f'{column}_winsorized'
     ]
 
     return final_df[export_columns]
 
 # Streamlit app setup
-st.title("Outlier Detection and Correction")
+st.title("Outlier Detection and Winsorization")
 
 uploaded_file = st.file_uploader("Upload your dataset (CSV or Excel):", type=["csv", "xlsx"])
 
@@ -96,7 +66,7 @@ if uploaded_file:
 
         for column in columns_to_process:
             st.write(f"Processing column: {column}")
-            processed_df = process_column(df, column)
+            processed_df = process_column_winsorization(df, column)
             processed_dfs.append(processed_df)
 
             st.write(f"### Processed Data for {column}:")
@@ -115,8 +85,8 @@ if uploaded_file:
         combined_buffer = BytesIO()
         final_combined_df.to_csv(combined_buffer, index=False)
         st.download_button(
-            label="Download Cleaned Routine Data",
+            label="Download Winsorized Data",
             data=combined_buffer.getvalue(),
-            file_name="clean_routine_data.csv",
+            file_name="outlier_corrected_data.csv",
             mime="text/csv"
         )
