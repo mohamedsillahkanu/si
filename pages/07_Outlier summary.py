@@ -71,7 +71,7 @@ if uploaded_file:
         st.write(df.head())
 
         # Select column for outlier analysis
-        numeric_columns = df.select_dtypes(include=["float", "int"]).columns.tolist()
+        numeric_columns = [col for col in df.columns if '_category' in col]
         selected_column = st.selectbox("Select column for outlier analysis:", numeric_columns)
 
         if st.button("Generate Outlier Charts"):
