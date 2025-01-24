@@ -9,7 +9,7 @@ def load_data(file):
     return pd.read_excel(file)
 
 def create_plots(df, variables, hfid, year):
-    hfid_df = df[(df['hf_uid'] == hfid) & (df['Year'] == year)]
+    hfid_df = df[(df['hf_uid'] == hfid) & (df['year'] == year)]
     if hfid_df.empty:
         st.error(f"No data available for HFID: {hfid} in Year: {year}")
         return
@@ -95,7 +95,7 @@ def main():
         with col1:
             hfid = st.selectbox('Select HFID:', sorted(df['hf_uid'].unique()))
         with col2:
-            year = st.selectbox('Select Year:', sorted(df['Year'].unique()))
+            year = st.selectbox('Select Year:', sorted(df['year'].unique()))
 
         variables = ['allout', 'susp', 'test', 'conf', 'maltreat']
         
