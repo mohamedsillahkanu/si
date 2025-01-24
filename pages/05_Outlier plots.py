@@ -1,121 +1,127 @@
 import streamlit as st
+import matplotlib.pyplot as plt
+import matplotlib.lines as mlines
 import pandas as pd
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 
-def create_plots(df, hf_id, year):
-    plot_labels = {
-        "allout": "All Outpatients",
-        "susp": "Suspected Cases",
-        "test": "Tests Conducted",
-        "conf": "Confirmed Cases",
-        "maltreat": "Malaria Treatments",
-        "pres": "Presumptive Treatment",
-        "maladm": "Malaria Admissions",
-        "maldth": "Malaria Deaths"
-    }
+# Function to create subplots for each HFID and variable
+def create_hfid_variable_subplots(df, variables, hfid, year, plot_labels):
+    """
+    Create subplots for each HFID and variable with consistent y-axis scale within a figure.
 
-    df_filtered = df[(df['hf_uid'] == hf_id) & (df['year'] == year)]
-
-    if df_filtered.empty:
-        st.error(f"No data available for Facility ID {hf_id} in Year {year}.")
+    Parameters:
+    - df (pd.DataFrame): The DataFrame containing the data.
+    - variables (list): List of variables to plot.
+    - hfid (str): Selected HFID.
+    - year (int): Selected year.
+    - plot_labels (dict): Custom labels for variables as keys.
+    """
+    hfid_df = df[(df['hf_uid'] == hfid) & (df['year'] == year)]
+    if hfid_df.empty:
+        st.warning(f"No data available for HFID: {hfid} in Year: {year}")
         return
 
-    for var, var_label in plot_labels.items():
-        if var not in df_filtered.columns or df_filtered[var].isna().all():
-            st.warning(f"No data available for {var_label}.")
-            continue
+    for column in variables:
+        fig, axes = plt.subplots(4, 2, figsize=(15, 18))
+        axes = axes.flatten()
 
-        methods = [
-            var,
-            f"{var}_corrected_mean_include",
-            f"{var}_corrected_mean_exclude",
-            f"{var}_corrected_median_include",
-            f"{var}_corrected_median_exclude",
-            f"{var}_corrected_moving_avg_include",
-            f"{var}_corrected_moving_avg_exclude",
-            f"{var}_corrected_winsorised"
+        correction_methods = [
+            column,
+            f'{column}_corrected_mean_include',
+            f'{column}_corrected_mean_exclude',
+            f'{column}_corrected_median_include',
+            f'{column}_corrected_median_exclude',
+            f'{column}_corrected_moving_avg_include',
+            f'{column}_corrected_moving_avg_exclude',
+            f'{column}_corrected_winsorised',
         ]
 
-        max_y = max([df_filtered[m].max() for m in methods if m in df_filtered.columns], default=0)
-        fig = make_subplots(rows=4, cols=2, subplot_titles=methods)
+        max_y_value = float('-inf')
+        min_y_value = float('inf')
+        for method in correction_methods:
+            if method in hfid_df.columns:
+                max_y_value = max(max_y_value, hfid_df[method].max())
+                min_y_value = min(min_y_value, hfid_df[method].min())
 
-        for i, method in enumerate(methods, 1):
-            row = (i - 1) // 2 + 1
-            col = (i - 1) % 2 + 1
-
-            if method in df_filtered.columns:
-                Q1 = df_filtered[method].quantile(0.25)
-                Q3 = df_filtered[method].quantile(0.75)
+        for i, method in enumerate(correction_methods):
+            if method in hfid_df.columns:
+                Q1 = hfid_df[method].quantile(0.25)
+                Q3 = hfid_df[method].quantile(0.75)
                 IQR = Q3 - Q1
-                lower = max(0, Q1 - 1.5 * IQR)
-                upper = Q3 + 1.5 * IQR
+                lower_bound = Q1 - 1.5 * IQR
+                upper_bound = Q3 + 1.5 * IQR
 
-                mask = (df_filtered[method] >= lower) & (df_filtered[method] <= upper)
-                non_outliers = df_filtered[mask]
-                outliers = df_filtered[~mask]
+                outliers = hfid_df[(hfid_df[method] < lower_bound) | (hfid_df[method] > upper_bound)]
+                corrected_points = hfid_df[hfid_df.get(f'{column}_category') == 'Outlier']
 
-                fig.add_trace(
-                    go.Scatter(
-                        x=non_outliers['month'],
-                        y=non_outliers[method],
-                        mode='markers',
-                        marker=dict(color='blue', size=8),
-                        name='Non-Outliers',
-                        showlegend=(i == 1)
-                    ),
-                    row=row, col=col
+                axes[i].scatter(
+                    hfid_df['month'], hfid_df[method], alpha=0.7, color='blue', label='Non-Outlier'
                 )
+                if not outliers.empty:
+                    axes[i].scatter(
+                        outliers['month'], outliers[method], color='red', label='Outlier', zorder=3
+                    )
+                if not corrected_points.empty:
+                    axes[i].scatter(
+                        corrected_points['month'], corrected_points[method], color='green', label='Corrected Outlier', zorder=4
+                    )
 
-                fig.add_trace(
-                    go.Scatter(
-                        x=outliers['month'],
-                        y=outliers[method],
-                        mode='markers',
-                        marker=dict(color='red', size=8),
-                        name='Outliers',
-                        showlegend=(i == 1)
-                    ),
-                    row=row, col=col
-                )
+                axes[i].axhline(lower_bound, color='green', linestyle='--', label='Lower Bound', linewidth=1)
+                axes[i].axhline(upper_bound, color='red', linestyle='--', label='Upper Bound', linewidth=1)
 
-                fig.add_hline(y=lower, line=dict(color="green", dash="dash"), row=row, col=col)
-                fig.add_hline(y=upper, line=dict(color="red", dash="dash"), row=row, col=col)
+                axes[i].set_title(f"{plot_labels[column]} - {method}")
+                axes[i].set_xlabel('Month')
+                axes[i].set_ylabel('Value')
+                axes[i].set_ylim(min_y_value, max_y_value)
+            else:
+                axes[i].text(0.5, 0.5, 'Data not available', horizontalalignment='center',
+                             verticalalignment='center', fontsize=12)
+                axes[i].set_title("Missing Data")
 
-                fig.update_xaxes(
-                    title_text="Month",
-                    ticktext=['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                              'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-                    tickvals=list(range(1, 13)),
-                    row=row, col=col
-                )
-                fig.update_yaxes(title_text=var_label, range=[0, max_y * 1.1], row=row, col=col)
+        blue_marker = mlines.Line2D([], [], color='blue', marker='o', linestyle='None', markersize=8, label='Non-Outlier')
+        red_marker = mlines.Line2D([], [], color='red', marker='o', linestyle='None', markersize=8, label='Outlier')
+        green_marker = mlines.Line2D([], [], color='green', marker='o', linestyle='None', markersize=8, label='Corrected Outlier')
+        green_line = mlines.Line2D([], [], color='green', linestyle='--', label='Q1 bound')
+        red_line = mlines.Line2D([], [], color='red', linestyle='--', label='Q3 bound')
 
-        fig.update_layout(
-            height=1200,
-            width=1000,
-            title=f"{var_label} ({hf_id}) - Year {year}",
-            showlegend=True
+        fig.legend(
+            handles=[blue_marker, red_marker, green_marker, green_line, red_line],
+            loc='upper center',
+            bbox_to_anchor=(0.5, 1.03),
+            ncol=5,
+            title="Legend",
+            fontsize=10
         )
 
-        st.plotly_chart(fig)
+        plt.tight_layout()
+        st.pyplot(fig)
 
-st.title("Malaria Data Visualization")
+# Streamlit app setup
+st.title("Outlier Detection and Correction Viewer")
 
-uploaded_file = st.file_uploader("Upload CSV File (outlier_analysis_data.csv)", type=['csv'])
+# Load the data (replace with your actual dataset loading code)
+df = pd.DataFrame()  # Replace with your dataset loading logic
 
-if uploaded_file:
-    df = pd.read_csv(uploaded_file)
+# User inputs
+hfids = df['hf_uid'].unique() if not df.empty else []
+years = df['year'].unique() if not df.empty else []
 
-    if 'hf_uid' not in df.columns or 'year' not in df.columns or 'month' not in df.columns:
-        st.error("The uploaded file must contain 'hf_uid', 'year', and 'month' columns.")
+selected_hfid = st.selectbox("Select HFID", hfids)
+selected_year = st.selectbox("Select Year", years)
+
+variables_to_process = ['allout', 'susp', 'test', 'conf', 'maltreat', 'pres', 'maladm', 'maldth']
+plot_labels = {
+    'allout': 'All outpatients',
+    'susp': 'Suspected cases',
+    'test': 'Tests conducted',
+    'conf': 'Confirmed cases',
+    'maltreat': 'Malaria treatments',
+    'pres': 'Presumtive treatment',
+    'maladm': 'Malaria admissions',
+    'maldth': 'Malaria deaths'
+}
+
+if st.button("Generate Plots"):
+    if df.empty:
+        st.error("Data not loaded. Please load your dataset.")
     else:
-        col1, col2 = st.columns(2)
-
-        with col1:
-            hf_id = st.selectbox("Select Facility ID", sorted(df['hf_uid'].unique()))
-        with col2:
-            year = st.selectbox("Select Year", sorted(df[df['hf_uid'] == hf_id]['year'].unique()))
-
-        if st.button("Generate Plots"):
-            create_plots(df, hf_id, year)
+        create_hfid_variable_subplots(df, variables_to_process, selected_hfid, selected_year, plot_labels)
