@@ -1,23 +1,24 @@
 import streamlit as st
+import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.lines as mlines
-import pandas as pd
+import io
+import openpyxl
 
-# Function to create subplots for each HFID and variable
+def load_data(file):
+    if file.name.endswith('.csv'):
+        df = pd.read_csv(file)
+    elif file.name.endswith(('.xlsx', '.xls')):
+        df = pd.read_excel(file)
+    return df
+
 def create_hfid_variable_subplots(df, variables, hfid, year, plot_labels):
     """
-    Create subplots for each HFID and variable with consistent y-axis scale within a figure.
-
-    Parameters:
-    - df (pd.DataFrame): The DataFrame containing the data.
-    - variables (list): List of variables to plot.
-    - hfid (str): Selected HFID.
-    - year (int): Selected year.
-    - plot_labels (dict): Custom labels for variables as keys.
+    Create subplots for HFID and variable with consistent y-axis scale.
     """
     hfid_df = df[(df['hf_uid'] == hfid) & (df['year'] == year)]
     if hfid_df.empty:
-        st.warning(f"No data available for HFID: {hfid} in Year: {year}")
+        st.error(f"No data available for HFID: {hfid} in Year: {year}")
         return
 
     for column in variables:
@@ -51,40 +52,64 @@ def create_hfid_variable_subplots(df, variables, hfid, year, plot_labels):
                 upper_bound = Q3 + 1.5 * IQR
 
                 outliers = hfid_df[(hfid_df[method] < lower_bound) | (hfid_df[method] > upper_bound)]
-                corrected_points = hfid_df[hfid_df.get(f'{column}_category') == 'Outlier']
+                if f'{column}_category' in hfid_df.columns:
+                    corrected_points = hfid_df[hfid_df[f'{column}_category'] == 'Outlier']
+                else:
+                    corrected_points = pd.DataFrame()
 
-                axes[i].scatter(
-                    hfid_df['month'], hfid_df[method], alpha=0.7, color='blue', label='Non-Outlier'
-                )
-                if method == column and not outliers.empty:
+                if method == column:
                     axes[i].scatter(
-                        outliers['month'], outliers[method], color='red', label='Outlier', zorder=3
+                        hfid_df['month'], hfid_df[method],
+                        alpha=0.7, color='blue', label='Non-Outlier'
                     )
-                elif method != column and not corrected_points.empty:
+                    if not outliers.empty:
+                        axes[i].scatter(
+                            outliers['month'], outliers[method],
+                            color='red', label='Outlier', zorder=3
+                        )
+                else:
                     axes[i].scatter(
-                        corrected_points['month'], corrected_points[method], color='green', label='Corrected Outlier', zorder=4
+                        hfid_df['month'], hfid_df[method],
+                        alpha=0.7, color='blue', label='Non-Outlier'
                     )
+                    if not corrected_points.empty:
+                        axes[i].scatter(
+                            corrected_points['month'], corrected_points[method],
+                            color='green', label='Corrected Outlier', zorder=4
+                        )
 
                 axes[i].axhline(lower_bound, color='green', linestyle='--', label='Lower Bound', linewidth=1)
                 axes[i].axhline(upper_bound, color='red', linestyle='--', label='Upper Bound', linewidth=1)
 
-                axes[i].set_title(f"{plot_labels[column]} - {method}")
+                titles = {
+                    column: "Outlier detection with raw data",
+                    f'{column}_corrected_mean_include': "Outlier correction using mean (included outliers)",
+                    f'{column}_corrected_mean_exclude': "Outlier correction using mean (excluded outliers)",
+                    f'{column}_corrected_median_include': "Outlier correction using median (included outliers)",
+                    f'{column}_corrected_median_exclude': "Outlier correction using median (excluded outliers)",
+                    f'{column}_corrected_moving_avg_include': "Outlier correction using 3-months moving average (included)",
+                    f'{column}_corrected_moving_avg_exclude': "Outlier correction using 3-months moving average (excluded)",
+                    f'{column}_corrected_winsorised': "Outlier correction using winsorisation"
+                }
+
+                axes[i].set_title(titles.get(method, "Outlier analysis"))
                 axes[i].set_xlabel('Month')
-                axes[i].set_ylabel('Value')
+                axes[i].set_ylabel(plot_labels[column])
                 axes[i].set_ylim(min_y_value, max_y_value)
             else:
-                axes[i].text(0.5, 0.5, 'Data not available', horizontalalignment='center',
-                             verticalalignment='center', fontsize=12)
+                axes[i].text(0.5, 0.5, 'Data not available', ha='center', va='center', fontsize=12)
                 axes[i].set_title("Missing Data")
 
-        blue_marker = mlines.Line2D([], [], color='blue', marker='o', linestyle='None', markersize=8, label='Non-Outlier')
-        red_marker = mlines.Line2D([], [], color='red', marker='o', linestyle='None', markersize=8, label='Outlier')
-        green_marker = mlines.Line2D([], [], color='green', marker='o', linestyle='None', markersize=8, label='Corrected Outlier')
-        green_line = mlines.Line2D([], [], color='green', linestyle='--', label='Q1 bound')
-        red_line = mlines.Line2D([], [], color='red', linestyle='--', label='Q3 bound')
+        legend_elements = [
+            mlines.Line2D([], [], color='blue', marker='o', linestyle='None', markersize=8, label='Non-outlier'),
+            mlines.Line2D([], [], color='red', marker='o', linestyle='None', markersize=8, label='Outlier'),
+            mlines.Line2D([], [], color='green', marker='o', linestyle='None', markersize=8, label='Corrected outlier'),
+            mlines.Line2D([], [], color='green', linestyle='--', label='Q1 bound'),
+            mlines.Line2D([], [], color='red', linestyle='--', label='Q3 bound')
+        ]
 
         fig.legend(
-            handles=[blue_marker, red_marker, green_marker, green_line, red_line],
+            handles=legend_elements,
             loc='upper center',
             bbox_to_anchor=(0.5, 1.03),
             ncol=5,
@@ -93,29 +118,28 @@ def create_hfid_variable_subplots(df, variables, hfid, year, plot_labels):
         )
 
         plt.tight_layout()
+        plt.suptitle(f'{hfid}: Outlier detection and correction ({year})', fontsize=16, y=1.05)
         st.pyplot(fig)
 
-# Streamlit app setup
-st.title("Outlier Detection and Correction Viewer")
-
-# File upload
-uploaded_file = st.file_uploader("Upload your dataset", type=["csv", "xlsx", "xls"])
-
-if uploaded_file:
-    # Load the data based on file type
-    try:
-        if uploaded_file.name.endswith(".csv"):
-            df = pd.read_csv(uploaded_file)
-        else:
-            df = pd.read_excel(uploaded_file)
-
+def main():
+    st.title("Outlier Detection and Correction Analysis")
+    
+    uploaded_file = st.file_uploader("Choose a file", type=['csv', 'xlsx', 'xls'])
+    
+    if uploaded_file is not None:
+        df = load_data(uploaded_file)
+        
+        # Get unique HFIDs and years
+        hfids = sorted(df['hf_uid'].unique())
+        years = sorted(df['year'].unique())
+        
         # User inputs
-        hfids = df['hf_uid'].unique() if not df.empty else []
-        years = df['year'].unique() if not df.empty else []
-
-        selected_hfid = st.selectbox("Select HFID", hfids)
-        selected_year = st.selectbox("Select Year", years)
-
+        col1, col2 = st.columns(2)
+        with col1:
+            selected_hfid = st.selectbox('Select HFID:', hfids)
+        with col2:
+            selected_year = st.selectbox('Select Year:', years)
+            
         variables_to_process = ['allout', 'susp', 'test', 'conf', 'maltreat', 'pres', 'maladm', 'maldth']
         plot_labels = {
             'allout': 'All outpatients',
@@ -127,10 +151,9 @@ if uploaded_file:
             'maladm': 'Malaria admissions',
             'maldth': 'Malaria deaths'
         }
-
-        if st.button("Generate Plots"):
+        
+        if st.button('Generate Plots'):
             create_hfid_variable_subplots(df, variables_to_process, selected_hfid, selected_year, plot_labels)
-    except Exception as e:
-        st.error(f"An error occurred while processing the file: {e}")
-else:
-    st.info("Please upload a dataset to get started.")
+
+if __name__ == '__main__':
+    main()
