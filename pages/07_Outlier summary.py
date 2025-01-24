@@ -27,7 +27,7 @@ def generate_outlier_charts(df, column, chart_type):
         legend_elements = [plt.Rectangle((0,0),1,1, facecolor=color) 
                          for color in colors]
         fig.legend(legend_elements, categories, 
-                  loc='upper center', bbox_to_anchor=(0.5, 0.98),
+                  loc='upper center', bbox_to_anchor=(0.5, 0.85),
                   ncol=len(categories), title="Categories")
         
         # Create subplot grid
@@ -44,7 +44,7 @@ def generate_outlier_charts(df, column, chart_type):
                 ax.set_title(f"Year: {year}")
                 ax.set_ylabel("Count")
                 ax.set_xlabel("Categories")
-                ax.set_xticklabels(categories, rotation=45, ha='right')
+                ax.set_xticklabels(categories, rotation=0, ha='right')
                 
                 # Add value labels on bars
                 for bar in bars:
