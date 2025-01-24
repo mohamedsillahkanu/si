@@ -90,8 +90,9 @@ def process_columns(df: pd.DataFrame, column: str) -> pd.DataFrame:
         return None
 
 st.title("Malaria Data Outlier Processor")
+st.write("Upload the key_variables.csv downloaded")
 
-uploaded_file = st.file_uploader("Upload key_variables.csv", type=['csv', 'xlsx', 'xls'])
+uploaded_file = st.file_uploader("Upload the file here", type=['csv', 'xlsx', 'xls'])
 
 if uploaded_file:
     try:
