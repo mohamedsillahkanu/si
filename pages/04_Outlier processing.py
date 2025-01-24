@@ -18,10 +18,10 @@ def winsorize_series(series, lower_bound, upper_bound):
 
 # Function to process and export the results for a single column using Winsorization
 def process_column_winsorization(df, column):
-    grouped = df.groupby(['adm1', 'adm2', 'adm3', 'hf_uid', 'year'])
+    grouped = df.groupby(['hf_uid', 'year'])
 
     results = []
-    for (adm1, adm2, adm3, hf_uid, year), group in grouped:
+    for (hf_uid, year), group in grouped:
         lower_bound, upper_bound = detect_outliers_scatterplot(group, column)
 
         group[f'{column}_lower_bound'] = lower_bound
@@ -73,7 +73,7 @@ if uploaded_file:
             st.write(processed_df.head())
 
         # Merge all processed DataFrames on the specified keys
-        merge_keys = ['adm1', 'adm2', 'adm3', 'hf', 'year', 'month']
+        merge_keys = ['adm1', 'adm2', 'adm3', 'hf', 'hf_uid', 'year', 'month']
         final_combined_df = processed_dfs[0]
         for df_to_merge in processed_dfs[1:]:
             final_combined_df = final_combined_df.merge(df_to_merge, on=merge_keys, how='outer')
