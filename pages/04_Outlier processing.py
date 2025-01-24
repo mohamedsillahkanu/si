@@ -35,7 +35,7 @@ def process_column(df, column):
     grouped = df.groupby(['adm1', 'adm2', 'adm3', 'hf_uid', 'year'])
 
     results = []
-    for (adm1, adm2, adm3, hf, hf_uid, year, month), group in grouped:
+    for (adm1, adm2, adm3, hf_uid, year), group in grouped:
         lower_bound, upper_bound = detect_outliers_scatterplot(group, column)
 
         group[f'{column}_lower_bound'] = lower_bound
@@ -65,7 +65,7 @@ def process_column(df, column):
     final_df = pd.concat(results)
 
     export_columns = [
-        'adm1', 'adm2', 'adm3', 'hf', 'hf_uid', 'year', 'month', column,
+        'adm1', 'adm2', 'adm3', 'hf', 'hf_uid','year','month', 'Date', column,
         f'{column}_category', f'{column}_lower_bound', f'{column}_upper_bound',
         f'{column}_corrected_mean_include', f'{column}_corrected_mean_exclude',
         f'{column}_corrected_median_include', f'{column}_corrected_median_exclude',
@@ -102,8 +102,11 @@ if uploaded_file:
             st.write(f"### Processed Data for {column}:")
             st.write(processed_df.head())
 
-        # Concatenate all processed DataFrames
-        final_combined_df = pd.concat(processed_dfs, axis=0)
+        # Merge all processed DataFrames on the specified keys
+        merge_keys = ['adm1', 'adm2', 'adm3', 'hf', 'year', 'month']
+        final_combined_df = processed_dfs[0]
+        for df_to_merge in processed_dfs[1:]:
+            final_combined_df = final_combined_df.merge(df_to_merge, on=merge_keys, how='outer')
 
         st.write("### Final Combined Data:")
         st.write(final_combined_df.head())
