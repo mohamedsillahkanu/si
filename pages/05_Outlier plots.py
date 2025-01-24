@@ -69,15 +69,16 @@ def generate_scatter_plot(df, column, hf_uid, year):
     axes[1].set_xlabel('Month')
     axes[1].set_ylabel(column)
 
-    # Add a single legend for both subplots, below the title
+    # Add a single legend outside the plot
     handles = [
         plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='red', markersize=10, label='Outliers'),
         plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='blue', markersize=10, label='Non-Outliers'),
         plt.Line2D([0], [0], color='green', linestyle='--', linewidth=2, label='Lower Bound'),
         plt.Line2D([0], [0], color='red', linestyle='--', linewidth=2, label='Upper Bound')
     ]
-    fig.legend(handles=handles, loc='upper center', bbox_to_anchor=(0.5, 0.9), ncol=4, fontsize=10)
+    fig.legend(handles=handles, loc='center left', bbox_to_anchor=(1.05, 0.5), fontsize=10)
 
+    plt.tight_layout(rect=[0, 0, 0.85, 1])
     st.pyplot(fig)
 
 # Streamlit app setup
