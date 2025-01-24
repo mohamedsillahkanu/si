@@ -51,7 +51,7 @@ if uploaded_file:
     else:
         df = pd.read_excel(uploaded_file)
 
-    if df.empty():
+    if df.empty:
         st.write("No data to preview.")
     else:
         st.write("### Preview of the uploaded dataset:")
