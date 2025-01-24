@@ -30,6 +30,7 @@ def generate_scatter_plot(df, column, hf_uid, year):
 
     # Create scatter plot
     fig, axes = plt.subplots(1, 2, figsize=(15, 6), sharey=True)
+    fig.suptitle(f'Scatter Plot for {column} and {column}_winsorized', fontsize=16)
 
     # Scatter plot for the original column
     axes[0].scatter(
@@ -42,12 +43,11 @@ def generate_scatter_plot(df, column, hf_uid, year):
         ),
         alpha=0.7
     )
-    axes[0].axhline(original_lower, color='green', linestyle='--', label='Lower Bound (Original)')
-    axes[0].axhline(original_upper, color='red', linestyle='--', label='Upper Bound (Original)')
+    axes[0].axhline(original_lower, color='green', linestyle='--')
+    axes[0].axhline(original_upper, color='red', linestyle='--')
     axes[0].set_title(f'Original {column}')
     axes[0].set_xlabel('Month')
     axes[0].set_ylabel(column)
-    axes[0].legend()
 
     # Scatter plot for the winsorized column
     axes[1].scatter(
@@ -61,11 +61,19 @@ def generate_scatter_plot(df, column, hf_uid, year):
         ),
         alpha=0.7
     )
-    axes[1].axhline(winsorized_lower, color='green', linestyle='--', label='Lower Bound (Winsorized)')
-    axes[1].axhline(winsorized_upper, color='red', linestyle='--', label='Upper Bound (Winsorized)')
+    axes[1].axhline(winsorized_lower, color='green', linestyle='--')
+    axes[1].axhline(winsorized_upper, color='red', linestyle='--')
     axes[1].set_title(f'Winsorized {column}')
     axes[1].set_xlabel('Month')
-    axes[1].legend()
+
+    # Add a single legend for both subplots
+    handles = [
+        plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='red', markersize=10, label='Outliers'),
+        plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='blue', markersize=10, label='Non-Outliers'),
+        plt.Line2D([0], [0], color='green', linestyle='--', linewidth=2, label='Lower Bound'),
+        plt.Line2D([0], [0], color='red', linestyle='--', linewidth=2, label='Upper Bound')
+    ]
+    fig.legend(handles=handles, loc='upper center', bbox_to_anchor=(0.5, 1.05), ncol=4, fontsize=10)
 
     st.pyplot(fig)
 
