@@ -41,9 +41,7 @@ def generate_outlier_charts(df, column, chart_type):
                     ax.text(bar.get_x() + bar.get_width()/2., height,
                            f'{int(height)}', ha='center', va='bottom')
                 
-                # Add legend
-                ax.legend(bars, [f'{cat}\n({int(grouped.loc[year, cat])} cases)' 
-                         for cat in categories],
+                ax.legend(bars, categories,
                          title="Categories", bbox_to_anchor=(1.05, 1.0),
                          loc='upper right')
                            
@@ -69,7 +67,7 @@ def generate_outlier_charts(df, column, chart_type):
                 # Add count labels
                 total = sum(year_data)
                 labels = [f'{cat}\n({int(val)} cases)' for cat, val in zip(categories, year_data)]
-                ax.legend(wedges, labels, title="Categories", 
+                ax.legend(wedges, categories, title="Categories", 
                          loc="upper right", bbox_to_anchor=(1.3, 1.0))
                 
         for j in range(len(years), len(axes)):
