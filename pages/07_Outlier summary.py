@@ -55,7 +55,7 @@ def generate_outlier_charts(df, column, chart_type):
         fig.suptitle("Outliers and Non-Outliers Pie Chart by Year\n", fontsize=16, y=0.98)
         legend_elements = [plt.Rectangle((0,0),1,1, facecolor=color) for color in colors_list]
         fig.legend(legend_elements, categories, 
-                  loc='upper center', bbox_to_anchor=(0.5, 0.93),
+                  loc='upper center', bbox_to_anchor=(0.5, 0.96),
                   ncol=len(categories), title="Categories")
         
         gs = fig.add_gridspec(3, 3, hspace=0.5, wspace=0.3)
