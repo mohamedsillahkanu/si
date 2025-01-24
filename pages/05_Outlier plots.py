@@ -30,7 +30,9 @@ def generate_scatter_plot(df, column, hf_uid, year):
 
     # Create scatter plot
     fig, axes = plt.subplots(1, 2, figsize=(15, 6), sharey=True)
-    fig.suptitle(f'Scatter Plot for {column} and {column}_winsorized', fontsize=16)
+
+    # Add title
+    fig.suptitle("Outlier Detection and Correction", fontsize=16)
 
     # Scatter plot for the original column
     axes[0].scatter(
@@ -45,7 +47,7 @@ def generate_scatter_plot(df, column, hf_uid, year):
     )
     axes[0].axhline(original_lower, color='green', linestyle='--')
     axes[0].axhline(original_upper, color='red', linestyle='--')
-    axes[0].set_title(f'Original {column}')
+    axes[0].set_title("Outlier Detection Before Correction")
     axes[0].set_xlabel('Month')
     axes[0].set_ylabel(column)
 
@@ -63,8 +65,9 @@ def generate_scatter_plot(df, column, hf_uid, year):
     )
     axes[1].axhline(winsorized_lower, color='green', linestyle='--')
     axes[1].axhline(winsorized_upper, color='red', linestyle='--')
-    axes[1].set_title(f'Winsorized {column}')
+    axes[1].set_title("Outlier Detection After Correction Using Winsorisation Method")
     axes[1].set_xlabel('Month')
+    axes[1].set_ylabel(column)
 
     # Add a single legend for both subplots
     handles = [
