@@ -113,7 +113,7 @@ if 'processed_df' not in st.session_state:
     st.session_state.processed_df = None
 
 st.title("Routine Data Uploader")
-st.write("Upload the merged routine data downloaded from the merge app for data cleaning")
+st.write("Upload the merged routine data downloaded from the merge malaria routine data")
 
 uploaded_file = st.file_uploader("Upload merged data file", type=['xlsx', 'xls', 'csv'])
 
