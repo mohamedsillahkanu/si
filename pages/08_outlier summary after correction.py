@@ -9,9 +9,9 @@ def detect_outliers_iqr(series):
     IQR = Q3 - Q1
     return Q1 - 1.5 * IQR, Q3 + 1.5 * IQR
 
-def create_outlier_categories(df, winsorized_columns):
-    for col in winsorized_columns:
-        base_col = col.replace('_winsorized', '')
+def create_outlier_categories(df, winsorized_cols):
+    for col in winsorized_cols:
+        base_col = col[:-10]  # Remove '_winsorized'
         lower_bound, upper_bound = detect_outliers_iqr(df[col])
         df[f'{base_col}_winsorized_category'] = np.where(
             (df[col] < lower_bound) | (df[col] > upper_bound),
@@ -72,10 +72,11 @@ def main():
         try:
             df = pd.read_csv(uploaded_file) if uploaded_file.name.endswith('.csv') else pd.read_excel(uploaded_file)
             
-            winsorized_cols = [col for col in df.columns if '_winsorized' in col]
+            winsorized_cols = [col for col in df.columns if col.endswith('_winsorized')]
             df = create_outlier_categories(df, winsorized_cols)
             
-            for base_col in [col.replace('_winsorized', '') for col in winsorized_cols]:
+            for col in winsorized_cols:
+                base_col = col[:-10]  # Remove '_winsorized'
                 st.markdown(f"### Analysis for {base_col}")
                 
                 # Bar Chart
