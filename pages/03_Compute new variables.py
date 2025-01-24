@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 
 st.title("Routine Data Uploader")
-st.write("Upload the rename columns data downloaded")
+st.write("Upload the merged routine data downloaded from the merge app for data cleaning")
 
 def create_variables(df):
     try:
@@ -80,11 +80,25 @@ if uploaded_file:
                 with st.expander("View Processed Data"):
                     st.dataframe(processed_df)
                 
+                # Full data download
                 csv = processed_df.to_csv(index=False).encode('utf-8')
                 st.download_button(
-                    "Download Processed Data",
+                    "Download Full Data",
                     csv,
-                    "processed_data.csv",
+                    "compute_variables_data.csv",
+                    "text/csv"
+                )
+                
+                # Selected columns download
+                selected_cols = ['adm1', 'adm2', 'adm3', 'hf', 'hf_uid', 'year', 'month', 
+                               'Date', 'allout', 'susp', 'test', 'conf', 'maltreat', 
+                               'pres', 'maladm', 'maldth']
+                selected_df = processed_df[selected_cols]
+                csv_selected = selected_df.to_csv(index=False).encode('utf-8')
+                st.download_button(
+                    "Download Selected Columns",
+                    csv_selected,
+                    "key_variables.csv",
                     "text/csv"
                 )
                 
