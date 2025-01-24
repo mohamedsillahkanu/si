@@ -19,12 +19,12 @@ def generate_box_plot(df, column, hf_uid, year):
     fig.suptitle("Outlier Detection and Correction Using Box Plots", fontsize=16)
 
     # Box plot for the original column
-    axes[0].boxplot(filtered_df[column], patch_artist=True, notch=True, boxprops=dict(facecolor="lightblue"))
+    axes[0].boxplot(filtered_df[column], patch_artist=True, notch=False, boxprops=dict(facecolor="lightblue", edgecolor="black", linewidth=1.5))
     axes[0].set_title(f"Box Plot for {column} (Original)")
     axes[0].set_ylabel(column)
 
     # Box plot for the winsorized column
-    axes[1].boxplot(filtered_df[f'{column}_winsorized'], patch_artist=True, notch=True, boxprops=dict(facecolor="lightgreen"))
+    axes[1].boxplot(filtered_df[f'{column}_winsorized'], patch_artist=True, notch=False, boxprops=dict(facecolor="lightgreen", edgecolor="black", linewidth=1.5))
     axes[1].set_title(f"Box Plot for {column}_winsorized (Winsorized)")
     axes[1].set_ylabel(column)
 
