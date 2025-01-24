@@ -40,16 +40,13 @@ def create_plots(df, variables, hfid, year):
                 outliers = hfid_df[(hfid_df[method] < lower_bound) | 
                                  (hfid_df[method] > upper_bound)]
 
-                # Plot non-outliers
-                axes[i].scatter(hfid_df['Month'], hfid_df[method], 
+                axes[i].scatter(hfid_df['month'], hfid_df[method], 
                               alpha=0.7, color='blue', label='Normal')
                 
-                # Plot outliers
                 if not outliers.empty:
-                    axes[i].scatter(outliers['Month'], outliers[method], 
+                    axes[i].scatter(outliers['month'], outliers[method], 
                                   color='red', label='Outlier', zorder=3)
 
-                # Add bounds
                 axes[i].axhline(lower_bound, color='green', linestyle='--', 
                               label='Lower Bound', linewidth=1)
                 axes[i].axhline(upper_bound, color='red', linestyle='--', 
@@ -62,7 +59,6 @@ def create_plots(df, variables, hfid, year):
                 axes[i].text(0.5, 0.5, 'No data available', 
                            ha='center', va='center', fontsize=12)
 
-        # Create unified legend
         legend_elements = [
             mlines.Line2D([], [], color='blue', marker='o', linestyle='None', 
                          label='Normal Points'),
@@ -89,18 +85,22 @@ def main():
                                    type=['csv', 'xlsx', 'xls'])
 
     if uploaded_file:
-        df = load_data(uploaded_file)
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            hfid = st.selectbox('Select HFID:', sorted(df['hf_uid'].unique()))
-        with col2:
-            year = st.selectbox('Select Year:', sorted(df['year'].unique()))
+        try:
+            df = load_data(uploaded_file)
+            st.success("File loaded successfully")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                hfid = st.selectbox('Select HFID:', sorted(df['hf_uid'].unique()))
+            with col2:
+                year = st.selectbox('Select Year:', sorted(df['year'].unique()))
 
-        variables = ['allout', 'susp', 'test', 'conf', 'maltreat']
-        
-        if st.button('Generate Analysis'):
-            create_plots(df, variables, hfid, year)
+            variables = ['allout', 'susp', 'test', 'conf', 'maltreat']
+            
+            if st.button('Generate Analysis'):
+                create_plots(df, variables, hfid, year)
+        except Exception as e:
+            st.error(f"Error loading file: {str(e)}")
 
 if __name__ == '__main__':
     main()
