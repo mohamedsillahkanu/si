@@ -15,7 +15,7 @@ def generate_outlier_charts(df, column):
 
     # Bar chart for Outliers and Non-Outliers with sub-values
     fig1, ax1 = plt.subplots(figsize=(10, 6))
-    ax1.bar(categories, counts, color=['red' if 'Outliers' in cat else 'blue' for cat in categories])
+    ax1.bar(categories, counts, color=['red' if 'Outlier' in cat else 'blue' for cat in categories])
     ax1.set_title("Outliers and Non-Outliers with Sub-Values")
     ax1.set_ylabel("Count")
     ax1.set_xlabel("Categories")
