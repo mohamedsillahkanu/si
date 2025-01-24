@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 
 st.title("Routine Data Uploader")
-st.write("Upload the merged routine data downloaded from the merge app for data cleaning")
+st.write("Upload the rename_malaria_routine_data.csv downloaded")
 
 def create_variables(df):
     try:
