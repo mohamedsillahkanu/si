@@ -34,15 +34,6 @@ def generate_scatter_plot(df, column, hf_uid, year):
     # Add title
     fig.suptitle("Outlier Detection and Correction", fontsize=16)
 
-    # Add a single legend for both subplots
-    handles = [
-        plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='red', markersize=10, label='Outliers'),
-        plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='blue', markersize=10, label='Non-Outliers'),
-        plt.Line2D([0], [0], color='green', linestyle='--', linewidth=2, label='Lower Bound'),
-        plt.Line2D([0], [0], color='red', linestyle='--', linewidth=2, label='Upper Bound')
-    ]
-    fig.legend(handles=handles, loc='upper center', bbox_to_anchor=(0.5, 1.05), ncol=4, fontsize=10)
-
     # Scatter plot for the original column
     axes[0].scatter(
         filtered_df['month'],
@@ -77,6 +68,15 @@ def generate_scatter_plot(df, column, hf_uid, year):
     axes[1].set_title("Outlier Detection After Correction Using Winsorisation Method")
     axes[1].set_xlabel('Month')
     axes[1].set_ylabel(column)
+
+    # Add a single legend for both subplots, below the title
+    handles = [
+        plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='red', markersize=10, label='Outliers'),
+        plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='blue', markersize=10, label='Non-Outliers'),
+        plt.Line2D([0], [0], color='green', linestyle='--', linewidth=2, label='Lower Bound'),
+        plt.Line2D([0], [0], color='red', linestyle='--', linewidth=2, label='Upper Bound')
+    ]
+    fig.legend(handles=handles, loc='upper center', bbox_to_anchor=(0.5, 0.9), ncol=4, fontsize=10)
 
     st.pyplot(fig)
 
