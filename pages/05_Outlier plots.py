@@ -76,7 +76,7 @@ def generate_scatter_plot(df, column, hf_uid, year):
         plt.Line2D([0], [0], color='green', linestyle='--', linewidth=2, label='Lower Bound'),
         plt.Line2D([0], [0], color='red', linestyle='--', linewidth=2, label='Upper Bound')
     ]
-    fig.legend(handles=handles, loc='center left', bbox_to_anchor=(0.95, 0.5), fontsize=10)
+    fig.legend(handles=handles, loc='center left', bbox_to_anchor=(0.85, 0.5), fontsize=10)
 
     plt.tight_layout(rect=[0, 0, 0.85, 1])
     st.pyplot(fig)
