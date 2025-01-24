@@ -98,30 +98,39 @@ def create_hfid_variable_subplots(df, variables, hfid, year, plot_labels):
 # Streamlit app setup
 st.title("Outlier Detection and Correction Viewer")
 
-# Load the data (replace with your actual dataset loading code)
-df = pd.DataFrame()  # Replace with your dataset loading logic
+# File upload
+uploaded_file = st.file_uploader("Upload your dataset", type=["csv", "xlsx", "xls"])
 
-# User inputs
-hfids = df['hf_uid'].unique() if not df.empty else []
-years = df['year'].unique() if not df.empty else []
+if uploaded_file:
+    # Load the data based on file type
+    try:
+        if uploaded_file.name.endswith(".csv"):
+            df = pd.read_csv(uploaded_file)
+        else:
+            df = pd.read_excel(uploaded_file)
 
-selected_hfid = st.selectbox("Select HFID", hfids)
-selected_year = st.selectbox("Select Year", years)
+        # User inputs
+        hfids = df['hf_uid'].unique() if not df.empty else []
+        years = df['year'].unique() if not df.empty else []
 
-variables_to_process = ['allout', 'susp', 'test', 'conf', 'maltreat', 'pres', 'maladm', 'maldth']
-plot_labels = {
-    'allout': 'All outpatients',
-    'susp': 'Suspected cases',
-    'test': 'Tests conducted',
-    'conf': 'Confirmed cases',
-    'maltreat': 'Malaria treatments',
-    'pres': 'Presumtive treatment',
-    'maladm': 'Malaria admissions',
-    'maldth': 'Malaria deaths'
-}
+        selected_hfid = st.selectbox("Select HFID", hfids)
+        selected_year = st.selectbox("Select Year", years)
 
-if st.button("Generate Plots"):
-    if df.empty:
-        st.error("Data not loaded. Please load your dataset.")
-    else:
-        create_hfid_variable_subplots(df, variables_to_process, selected_hfid, selected_year, plot_labels)
+        variables_to_process = ['allout', 'susp', 'test', 'conf', 'maltreat', 'pres', 'maladm', 'maldth']
+        plot_labels = {
+            'allout': 'All outpatients',
+            'susp': 'Suspected cases',
+            'test': 'Tests conducted',
+            'conf': 'Confirmed cases',
+            'maltreat': 'Malaria treatments',
+            'pres': 'Presumtive treatment',
+            'maladm': 'Malaria admissions',
+            'maldth': 'Malaria deaths'
+        }
+
+        if st.button("Generate Plots"):
+            create_hfid_variable_subplots(df, variables_to_process, selected_hfid, selected_year, plot_labels)
+    except Exception as e:
+        st.error(f"An error occurred while processing the file: {e}")
+else:
+    st.info("Please upload a dataset to get started.")
