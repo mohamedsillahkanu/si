@@ -12,6 +12,12 @@ def generate_box_plot(df, column, hf_uid, year):
         st.write("No data to preview.")
         return
 
+    # Check if the winsorized column exists
+    winsorized_column = f'{column}_winsorized'
+    if winsorized_column not in filtered_df.columns:
+        st.write(f"The winsorized column '{winsorized_column}' does not exist in the dataset.")
+        return
+
     # Create box plots for the selected column and its winsorized counterpart
     fig, axes = plt.subplots(1, 2, figsize=(15, 6), sharey=True)
 
@@ -25,8 +31,8 @@ def generate_box_plot(df, column, hf_uid, year):
     axes[0].tick_params(axis='y', which='both', labelsize=10)
 
     # Box plot for the winsorized column
-    axes[1].boxplot(filtered_df[f'{column}_winsorized'], patch_artist=True, notch=False, boxprops=dict(facecolor="lightgreen", edgecolor="black", linewidth=1.5))
-    axes[1].set_title(f"Box Plot for {column}_winsorized (Winsorized)")
+    axes[1].boxplot(filtered_df[winsorized_column], patch_artist=True, notch=False, boxprops=dict(facecolor="lightgreen", edgecolor="black", linewidth=1.5))
+    axes[1].set_title(f"Box Plot for {winsorized_column} (Winsorized)")
     axes[1].set_ylabel(column)
     axes[1].tick_params(axis='y', which='both', labelsize=10)
 
