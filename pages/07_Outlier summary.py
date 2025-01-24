@@ -46,7 +46,7 @@ if uploaded_file:
         st.write(df.head())
 
         # Select columns with '_category' containing Outliers and Non-Outliers
-        category_columns = [col for col in df.columns if '_category' in col and set(["Outliers", "Non-Outliers"]).intersection(set(df[col].dropna().unique()))]
+        category_columns = [col for col in df.columns if '_category' in col and set(["Outlier", "Non-Outlier"]).intersection(set(df[col].dropna().unique()))]
 
         if category_columns:
             selected_column = st.selectbox("Select column for outlier analysis:", category_columns)
