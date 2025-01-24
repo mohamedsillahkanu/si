@@ -24,7 +24,7 @@ def generate_outlier_charts(df, column):
 
     # Pie chart for Outliers and Non-Outliers with sub-values
     fig2, ax2 = plt.subplots()
-    ax2.pie(counts, labels=categories, autopct="%1.1f%%", colors=['red' if 'Outliers' in cat else 'blue' for cat in categories])
+    ax2.pie(counts, labels=categories, autopct="%1.1f%%", colors=['red' if 'Outlier' in cat else 'blue' for cat in categories])
     ax2.set_title("Proportion of Outliers and Non-Outliers with Sub-Values")
     st.pyplot(fig2)
 
