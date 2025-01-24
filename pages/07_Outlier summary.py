@@ -11,7 +11,7 @@ def generate_outlier_charts(df, column, chart_type):
     years = grouped.index.tolist()
     categories = grouped.columns.tolist()
     
-    colors = {'Outlier': 'red', 'Non-Outlier': 'blue'}
+    colors = {'Outlier': 'lightpink', 'Non-Outlier': '#47B5FF'}
     colors_list = [colors[cat] for cat in categories]
     
     if chart_type == "Bar Chart":
@@ -21,7 +21,7 @@ def generate_outlier_charts(df, column, chart_type):
         fig.suptitle("Outliers and Non-Outliers Bar Chart by Year\n", fontsize=16, y=0.98)
         legend_elements = [plt.Rectangle((0,0),1,1, facecolor=color) for color in colors_list]
         fig.legend(legend_elements, categories, 
-                  loc='upper center', bbox_to_anchor=(0.5, 0.93),
+                  loc='upper center', bbox_to_anchor=(0.5, 0.96),
                   ncol=len(categories), title="Categories")
         
         # Create subplot grid with more spacing
@@ -36,7 +36,7 @@ def generate_outlier_charts(df, column, chart_type):
                 ax.set_title(f"Year: {year}")
                 ax.set_ylabel("Count", labelpad=10)  # Added padding
                 ax.set_xlabel("Categories")
-                ax.set_xticklabels(categories, rotation=45, ha='right')
+                ax.set_xticklabels(categories, rotation=0, ha='right')
                 
                 # Add value labels with adjusted position
                 for bar in bars:
