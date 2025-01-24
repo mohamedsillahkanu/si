@@ -9,15 +9,14 @@ def detect_outliers_iqr(series):
     IQR = Q3 - Q1
     return Q1 - 1.5 * IQR, Q3 + 1.5 * IQR
 
-def create_outlier_categories(df, winsorized_cols):
-    for col in winsorized_cols:
-        base_col = col[:-10]  # Remove '_winsorized'
-        lower_bound, upper_bound = detect_outliers_iqr(df[col])
-        df[f'{base_col}_winsorized_category'] = np.where(
-            (df[col] < lower_bound) | (df[col] > upper_bound),
-            'Outlier', 'Non-Outlier'
-        )
-    return df
+def create_outlier_categories(df, winsorized_col):
+    lower_bound, upper_bound = detect_outliers_iqr(df[winsorized_col])
+    category_col = f'{winsorized_col}_category'
+    df[category_col] = np.where(
+        (df[winsorized_col] < lower_bound) | (df[winsorized_col] > upper_bound),
+        'Outlier', 'Non-Outlier'
+    )
+    return df, category_col
 
 def generate_charts(df, column, chart_type):
     grouped = df.groupby(['year', column]).size().unstack(fill_value=0)
@@ -72,20 +71,20 @@ def main():
         try:
             df = pd.read_csv(uploaded_file) if uploaded_file.name.endswith('.csv') else pd.read_excel(uploaded_file)
             
-            winsorized_cols = [col for col in df.columns if col.endswith('_winsorized')]
-            df = create_outlier_categories(df, winsorized_cols)
+            winsorized_cols = [col for col in df.columns if '_winsorized' in col]
             
             for col in winsorized_cols:
-                base_col = col[:-10]  # Remove '_winsorized'
-                st.markdown(f"### Analysis for {base_col}")
+                st.markdown(f"### Analysis for {col}")
+                
+                df, category_col = create_outlier_categories(df, col)
                 
                 # Bar Chart
-                fig_bar = generate_charts(df, f'{base_col}_winsorized_category', "Bar Chart")
+                fig_bar = generate_charts(df, category_col, "Bar Chart")
                 st.pyplot(fig_bar)
                 plt.close()
                 
                 # Pie Chart
-                fig_pie = generate_charts(df, f'{base_col}_winsorized_category', "Pie Chart")
+                fig_pie = generate_charts(df, category_col, "Pie Chart")
                 st.pyplot(fig_pie)
                 plt.close()
                 
