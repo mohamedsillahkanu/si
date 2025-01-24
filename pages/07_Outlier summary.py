@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # Function to generate bar and pie charts for Outliers and Non-Outliers with sub-values by year
-def generate_outlier_charts(df, column):
+def generate_outlier_charts(df, column, chart_type):
     # Group data by year and count the sub-values for Outliers and Non-Outliers
     if 'year' not in df.columns:
         st.write("The dataset must contain a 'year' column for this analysis.")
@@ -19,28 +19,50 @@ def generate_outlier_charts(df, column):
     colors = ['lightgreen' if 'Outlier' in cat else 'lightblue' for cat in categories]
 
     # Create subplots
-    fig, axes = plt.subplots(3, 3, figsize=(15, 15), sharex=True, sharey=True)
-    fig.suptitle("Outliers and Non-Outliers Analysis by Year", fontsize=16)
+    if chart_type == "Bar Chart":
+        fig, axes = plt.subplots(3, 3, figsize=(15, 15), sharex=True, sharey=True)
+        fig.suptitle("Outliers and Non-Outliers Bar Chart by Year", fontsize=16)
 
-    # Flatten axes for easier iteration
-    axes = axes.flatten()
+        # Flatten axes for easier iteration
+        axes = axes.flatten()
 
-    for i, year in enumerate(years):
-        if i < len(axes):
-            ax = axes[i]
-            year_data = grouped.loc[year]
-            ax.bar(categories, year_data, color=colors)
-            ax.set_title(f"Year: {year}")
-            ax.set_ylabel("Count")
-            ax.set_xlabel("Categories")
-            ax.set_xticklabels(categories, rotation=45, ha='right')
+        for i, year in enumerate(years):
+            if i < len(axes):
+                ax = axes[i]
+                year_data = grouped.loc[year]
+                ax.bar(categories, year_data, color=colors)
+                ax.set_title(f"Year: {year}")
+                ax.set_ylabel("Count")
+                ax.set_xlabel("Categories")
+                ax.set_xticklabels(categories, rotation=90, ha='right')
 
-    # Hide any unused subplots
-    for j in range(len(years), len(axes)):
-        fig.delaxes(axes[j])
+        # Hide any unused subplots
+        for j in range(len(years), len(axes)):
+            fig.delaxes(axes[j])
 
-    plt.tight_layout(rect=[0, 0, 1, 0.95])
-    st.pyplot(fig)
+        plt.tight_layout(rect=[0, 0, 1, 0.95])
+        st.pyplot(fig)
+
+    elif chart_type == "Pie Chart":
+        fig, axes = plt.subplots(3, 3, figsize=(15, 15))
+        fig.suptitle("Outliers and Non-Outliers Pie Chart by Year", fontsize=16)
+
+        # Flatten axes for easier iteration
+        axes = axes.flatten()
+
+        for i, year in enumerate(years):
+            if i < len(axes):
+                ax = axes[i]
+                year_data = grouped.loc[year]
+                ax.pie(year_data, labels=categories, autopct="%1.1f%%", colors=colors)
+                ax.set_title(f"Year: {year}")
+
+        # Hide any unused subplots
+        for j in range(len(years), len(axes)):
+            fig.delaxes(axes[j])
+
+        plt.tight_layout(rect=[0, 0, 1, 0.95])
+        st.pyplot(fig)
 
 # Streamlit app setup
 st.title("Outlier Analysis with Charts by Year")
@@ -64,6 +86,7 @@ if uploaded_file:
 
         if category_columns:
             selected_column = st.selectbox("Select column for outlier analysis:", category_columns)
-            generate_outlier_charts(df, selected_column)
+            chart_type = st.radio("Select chart type:", ["Bar Chart", "Pie Chart"])
+            generate_outlier_charts(df, selected_column, chart_type)
         else:
-            st.write("No columns with '_category' containing Outlier and Non-Outlier found in the dataset.")
+            st.write("No columns with '_category' containing Outliers and Non-Outliers found in the dataset.")
