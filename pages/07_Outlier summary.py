@@ -13,7 +13,6 @@ def generate_outlier_charts(df, column, chart_type):
     years = grouped.index.tolist()
     categories = grouped.columns.tolist()
     
-    # Proper category mapping
     color_map = {
         'Outlier': 'red',
         'Non-Outlier': 'blue'
@@ -21,10 +20,22 @@ def generate_outlier_charts(df, column, chart_type):
     colors = [color_map[cat] for cat in categories]
     
     if chart_type == "Bar Chart":
-        fig, axes = plt.subplots(3, 3, figsize=(15, 15), sharex=True, sharey=True)
-        fig.suptitle("Outliers and Non-Outliers Bar Chart by Year", fontsize=16)
+        fig = plt.figure(figsize=(15, 15))
+        fig.suptitle("Outliers and Non-Outliers Bar Chart by Year", fontsize=16, y=0.95)
         
-        axes = axes.flatten()
+        # Create one common legend at the top
+        legend_elements = [plt.Rectangle((0,0),1,1, facecolor=color) 
+                         for color in colors]
+        fig.legend(legend_elements, categories, 
+                  loc='upper center', bbox_to_anchor=(0.5, 0.98),
+                  ncol=len(categories), title="Categories")
+        
+        # Create subplot grid
+        gs = fig.add_gridspec(3, 3, hspace=0.4)
+        axes = []
+        for i in range(9):
+            axes.append(fig.add_subplot(gs[i//3, i%3]))
+            
         for i, year in enumerate(years):
             if i < len(axes):
                 ax = axes[i]
@@ -40,40 +51,42 @@ def generate_outlier_charts(df, column, chart_type):
                     height = bar.get_height()
                     ax.text(bar.get_x() + bar.get_width()/2., height,
                            f'{int(height)}', ha='center', va='bottom')
-                
-                ax.legend(bars, categories,
-                         title="Categories", bbox_to_anchor=(1.05, 1.0),
-                         loc='upper right')
                            
         for j in range(len(years), len(axes)):
             fig.delaxes(axes[j])
-            
-        plt.tight_layout(rect=[0, 0, 1, 0.95])
+        
+        plt.tight_layout(rect=[0, 0.03, 1, 0.95])
         st.pyplot(fig)
         
     elif chart_type == "Pie Chart":
-        fig, axes = plt.subplots(3, 3, figsize=(15, 15))
-        fig.suptitle("Outliers and Non-Outliers Pie Chart by Year", fontsize=16)
+        fig = plt.figure(figsize=(15, 15))
+        fig.suptitle("Outliers and Non-Outliers Pie Chart by Year", fontsize=16, y=0.95)
         
-        axes = axes.flatten()
+        # Create one common legend at the top
+        legend_elements = [plt.Rectangle((0,0),1,1, facecolor=color) 
+                         for color in colors]
+        fig.legend(legend_elements, categories, 
+                  loc='upper center', bbox_to_anchor=(0.5, 0.98),
+                  ncol=len(categories), title="Categories")
+        
+        # Create subplot grid
+        gs = fig.add_gridspec(3, 3, hspace=0.4)
+        axes = []
+        for i in range(9):
+            axes.append(fig.add_subplot(gs[i//3, i%3]))
+            
         for i, year in enumerate(years):
             if i < len(axes):
                 ax = axes[i]
                 year_data = grouped.loc[year]
-                wedges, texts, autotexts = ax.pie(year_data, labels=categories, 
-                                                autopct='%1.1f%%', colors=colors)
+                wedges, texts, autotexts = ax.pie(year_data, colors=colors,
+                                                autopct='%1.1f%%')
                 ax.set_title(f"Year: {year}")
-                
-                # Add count labels
-                total = sum(year_data)
-                labels = [f'{cat}\n({int(val)} cases)' for cat, val in zip(categories, year_data)]
-                ax.legend(wedges, categories, title="Categories", 
-                         loc="upper right", bbox_to_anchor=(1.3, 1.0))
                 
         for j in range(len(years), len(axes)):
             fig.delaxes(axes[j])
             
-        plt.tight_layout(rect=[0, 0, 1, 0.95])
+        plt.tight_layout(rect=[0, 0.03, 1, 0.95])
         st.pyplot(fig)
 
 def main():
