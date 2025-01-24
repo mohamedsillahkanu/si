@@ -33,7 +33,7 @@ def generate_scatter_plot(df, column, hf_uid, year):
 
     # Scatter plot for the original column
     axes[0].scatter(
-        filtered_df.index,
+        filtered_df['month'],
         filtered_df[column],
         c=np.where(
             (filtered_df[column] < original_lower) | (filtered_df[column] > original_upper),
@@ -45,13 +45,13 @@ def generate_scatter_plot(df, column, hf_uid, year):
     axes[0].axhline(original_lower, color='green', linestyle='--', label='Lower Bound (Original)')
     axes[0].axhline(original_upper, color='red', linestyle='--', label='Upper Bound (Original)')
     axes[0].set_title(f'Original {column}')
-    axes[0].set_xlabel('Index')
+    axes[0].set_xlabel('Month')
     axes[0].set_ylabel(column)
     axes[0].legend()
 
     # Scatter plot for the winsorized column
     axes[1].scatter(
-        filtered_df.index,
+        filtered_df['month'],
         filtered_df[f'{column}_winsorized'],
         c=np.where(
             (filtered_df[f'{column}_winsorized'] < winsorized_lower) |
@@ -64,7 +64,7 @@ def generate_scatter_plot(df, column, hf_uid, year):
     axes[1].axhline(winsorized_lower, color='green', linestyle='--', label='Lower Bound (Winsorized)')
     axes[1].axhline(winsorized_upper, color='red', linestyle='--', label='Upper Bound (Winsorized)')
     axes[1].set_title(f'Winsorized {column}')
-    axes[1].set_xlabel('Index')
+    axes[1].set_xlabel('Month')
     axes[1].legend()
 
     st.pyplot(fig)
