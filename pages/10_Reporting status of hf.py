@@ -6,21 +6,15 @@ from matplotlib.colors import ListedColormap
 from matplotlib.patches import Patch
 
 def generate_heatmaps(df, selected_variables):
-    # Calculate Status
     df['Status'] = df[selected_variables].sum(axis=1).apply(lambda x: 1 if x > 1 else 0).astype(int)
     
-    # Custom colormap
     custom_cmap = ListedColormap(['pink', 'lightblue'])
-    
-    # Get unique adm1 groups
     adm1_groups = df['adm1'].unique()
     
-    # Prepare subplots
     n_rows, n_cols = 4, 4
     fig, axes = plt.subplots(n_rows, n_cols, figsize=(20, 20))
     axes = axes.flatten()
     
-    # Individual heatmaps for each adm1
     for i, adm1 in enumerate(adm1_groups):
         subset = df[df['adm1'] == adm1]
         
@@ -31,7 +25,6 @@ def generate_heatmaps(df, selected_variables):
         heatmap_data = subset.pivot(index='hf_uid', columns='Date', values='Status')
         heatmap_data.fillna(0, inplace=True)
         
-        # Plot in subplot grid
         sns.heatmap(
             heatmap_data,
             cmap=custom_cmap,
@@ -45,11 +38,9 @@ def generate_heatmaps(df, selected_variables):
         axes[i].set_xlabel('Date', fontsize=10)
         axes[i].tick_params(axis='x', labelrotation=90)
     
-    # Hide unused subplots
     for j in range(len(adm1_groups), len(axes)):
         axes[j].axis('off')
     
-    # Add legend
     legend_labels = ['Do not report', 'Report']
     legend_colors = [custom_cmap(0), custom_cmap(1)]
     legend_patches = [Patch(color=color, label=label) 
@@ -80,20 +71,15 @@ def main():
             else:
                 df = pd.read_excel(uploaded_file)
             
-            # Available variables
-            all_variables = ['allout', 'susp', 'test', 'conf', 'maltreat']
-            selected_vars = st.multiselect(
-                "Select variables for analysis:",
-                all_variables,
-                default=all_variables
-            )
+            numeric_cols = df.select_dtypes(include=['int64', 'float64']).columns.tolist()
+            selected_vars = st.multiselect("Select variables for analysis:", numeric_cols)
             
             if selected_vars:
                 st.write("### Reporting Status Heatmap")
                 fig = generate_heatmaps(df, selected_vars)
                 st.pyplot(fig)
             else:
-                st.warning("Please select at least one variable.")
+                st.warning("Please select variables for analysis.")
                 
         except Exception as e:
             st.error(f"Error: {str(e)}")
