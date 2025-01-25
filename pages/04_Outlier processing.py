@@ -38,7 +38,7 @@ def process_column_winsorization(df, column):
     final_df = pd.concat(results)
 
     export_columns = [
-        'adm1', 'adm2', 'adm3', 'hf', 'hf_uid', 'year', 'month', column,
+        'adm1', 'adm2', 'adm3', 'hf', 'hf_uid', 'year', 'month', 'Date', column,
         f'{column}_category', f'{column}_lower_bound', f'{column}_upper_bound',
         f'{column}_winsorized'
     ]
