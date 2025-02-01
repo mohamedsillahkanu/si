@@ -67,16 +67,19 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
         col6, col7, col8 = st.columns(3)
 
         with col6:
+            # Title customization
             map_title = st.text_input("Map Title", "Health Facility Distribution by Chiefdom")
             title_font_size = st.slider("Title Font Size", 12, 48, 24)
             title_spacing = st.slider("Title Top Spacing", 0, 200, 50)
             point_size = st.slider("Point Size", 5, 20, 10)
 
         with col7:
+            # Color selection
             point_color = st.color_picker("Point Color", "#FF4B4B")
             background_color = st.color_picker("Background Color", "#FFFFFF")
 
         with col8:
+            # Additional options
             show_facility_count = st.checkbox("Show Facility Count", value=True)
             show_chiefdom_name = st.checkbox("Show Chiefdom Name", value=True)
 
@@ -98,18 +101,18 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
         # Get unique chiefdoms for the selected district
         chiefdoms = sorted(district_shapefile['FIRST_CHIE'].unique())
         
-        # Create subplot figure with 1 row and 20 columns
-        num_cols = 20
-        subplot_titles = [f"{chiefdom}" for chiefdom in chiefdoms[:num_cols]]
+        # Create subplot figure with 20x1 layout
+        subplot_titles = [f"{chiefdom}" for chiefdom in chiefdoms[:20]]
         fig = make_subplots(
-            rows=1,
-            cols=num_cols,
+            rows=20,
+            cols=1,
             subplot_titles=subplot_titles,
-            specs=[[{"type": "scattermapbox"} for _ in range(num_cols)]]
+            specs=[[{"type": "scattermapbox"}] for _ in range(20)],
+            vertical_spacing=0.02  # Reduce spacing between subplots
         )
 
         # Plot each chiefdom
-        for idx, chiefdom in enumerate(chiefdoms[:num_cols]):
+        for idx, chiefdom in enumerate(chiefdoms[:20]):
             # Filter shapefile for current chiefdom
             chiefdom_shapefile = district_shapefile[district_shapefile['FIRST_CHIE'] == chiefdom]
             
@@ -137,15 +140,15 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
                         ),
                         text=chiefdom_facilities[name_col],
                         hovertemplate=(
-                            f"Facility: %{{text}}<br>"
-                            f"Latitude: %{{lat}}<br>"
-                            f"Longitude: %{{lon}}<br>"
+                            f"Facility: %{text}<br>"
+                            f"Latitude: %{lat}<br>"
+                            f"Longitude: %{lon}<br>"
                             "<extra></extra>"
                         ),
                         name=chiefdom
                     ),
-                    row=1,
-                    col=idx + 1
+                    row=idx + 1,
+                    col=1
                 )
 
             # Update layout for each subplot
@@ -156,16 +159,19 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
                         'lat': np.mean([bounds[1], bounds[3]]),
                         'lon': np.mean([bounds[0], bounds[2]])
                     },
-                    'zoom': 8
+                    'zoom': 8,
+                    'domain': {'x': [0, 1], 'y': [1 - (idx + 1) * (1/20), 1 - idx * (1/20)]},
+                    'height': 15  # Set height of each subplot to 15
                 }
             })
 
         # Update overall layout
         fig.update_layout(
-            height=400,  # Reduced height since we only have one row
+            height=20 * 15,  # Total height = number of subplots * height per subplot
+            width=15,  # Set width to 15
             title={
                 'text': f"{map_title} {selected_district} District",
-                'y': 0.95,
+                'y': 0.98,
                 'x': 0.5,
                 'xanchor': 'center',
                 'yanchor': 'top',
