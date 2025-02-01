@@ -2,9 +2,11 @@ import streamlit as st
 import geopandas as gpd
 import pandas as pd
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 import numpy as np
 from shapely.geometry import Point
 
+# Configure the page to use wide layout
 st.set_page_config(layout="wide", page_title="Health Facility Map Generator")
 
 st.title("Interactive Health Facility Map Generator")
@@ -63,13 +65,22 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
 
         # Customization options
         st.header("Map Customization")
-        col6, col7 = st.columns(2)
+        col6, col7, col8 = st.columns(3)
 
         with col6:
-            point_color = st.color_picker("Point Color", "#FF4B4B")
+            # Title customization
+            map_title = st.text_input("Map Title", "Health Facility Distribution by Chiefdom")
+            title_font_size = st.slider("Title Font Size", 12, 48, 24)
+            title_spacing = st.slider("Title Top Spacing", 0, 200, 50, help="Adjust space above the title")
             point_size = st.slider("Point Size", 5, 20, 10)
 
         with col7:
+            # Color selection
+            point_color = st.color_picker("Point Color", "#FF4B4B")
+            background_color = st.color_picker("Background Color", "#FFFFFF")
+
+        with col8:
+            # Additional options
             show_facility_count = st.checkbox("Show Facility Count", value=True)
             show_chiefdom_name = st.checkbox("Show Chiefdom Name", value=True)
 
@@ -90,14 +101,27 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
         
         # Get unique chiefdoms for the selected district
         chiefdoms = sorted(district_shapefile['FIRST_CHIE'].unique())
+        
+        # Calculate grid dimensions for 4x4 layout
+        n_chiefdoms = len(chiefdoms)
+        grid_size = min(4, max(2, int(np.ceil(np.sqrt(n_chiefdoms)))))
+        
+        # Create subplot figure with larger dimensions
+        subplot_titles = [f"{chiefdom}" for chiefdom in chiefdoms[:grid_size*grid_size]]
+        fig = make_subplots(
+            rows=grid_size,
+            cols=grid_size,
+            subplot_titles=subplot_titles,
+            specs=[[{"type": "scattermapbox"} for _ in range(grid_size)] for _ in range(grid_size)],
+            horizontal_spacing=0.05,
+            vertical_spacing=0.05
+        )
 
-        # Store figures for HTML export
-        figures = []
-        
-        # Display individual maps for each chiefdom
-        st.subheader(f"Health Facility Maps for {selected_district} District")
-        
-        for chiefdom in chiefdoms:
+        # Plot each chiefdom
+        for idx, chiefdom in enumerate(chiefdoms[:grid_size*grid_size]):
+            row = idx // grid_size + 1
+            col = idx % grid_size + 1
+            
             # Filter shapefile for current chiefdom
             chiefdom_shapefile = district_shapefile[district_shapefile['FIRST_CHIE'] == chiefdom]
             
@@ -112,13 +136,8 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
                 predicate="within"
             )
             
-            # Create individual map for the chiefdom
-            fig = go.Figure(layout=dict(
-                paper_bgcolor='rgba(0,0,0,0)',
-                plot_bgcolor='rgba(0,0,0,0)'
-            ))
-            
             if len(chiefdom_facilities) > 0:
+                # Add scatter mapbox trace for facilities
                 fig.add_trace(
                     go.Scattermapbox(
                         lat=chiefdom_facilities[latitude_col],
@@ -130,145 +149,95 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
                         ),
                         text=chiefdom_facilities[name_col],
                         hovertemplate=(
-                            "Facility: %{text}<br>"
-                            "Latitude: %{lat}<br>"
-                            "Longitude: %{lon}<br>"
+                            f"Facility: %{{text}}<br>"
+                            f"Latitude: %{{lat}}<br>"
+                            f"Longitude: %{{lon}}<br>"
                             "<extra></extra>"
-                        )
-                    )
-                )
-            
-            # Update layout for individual map
-            fig.update_layout(
-                height=360,  # 15 inches (scaled for better visibility)
-                width=360,   # 15 inches (scaled for better visibility)
-                mapbox=dict(
-                    style="carto-positron",
-                    center=dict(
-                        lat=np.mean([bounds[1], bounds[3]]),
-                        lon=np.mean([bounds[0], bounds[2]])
+                        ),
+                        name=chiefdom
                     ),
-                    zoom=8
-                ),
-                margin=dict(t=40, r=10, l=10, b=10),
-                title=dict(
-                    text=f"{chiefdom}",
-                    y=0.95,
-                    x=0.5,
-                    xanchor='center',
-                    yanchor='top'
+                    row=row,
+                    col=col
                 )
-            )
-            
-            # Add the map to Streamlit with exact dimensions
-            st.plotly_chart(fig, use_container_width=False, config={
-                'displayModeBar': False,
-                'staticPlot': False,
-                'scrollZoom': True
+
+            # Update layout for each subplot
+            fig.update_layout({
+                f'mapbox{idx+1}': {
+                    'style': "carto-positron",
+                    'center': {
+                        'lat': np.mean([bounds[1], bounds[3]]),
+                        'lon': np.mean([bounds[0], bounds[2]])
+                    },
+                    'zoom': 8
+                }
             })
-            
-            if show_facility_count:
-                st.write(f"Number of facilities: {len(chiefdom_facilities)}")
-            
-            # Store the figure for HTML export
-            figures.append(fig)
 
-        # Get all facilities for CSV export
-        all_facilities = pd.concat([
-            gpd.sjoin(facilities_gdf, district_shapefile[district_shapefile['FIRST_CHIE'] == chiefdom], 
-                     how="inner", predicate="within")
-            for chiefdom in chiefdoms
-        ])
+        # Update overall layout with larger dimensions
+        fig.update_layout(
+            height=1200,  # Increased height
+            width=1600,   # Specified width
+            title={
+                'text': f"{map_title} {selected_district} District",
+                'y': 0.95,
+                'x': 0.5,
+                'xanchor': 'center',
+                'yanchor': 'top',
+                'font': {'size': title_font_size}
+            },
+            showlegend=False,
+            margin=dict(t=title_spacing + title_font_size + 10, r=30, l=30, b=30),
+            paper_bgcolor=background_color
+        )
 
-        # Download section
-        st.header("Download Options")
+        # Display the map
+        st.plotly_chart(fig, use_container_width=True)
+
+        # Download options
+        col9, col10 = st.columns(2)
         
-        # Create HTML string for all maps
-        html_parts = []
-        html_parts.append("""
-        <html>
-        <head>
-            <title>Health Facility Maps</title>
-            <style>
-                body { 
-                    max-width: 1200px; 
-                    margin: 0 auto; 
-                    padding: 20px;
-                    background-color: #f5f5f5;
-                }
-                .map-container { 
-                    margin-bottom: 40px;
-                    background-color: white;
-                    padding: 20px;
-                    border-radius: 10px;
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                }
-                h1 {
-                    text-align: center;
-                    padding: 20px;
-                    margin-bottom: 30px;
-                    font-size: 32px;
-                }
-                .facility-count {
-                    text-align: center;
-                    font-size: 18px;
-                    margin-top: 10px;
-                }
-            </style>
-        </head>
-        <body>
-        """)
-        html_parts.append(f"<h1 style='text-align:center'>Health Facility Maps - {selected_district} District</h1>")
-        
-        # Add each figure to HTML with facility count
-        for i, fig in enumerate(figures):
-            html_parts.append("<div class='map-container'>")
-            html_parts.append(fig.to_html(
-                full_html=False,
-                include_plotlyjs='cdn' if i == 0 else False,  # Only include plotly.js once
-                config={'displayModeBar': True, 'scrollZoom': True}
-            ))
-            # Add facility count if enabled
-            if show_facility_count:
-                chiefdom = chiefdoms[i]
-                chiefdom_facilities = gpd.sjoin(
-                    facilities_gdf,
-                    district_shapefile[district_shapefile['FIRST_CHIE'] == chiefdom],
-                    how="inner",
-                    predicate="within"
+        with col9:
+            # Save as HTML with config for full-width display
+            html_file = f"health_facility_map_{selected_district}.html"
+            config = {
+                'displayModeBar': True,
+                'scrollZoom': True,
+                'displaylogo': False,
+                'responsive': True
+            }
+            
+            fig.write_html(
+                html_file,
+                config=config,
+                include_plotlyjs=True,
+                full_html=True,
+                include_mathjax=False
+            )
+            
+            with open(html_file, "rb") as file:
+                st.download_button(
+                    label="Download Interactive Map (HTML)",
+                    data=file,
+                    file_name=html_file,
+                    mime="text/html"
                 )
-                html_parts.append(f"<div class='facility-count'>Number of facilities: {len(chiefdom_facilities)}</div>")
-            html_parts.append("</div>")
-            
-        html_parts.append("</body></html>")
-        html_data = "".join(html_parts)
-        
-        # Download buttons
-        col1, col2 = st.columns(2)
-        with col1:
-            st.download_button(
-                label="Download Interactive Maps (HTML)",
-                data=html_data,
-                file_name=f"health_facility_maps_{selected_district}.html",
-                mime="text/html"
-            )
-            
-        with col2:
-            # Create CSV data
-            csv_data = all_facilities.to_csv(index=False)
-            st.download_button(
-                label="Download Facility Data (CSV)",
-                data=csv_data,
-                file_name=f"health_facilities_{selected_district}.csv",
-                mime="text/csv"
-            )
+
+        with col10:
+            # Export facility data
+            if len(chiefdom_facilities) > 0:
+                csv = chiefdom_facilities.to_csv(index=False)
+                st.download_button(
+                    label="Download Processed Data (CSV)",
+                    data=csv,
+                    file_name=f"health_facilities_{selected_district}.csv",
+                    mime="text/csv"
+                )
 
     except Exception as e:
         st.error(f"An error occurred: {str(e)}")
         st.write("Please check your input files and try again.")
 
 else:
-    st.info("Please upload all required files to generate the maps.")
+    st.info("Please upload all required files to generate the map.")
     
     # Show example data format
     st.subheader("Expected Data Format")
