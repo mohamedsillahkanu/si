@@ -124,9 +124,9 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
                         ),
                         text=chiefdom_facilities[name_col],
                         hovertemplate=(
-                            f"Facility: %{text}<br>"
-                            f"Latitude: %{lat}<br>"
-                            f"Longitude: %{lon}<br>"
+                            "Facility: %{text}<br>"
+                            "Latitude: %{lat}<br>"
+                            "Longitude: %{lon}<br>"
                             "<extra></extra>"
                         )
                     )
