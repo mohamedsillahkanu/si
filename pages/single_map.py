@@ -95,95 +95,91 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
         st.subheader(f"Health Facility Maps for {selected_district} District")
         
         for chiefdom in chiefdoms:
-                        # Filter shapefile for current chiefdom
-                        chiefdom_shapefile = district_shapefile[district_shapefile['FIRST_CHIE'] == chiefdom]
-                        
-                        # Get chiefdom boundary coordinates
-                        bounds = chiefdom_shapefile.total_bounds
-                        
-                        # Spatial join to get facilities within the chiefdom
-                        chiefdom_facilities = gpd.sjoin(
-                            facilities_gdf,
-                            chiefdom_shapefile,
-                            how="inner",
-                            predicate="within"
+            # Filter shapefile for current chiefdom
+            chiefdom_shapefile = district_shapefile[district_shapefile['FIRST_CHIE'] == chiefdom]
+            
+            # Get chiefdom boundary coordinates
+            bounds = chiefdom_shapefile.total_bounds
+            
+            # Spatial join to get facilities within the chiefdom
+            chiefdom_facilities = gpd.sjoin(
+                facilities_gdf,
+                chiefdom_shapefile,
+                how="inner",
+                predicate="within"
+            )
+            
+            # Create individual map for the chiefdom
+            fig = go.Figure()
+            
+            if len(chiefdom_facilities) > 0:
+                fig.add_trace(
+                    go.Scattermapbox(
+                        lat=chiefdom_facilities[latitude_col],
+                        lon=chiefdom_facilities[longitude_col],
+                        mode='markers',
+                        marker=dict(
+                            size=point_size,
+                            color=point_color,
+                        ),
+                        text=chiefdom_facilities[name_col],
+                        hovertemplate=(
+                            f"Facility: %{text}<br>"
+                            f"Latitude: %{lat}<br>"
+                            f"Longitude: %{lon}<br>"
+                            "<extra></extra>"
                         )
-                        
-                        # Create individual map for the chiefdom
-                        fig = go.Figure()
-                        
-                        if len(chiefdom_facilities) > 0:
-                            fig.add_trace(
-                                go.Scattermapbox(
-                                    lat=chiefdom_facilities[latitude_col],
-                                    lon=chiefdom_facilities[longitude_col],
-                                    mode='markers',
-                                    marker=dict(
-                                        size=point_size,
-                                        color=point_color,
-                                    ),
-                                    text=chiefdom_facilities[name_col],
-                                    hovertemplate=(
-                                        f"Facility: %{text}<br>"
-                                        f"Latitude: %{lat}<br>"
-                                        f"Longitude: %{lon}<br>"
-                                        "<extra></extra>"
-                                    )
-                                )
-                            )
-                        
-                        # Update layout for individual map
-                        fig.update_layout(
-                            height=360,  # 15 inches (scaled for better visibility)
-                            width=360,   # 15 inches (scaled for better visibility)
-                            mapbox=dict(
-                                style="carto-positron",
-                                center=dict(
-                                    lat=np.mean([bounds[1], bounds[3]]),
-                                    lon=np.mean([bounds[0], bounds[2]])
-                                ),
-                                zoom=8
-                            ),
-                            margin=dict(t=40, r=10, l=10, b=10),
-                            title=dict(
-                                text=f"{chiefdom}",
-                                y=0.9,
-                                x=0.5,
-                                xanchor='center',
-                                yanchor='top'
-                            )
-                        )
-                        
-                        # Display the map
-                        st.plotly_chart(fig, use_container_width=True)
-                        
-                        if show_facility_count:
-                            st.write(f"Number of facilities: {len(chiefdom_facilities)}")
+                    )
+                )
+            
+            # Update layout for individual map
+            fig.update_layout(
+                height=360,  # 15 inches (scaled for better visibility)
+                width=360,   # 15 inches (scaled for better visibility)
+                mapbox=dict(
+                    style="carto-positron",
+                    center=dict(
+                        lat=np.mean([bounds[1], bounds[3]]),
+                        lon=np.mean([bounds[0], bounds[2]])
+                    ),
+                    zoom=8
+                ),
+                margin=dict(t=40, r=10, l=10, b=10),
+                title=dict(
+                    text=f"{chiefdom}",
+                    y=0.9,
+                    x=0.5,
+                    xanchor='center',
+                    yanchor='top'
+                )
+            )
+            
+            # Display the map
+            st.plotly_chart(fig, use_container_width=True)
+            
+            if show_facility_count:
+                st.write(f"Number of facilities: {len(chiefdom_facilities)}")
 
-        # Download options
         # Download section
         st.header("Download Data")
         
-        # Download options
-            # Save as HTML for all maps
-            html_file = f"health_facility_maps_{selected_district}.html"
-                            # Combine all facilities data
-                all_facilities = pd.concat([
-                    gpd.sjoin(facilities_gdf, district_shapefile[district_shapefile['FIRST_CHIE'] == chiefdom], 
-                             how="inner", predicate="within")
-                    for chiefdom in chiefdoms
-                ])
-                
-                # Create CSV data
-                csv_data = all_facilities.to_csv(index=False)
-                
-                # Add download button
-                st.download_button(
-                    label="Download All Facilities Data (CSV)",
-                    data=csv_data,
-                    file_name=f"health_facilities_{selected_district}.csv",
-                    mime="text/csv"
-                )
+        # Combine all facilities data
+        all_facilities = pd.concat([
+            gpd.sjoin(facilities_gdf, district_shapefile[district_shapefile['FIRST_CHIE'] == chiefdom], 
+                     how="inner", predicate="within")
+            for chiefdom in chiefdoms
+        ])
+        
+        # Create CSV data
+        csv_data = all_facilities.to_csv(index=False)
+        
+        # Add download button
+        st.download_button(
+            label="Download All Facilities Data (CSV)",
+            data=csv_data,
+            file_name=f"health_facilities_{selected_district}.csv",
+            mime="text/csv"
+        )
 
     except Exception as e:
         st.error(f"An error occurred: {str(e)}")
