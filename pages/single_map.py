@@ -5,7 +5,6 @@ import plotly.graph_objects as go
 import numpy as np
 from shapely.geometry import Point
 import os
-import zipfile
 
 st.set_page_config(layout="wide", page_title="Health Facility Map Generator")
 st.title("Interactive Health Facility Map Generator")
@@ -115,13 +114,7 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
                             color=point_color,
                         ),
                         text=chiefdom_facilities[name_col],
-                        hovertemplate=(
-                            f"Facility: %{text}<br>"
-                            f"Latitude: %{lat}<br>"
-                            f"Longitude: %{lon}<br>"
-                            "<extra></extra>"
-                        ),
-                        name=chiefdom
+                        hovertemplate="Facility: %{text}<br>Latitude: %{lat:.4f}<br>Longitude: %{lon:.4f}<extra></extra>"
                     )
                 )
 
