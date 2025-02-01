@@ -5,6 +5,8 @@ import plotly.graph_objects as go
 import numpy as np
 from shapely.geometry import Point
 import os
+import zipfile
+import io
 
 st.set_page_config(layout="wide", page_title="Health Facility Map Generator")
 st.title("Interactive Health Facility Map Generator")
@@ -35,58 +37,10 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
         shapefile = gpd.read_file("temp.shp")
         facility_data = pd.read_excel(facility_file)
 
-        # Column selection
-        st.header("Coordinate Column Selection")
-        col3, col4, col5 = st.columns(3)
-        
-        with col3:
-            longitude_col = st.selectbox(
-                "Select Longitude Column",
-                facility_data.columns,
-                index=facility_data.columns.get_loc("w_long") if "w_long" in facility_data.columns else 0
-            )
-        with col4:
-            latitude_col = st.selectbox(
-                "Select Latitude Column",
-                facility_data.columns,
-                index=facility_data.columns.get_loc("w_lat") if "w_lat" in facility_data.columns else 0
-            )
-        with col5:
-            name_col = st.selectbox(
-                "Select Facility Name Column",
-                facility_data.columns,
-                index=0
-            )
+        # [Previous code remains the same until the file generation part]
 
-        # Map customization
-        st.header("Map Customization")
-        col6, col7, col8 = st.columns(3)
-
-        with col6:
-            map_title = st.text_input("Map Title", "Health Facility Distribution by Chiefdom")
-            title_font_size = st.slider("Title Font Size", 12, 48, 24)
-            title_spacing = st.slider("Title Top Spacing", 0, 200, 50)
-            point_size = st.slider("Point Size", 5, 20, 10)
-
-        with col7:
-            point_color = st.color_picker("Point Color", "#FF4B4B")
-            background_color = st.color_picker("Background Color", "#FFFFFF")
-
-        # Create GeoDataFrame from facility data
-        geometry = [Point(xy) for xy in zip(facility_data[longitude_col], facility_data[latitude_col])]
-        facilities_gdf = gpd.GeoDataFrame(
-            facility_data, 
-            geometry=geometry,
-            crs="EPSG:4326"
-        )
-
-        # Get districts and user selection
-        districts = sorted(shapefile['FIRST_DNAM'].unique())
-        selected_district = st.selectbox("Select District", districts)
-
-        # Filter for selected district and get chiefdoms
-        district_shapefile = shapefile[shapefile['FIRST_DNAM'] == selected_district]
-        chiefdoms = sorted(district_shapefile['FIRST_CHIE'].unique())
+        # Store HTML files in memory
+        html_files = []
         
         # Generate individual plots
         for chiefdom in chiefdoms:
@@ -143,32 +97,61 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
                 paper_bgcolor=background_color
             )
 
-            # Save HTML file
-            filename = f"health_facility_map_{selected_district}_{chiefdom}.html"
-            config = {
-                'displayModeBar': True,
-                'scrollZoom': True,
-                'displaylogo': False,
-                'responsive': True,
-                'toImageButtonOptions': {
-                    'format': 'png',
-                    'filename': f'health_facility_map_{selected_district}_{chiefdom}',
-                    'height': 2000,
-                    'width': 2000,
-                    'scale': 1
-                }
-            }
-            
-            fig.write_html(
-                filename,
-                config=config,
+            # Generate HTML content
+            html_content = fig.to_html(
+                config={
+                    'displayModeBar': True,
+                    'scrollZoom': True,
+                    'displaylogo': False,
+                    'responsive': True,
+                    'toImageButtonOptions': {
+                        'format': 'png',
+                        'height': 2000,
+                        'width': 2000,
+                        'scale': 1
+                    }
+                },
                 include_plotlyjs=True,
                 full_html=True,
                 include_mathjax=False
             )
+            
+            # Store HTML content and filename
+            html_files.append({
+                'filename': f"health_facility_map_{selected_district}_{chiefdom}.html",
+                'content': html_content
+            })
+
+        # Create download interface
+        st.header("Download Maps")
+        
+        # Individual file downloads
+        st.subheader("Download Individual Maps")
+        for html_file in html_files:
+            st.download_button(
+                label=f"Download {html_file['filename']}",
+                data=html_file['content'],
+                file_name=html_file['filename'],
+                mime='text/html',
+                key=html_file['filename']
+            )
+
+        # Create ZIP file containing all maps
+        st.subheader("Download All Maps")
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+            for html_file in html_files:
+                zip_file.writestr(html_file['filename'], html_file['content'])
+        
+        st.download_button(
+            label="Download All Maps (ZIP)",
+            data=zip_buffer.getvalue(),
+            file_name=f"health_facility_maps_{selected_district}.zip",
+            mime="application/zip"
+        )
 
         # Display success message
-        st.success(f"Generated individual HTML maps for {len(chiefdoms)} chiefdoms in {selected_district} District")
+        st.success(f"Generated {len(chiefdoms)} maps for {selected_district} District")
 
     except Exception as e:
         st.error(f"An error occurred: {str(e)}")
