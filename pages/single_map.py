@@ -161,20 +161,26 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
                             st.write(f"Number of facilities: {len(chiefdom_facilities)}")
 
         # Download options
-        col9, col10 = st.columns(2)
+        # Download section
+        st.header("Download Data")
         
-        with col9:
+        # Download options
             # Save as HTML for all maps
             html_file = f"health_facility_maps_{selected_district}.html"
-            with open(html_file, "wb") as file:
+                            # Combine all facilities data
                 all_facilities = pd.concat([
                     gpd.sjoin(facilities_gdf, district_shapefile[district_shapefile['FIRST_CHIE'] == chiefdom], 
                              how="inner", predicate="within")
                     for chiefdom in chiefdoms
                 ])
+                
+                # Create CSV data
+                csv_data = all_facilities.to_csv(index=False)
+                
+                # Add download button
                 st.download_button(
                     label="Download All Facilities Data (CSV)",
-                    data=all_facilities.to_csv(index=False),
+                    data=csv_data,
                     file_name=f"health_facilities_{selected_district}.csv",
                     mime="text/csv"
                 )
