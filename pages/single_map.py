@@ -91,6 +91,9 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
         # Get unique chiefdoms for the selected district
         chiefdoms = sorted(district_shapefile['FIRST_CHIE'].unique())
 
+        # Store all figures
+        figures = []
+        
         # Display individual maps for each chiefdom
         st.subheader(f"Health Facility Maps for {selected_district} District")
         
@@ -159,6 +162,9 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
             
             if show_facility_count:
                 st.write(f"Number of facilities: {len(chiefdom_facilities)}")
+            
+            # Store the figure
+            figures.append(fig)
 
         # Display consolidated map
         st.header("Consolidated Map View")
