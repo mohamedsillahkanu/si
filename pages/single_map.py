@@ -160,8 +160,77 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
             if show_facility_count:
                 st.write(f"Number of facilities: {len(chiefdom_facilities)}")
 
+        # Display consolidated map
+        st.header("Consolidated Map View")
+        
+        # Create consolidated map for all facilities
+        consolidated_fig = go.Figure()
+        
+        # Get all facilities for the district
+        all_facilities = pd.concat([
+            gpd.sjoin(facilities_gdf, district_shapefile[district_shapefile['FIRST_CHIE'] == chiefdom], 
+                     how="inner", predicate="within")
+            for chiefdom in chiefdoms
+        ])
+        
+        if len(all_facilities) > 0:
+            consolidated_fig.add_trace(
+                go.Scattermapbox(
+                    lat=all_facilities[latitude_col],
+                    lon=all_facilities[longitude_col],
+                    mode='markers',
+                    marker=dict(
+                        size=point_size,
+                        color=point_color,
+                    ),
+                    text=all_facilities[name_col],
+                    hovertemplate=(
+                        "Facility: %{text}<br>"
+                        "Latitude: %{lat}<br>"
+                        "Longitude: %{lon}<br>"
+                        "<extra></extra>"
+                    )
+                )
+            )
+        
+        # Update layout for consolidated map
+        district_bounds = district_shapefile.total_bounds
+        consolidated_fig.update_layout(
+            height=600,
+            width=800,
+            mapbox=dict(
+                style="carto-positron",
+                center=dict(
+                    lat=np.mean([district_bounds[1], district_bounds[3]]),
+                    lon=np.mean([district_bounds[0], district_bounds[2]])
+                ),
+                zoom=7
+            ),
+            margin=dict(t=40, r=10, l=10, b=10),
+            title=dict(
+                text=f"All Health Facilities in {selected_district} District",
+                y=0.95,
+                x=0.5,
+                xanchor='center',
+                yanchor='top'
+            )
+        )
+        
+        # Display the consolidated map
+        st.plotly_chart(consolidated_fig, use_container_width=True)
+        st.write(f"Total number of facilities: {len(all_facilities)}")
+        
         # Download section
         st.header("Download Data")
+        
+        # Generate HTML file for the consolidated map
+        html_data = consolidated_fig.to_html()
+        st.download_button(
+            label="Download Interactive Map (HTML)",
+            data=html_data,
+            file_name=f"health_facilities_map_{selected_district}.html",
+            mime="text/html"
+        )
         
         # Combine all facilities data
         all_facilities = pd.concat([
