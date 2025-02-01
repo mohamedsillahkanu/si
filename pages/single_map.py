@@ -2,7 +2,6 @@ import streamlit as st
 import geopandas as gpd
 import pandas as pd
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 import numpy as np
 from shapely.geometry import Point
 
@@ -64,22 +63,13 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
 
         # Customization options
         st.header("Map Customization")
-        col6, col7, col8 = st.columns(3)
+        col6, col7 = st.columns(2)
 
         with col6:
-            # Title customization
-            map_title = st.text_input("Map Title", "Health Facility Distribution by Chiefdom")
-            title_font_size = st.slider("Title Font Size", 12, 48, 24)
-            title_spacing = st.slider("Title Top Spacing", 0, 200, 50)
+            point_color = st.color_picker("Point Color", "#FF4B4B")
             point_size = st.slider("Point Size", 5, 20, 10)
 
         with col7:
-            # Color selection
-            point_color = st.color_picker("Point Color", "#FF4B4B")
-            background_color = st.color_picker("Background Color", "#FFFFFF")
-
-        with col8:
-            # Additional options
             show_facility_count = st.checkbox("Show Facility Count", value=True)
             show_chiefdom_name = st.checkbox("Show Chiefdom Name", value=True)
 
@@ -100,118 +90,99 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
         
         # Get unique chiefdoms for the selected district
         chiefdoms = sorted(district_shapefile['FIRST_CHIE'].unique())
+
+        # Create a grid layout for the maps using st.columns
+        cols_per_row = 4  # Number of columns in the grid
+        num_rows = (len(chiefdoms) + cols_per_row - 1) // cols_per_row
         
-        # Create subplot figure with 20x1 layout
-        # Create titles for all 20 rows, using empty strings for rows without chiefdoms
-        subplot_titles = [f"{chiefdoms[i]}" if i < len(chiefdoms) else "" for i in range(n_rows)]
-        
-        fig = make_subplots(
-            rows=n_rows,
-            cols=1,
-            subplot_titles=subplot_titles,
-            specs=[[{"type": "scattermapbox"}] for _ in range(n_rows)],
-            vertical_spacing=0.01  # Reduce spacing between subplots
-        )
-
-        # Plot each chiefdom
-        for idx in range(n_rows):
-            if idx >= len(chiefdoms):
-                continue
-                
-            chiefdom = chiefdoms[idx]
-            # Filter shapefile for current chiefdom
-            chiefdom_shapefile = district_shapefile[district_shapefile['FIRST_CHIE'] == chiefdom]
-            
-            # Get chiefdom boundary coordinates
-            bounds = chiefdom_shapefile.total_bounds
-            
-            # Spatial join to get facilities within the chiefdom
-            chiefdom_facilities = gpd.sjoin(
-                facilities_gdf,
-                chiefdom_shapefile,
-                how="inner",
-                predicate="within"
-            )
-            
-            if len(chiefdom_facilities) > 0:
-                # Add scatter mapbox trace for facilities
-                fig.add_trace(
-                    go.Scattermapbox(
-                        lat=chiefdom_facilities[latitude_col],
-                        lon=chiefdom_facilities[longitude_col],
-                        mode='markers',
-                        marker=dict(
-                            size=point_size,
-                            color=point_color,
-                        ),
-                        text=chiefdom_facilities[name_col],
-                        hovertemplate=(
-                            f"Facility: %{text}<br>"
-                            f"Latitude: %{lat}<br>"
-                            f"Longitude: %{lon}<br>"
-                            "<extra></extra>"
-                        ),
-                        name=chiefdom
-                    ),
-                    row=idx + 1,
-                    col=1
-                )
-
-            # Update layout for each subplot
-            fig.update_layout({
-                f'mapbox{idx+1}': {
-                    'style': "carto-positron",
-                    'center': {
-                        'lat': np.mean([bounds[1], bounds[3]]),
-                        'lon': np.mean([bounds[0], bounds[2]])
-                    },
-                    'zoom': 8,
-                    'domain': {'x': [0, 1], 'y': [1 - (idx + 1) * (1/20), 1 - idx * (1/20)]},
-                    'height': 15  # Set height of each subplot to 15
-                }
-            })
-
-        # Update overall layout
-        fig.update_layout(
-            height=n_rows * 300,  # Increased height for better visibility
-            width=800,  # Fixed width for better aspect ratio
-            title={
-                'text': f"{map_title} {selected_district} District",
-                'y': 0.98,
-                'x': 0.5,
-                'xanchor': 'center',
-                'yanchor': 'top',
-                'font': {'size': title_font_size}
-            },
-            showlegend=False,
-            margin=dict(t=title_spacing + title_font_size + 10, r=10, l=10, b=10)
-        )
-
-        # Display the map
-        st.plotly_chart(fig, use_container_width=True)
+        # Create columns for each row
+        for row in range(num_rows):
+            cols = st.columns(cols_per_row)
+            for col in range(cols_per_row):
+                idx = row * cols_per_row + col
+                if idx < len(chiefdoms):
+                    chiefdom = chiefdoms[idx]
+                    with cols[col]:
+                        # Filter shapefile for current chiefdom
+                        chiefdom_shapefile = district_shapefile[district_shapefile['FIRST_CHIE'] == chiefdom]
+                        
+                        # Get chiefdom boundary coordinates
+                        bounds = chiefdom_shapefile.total_bounds
+                        
+                        # Spatial join to get facilities within the chiefdom
+                        chiefdom_facilities = gpd.sjoin(
+                            facilities_gdf,
+                            chiefdom_shapefile,
+                            how="inner",
+                            predicate="within"
+                        )
+                        
+                        # Create individual map for the chiefdom
+                        fig = go.Figure()
+                        
+                        if len(chiefdom_facilities) > 0:
+                            fig.add_trace(
+                                go.Scattermapbox(
+                                    lat=chiefdom_facilities[latitude_col],
+                                    lon=chiefdom_facilities[longitude_col],
+                                    mode='markers',
+                                    marker=dict(
+                                        size=point_size,
+                                        color=point_color,
+                                    ),
+                                    text=chiefdom_facilities[name_col],
+                                    hovertemplate=(
+                                        f"Facility: %{text}<br>"
+                                        f"Latitude: %{lat}<br>"
+                                        f"Longitude: %{lon}<br>"
+                                        "<extra></extra>"
+                                    )
+                                )
+                            )
+                        
+                        # Update layout for individual map
+                        fig.update_layout(
+                            height=400,  # 15 inches * 96 DPI
+                            width=400,   # 15 inches * 96 DPI
+                            mapbox=dict(
+                                style="carto-positron",
+                                center=dict(
+                                    lat=np.mean([bounds[1], bounds[3]]),
+                                    lon=np.mean([bounds[0], bounds[2]])
+                                ),
+                                zoom=8
+                            ),
+                            margin=dict(t=30, r=0, l=0, b=0),
+                            title=dict(
+                                text=f"{chiefdom}",
+                                y=0.9,
+                                x=0.5,
+                                xanchor='center',
+                                yanchor='top'
+                            )
+                        )
+                        
+                        # Display the map
+                        st.plotly_chart(fig, use_container_width=True)
+                        
+                        if show_facility_count:
+                            st.write(f"Number of facilities: {len(chiefdom_facilities)}")
 
         # Download options
         col9, col10 = st.columns(2)
         
         with col9:
-            # Save as HTML
-            html_file = f"health_facility_map_{selected_district}.html"
-            fig.write_html(html_file)
-            with open(html_file, "rb") as file:
+            # Save as HTML for all maps
+            html_file = f"health_facility_maps_{selected_district}.html"
+            with open(html_file, "wb") as file:
+                all_facilities = pd.concat([
+                    gpd.sjoin(facilities_gdf, district_shapefile[district_shapefile['FIRST_CHIE'] == chiefdom], 
+                             how="inner", predicate="within")
+                    for chiefdom in chiefdoms
+                ])
                 st.download_button(
-                    label="Download Interactive Map (HTML)",
-                    data=file,
-                    file_name=html_file,
-                    mime="text/html"
-                )
-
-        with col10:
-            # Export facility data
-            if len(chiefdom_facilities) > 0:
-                csv = chiefdom_facilities.to_csv(index=False)
-                st.download_button(
-                    label="Download Processed Data (CSV)",
-                    data=csv,
+                    label="Download All Facilities Data (CSV)",
+                    data=all_facilities.to_csv(index=False),
                     file_name=f"health_facilities_{selected_district}.csv",
                     mime="text/csv"
                 )
@@ -221,7 +192,7 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
         st.write("Please check your input files and try again.")
 
 else:
-    st.info("Please upload all required files to generate the map.")
+    st.info("Please upload all required files to generate the maps.")
     
     # Show example data format
     st.subheader("Expected Data Format")
