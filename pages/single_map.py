@@ -91,18 +91,10 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
         # Get unique chiefdoms for the selected district
         chiefdoms = sorted(district_shapefile['FIRST_CHIE'].unique())
 
-        # Create a grid layout for the maps using st.columns
-        cols_per_row = 4  # Number of columns in the grid
-        num_rows = (len(chiefdoms) + cols_per_row - 1) // cols_per_row
+        # Display individual maps for each chiefdom
+        st.subheader(f"Health Facility Maps for {selected_district} District")
         
-        # Create columns for each row
-        for row in range(num_rows):
-            cols = st.columns(cols_per_row)
-            for col in range(cols_per_row):
-                idx = row * cols_per_row + col
-                if idx < len(chiefdoms):
-                    chiefdom = chiefdoms[idx]
-                    with cols[col]:
+        for chiefdom in chiefdoms:
                         # Filter shapefile for current chiefdom
                         chiefdom_shapefile = district_shapefile[district_shapefile['FIRST_CHIE'] == chiefdom]
                         
@@ -142,8 +134,8 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
                         
                         # Update layout for individual map
                         fig.update_layout(
-                            height=400,  # 15 inches * 96 DPI
-                            width=400,   # 15 inches * 96 DPI
+                            height=360,  # 15 inches (scaled for better visibility)
+                            width=360,   # 15 inches (scaled for better visibility)
                             mapbox=dict(
                                 style="carto-positron",
                                 center=dict(
@@ -152,7 +144,7 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
                                 ),
                                 zoom=8
                             ),
-                            margin=dict(t=30, r=0, l=0, b=0),
+                            margin=dict(t=40, r=10, l=10, b=10),
                             title=dict(
                                 text=f"{chiefdom}",
                                 y=0.9,
