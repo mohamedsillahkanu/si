@@ -37,19 +37,70 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
         shapefile = gpd.read_file("temp.shp")
         facility_data = pd.read_excel(facility_file)
 
-        # [Previous code remains the same until the file generation part]
+        # Column selection
+        st.header("Coordinate Column Selection")
+        col3, col4, col5 = st.columns(3)
+        
+        with col3:
+            longitude_col = st.selectbox(
+                "Select Longitude Column",
+                facility_data.columns,
+                index=facility_data.columns.get_loc("w_long") if "w_long" in facility_data.columns else 0
+            )
+        with col4:
+            latitude_col = st.selectbox(
+                "Select Latitude Column",
+                facility_data.columns,
+                index=facility_data.columns.get_loc("w_lat") if "w_lat" in facility_data.columns else 0
+            )
+        with col5:
+            name_col = st.selectbox(
+                "Select Facility Name Column",
+                facility_data.columns,
+                index=0
+            )
+
+        # Map customization
+        st.header("Map Customization")
+        col6, col7, col8 = st.columns(3)
+
+        with col6:
+            map_title = st.text_input("Map Title", "Health Facility Distribution by Chiefdom")
+            title_font_size = st.slider("Title Font Size", 12, 48, 24)
+            title_spacing = st.slider("Title Top Spacing", 0, 200, 50)
+            point_size = st.slider("Point Size", 5, 20, 10)
+
+        with col7:
+            point_color = st.color_picker("Point Color", "#FF4B4B")
+            background_color = st.color_picker("Background Color", "#FFFFFF")
+
+        # Create GeoDataFrame from facility data
+        geometry = [Point(xy) for xy in zip(facility_data[longitude_col], facility_data[latitude_col])]
+        facilities_gdf = gpd.GeoDataFrame(
+            facility_data, 
+            geometry=geometry,
+            crs="EPSG:4326"
+        )
+
+        # Get districts and user selection
+        districts = sorted(shapefile['FIRST_DNAM'].unique())
+        selected_district = st.selectbox("Select District", districts)
+
+        # Filter for selected district and get chiefdoms
+        district_shapefile = shapefile[shapefile['FIRST_DNAM'] == selected_district]
+        first_chies = sorted(district_shapefile['FIRST_CHIE'].unique())
 
         # Store HTML files in memory
         html_files = []
         
         # Generate individual plots
-        for chiefdom in chiefdoms:
-            chiefdom_shapefile = district_shapefile[district_shapefile['FIRST_CHIE'] == chiefdom]
-            bounds = chiefdom_shapefile.total_bounds
+        for first_chie in first_chies:
+            chie_shapefile = district_shapefile[district_shapefile['FIRST_CHIE'] == first_chie]
+            bounds = chie_shapefile.total_bounds
             
-            chiefdom_facilities = gpd.sjoin(
+            chie_facilities = gpd.sjoin(
                 facilities_gdf,
-                chiefdom_shapefile,
+                chie_shapefile,
                 how="inner",
                 predicate="within"
             )
@@ -57,17 +108,17 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
             # Create figure
             fig = go.Figure()
             
-            if len(chiefdom_facilities) > 0:
+            if len(chie_facilities) > 0:
                 fig.add_trace(
                     go.Scattermapbox(
-                        lat=chiefdom_facilities[latitude_col],
-                        lon=chiefdom_facilities[longitude_col],
+                        lat=chie_facilities[latitude_col],
+                        lon=chie_facilities[longitude_col],
                         mode='markers',
                         marker=dict(
                             size=point_size,
                             color=point_color,
                         ),
-                        text=chiefdom_facilities[name_col],
+                        text=chie_facilities[name_col],
                         hovertemplate="Facility: %{text}<br>Latitude: %{lat:.4f}<br>Longitude: %{lon:.4f}<extra></extra>"
                     )
                 )
@@ -77,7 +128,7 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
                 height=2000,
                 width=2000,
                 title={
-                    'text': f"{map_title}<br>{chiefdom} Chiefdom, {selected_district} District",
+                    'text': f"{map_title}<br>{first_chie}, {selected_district} District",
                     'y': 0.95,
                     'x': 0.5,
                     'xanchor': 'center',
@@ -118,7 +169,7 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
             
             # Store HTML content and filename
             html_files.append({
-                'filename': f"health_facility_map_{selected_district}_{chiefdom}.html",
+                'filename': f"health_facility_map_{selected_district}_{first_chie}.html",
                 'content': html_content
             })
 
@@ -151,7 +202,7 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
         )
 
         # Display success message
-        st.success(f"Generated {len(chiefdoms)} maps for {selected_district} District")
+        st.success(f"Generated {len(first_chies)} maps for {selected_district} District")
 
     except Exception as e:
         st.error(f"An error occurred: {str(e)}")
