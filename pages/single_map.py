@@ -113,7 +113,10 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
             )
             
             # Create individual map for the chiefdom
-            fig = go.Figure()
+            fig = go.Figure(layout=dict(
+                paper_bgcolor='rgba(0,0,0,0)',
+                plot_bgcolor='rgba(0,0,0,0)'
+            ))
             
             if len(chiefdom_facilities) > 0:
                 fig.add_trace(
@@ -157,8 +160,12 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
                 )
             )
             
-            # Display the map
-            st.plotly_chart(fig, use_container_width=True)
+            # Add the map to Streamlit with exact dimensions
+            st.plotly_chart(fig, use_container_width=False, config={
+                'displayModeBar': False,
+                'staticPlot': False,
+                'scrollZoom': True
+            })
             
             if show_facility_count:
                 st.write(f"Number of facilities: {len(chiefdom_facilities)}")
