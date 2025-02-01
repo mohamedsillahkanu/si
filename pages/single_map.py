@@ -91,7 +91,7 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
         # Get unique chiefdoms for the selected district
         chiefdoms = sorted(district_shapefile['FIRST_CHIE'].unique())
 
-        # Store all figures
+        # Store figures for HTML export
         figures = []
         
         # Display individual maps for each chiefdom
@@ -150,7 +150,7 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
                 margin=dict(t=40, r=10, l=10, b=10),
                 title=dict(
                     text=f"{chiefdom}",
-                    y=0.9,
+                    y=0.95,
                     x=0.5,
                     xanchor='center',
                     yanchor='top'
@@ -163,98 +163,62 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
             if show_facility_count:
                 st.write(f"Number of facilities: {len(chiefdom_facilities)}")
             
-            # Store the figure
+            # Store the figure for HTML export
             figures.append(fig)
 
-        # Display consolidated map
-        st.header("Consolidated Map View")
-        
-        # Create consolidated map for all facilities
-        consolidated_fig = go.Figure()
-        
-        # Get all facilities for the district
+        # Get all facilities for CSV export
         all_facilities = pd.concat([
             gpd.sjoin(facilities_gdf, district_shapefile[district_shapefile['FIRST_CHIE'] == chiefdom], 
                      how="inner", predicate="within")
             for chiefdom in chiefdoms
         ])
-        
-        if len(all_facilities) > 0:
-            consolidated_fig.add_trace(
-                go.Scattermapbox(
-                    lat=all_facilities[latitude_col],
-                    lon=all_facilities[longitude_col],
-                    mode='markers',
-                    marker=dict(
-                        size=point_size,
-                        color=point_color,
-                    ),
-                    text=all_facilities[name_col],
-                    hovertemplate=(
-                        "Facility: %{text}<br>"
-                        "Latitude: %{lat}<br>"
-                        "Longitude: %{lon}<br>"
-                        "<extra></extra>"
-                    )
-                )
-            )
-        
-        # Update layout for consolidated map
-        district_bounds = district_shapefile.total_bounds
-        consolidated_fig.update_layout(
-            height=600,
-            width=800,
-            mapbox=dict(
-                style="carto-positron",
-                center=dict(
-                    lat=np.mean([district_bounds[1], district_bounds[3]]),
-                    lon=np.mean([district_bounds[0], district_bounds[2]])
-                ),
-                zoom=7
-            ),
-            margin=dict(t=40, r=10, l=10, b=10),
-            title=dict(
-                text=f"All Health Facilities in {selected_district} District",
-                y=0.95,
-                x=0.5,
-                xanchor='center',
-                yanchor='top'
-            )
-        )
-        
-        # Display the consolidated map
-        st.plotly_chart(consolidated_fig, use_container_width=True)
-        st.write(f"Total number of facilities: {len(all_facilities)}")
-        
+
         # Download section
-        st.header("Download Data")
+        st.header("Download Options")
         
-        # Generate HTML file for the consolidated map
-        html_data = consolidated_fig.to_html()
-        st.download_button(
-            label="Download Interactive Map (HTML)",
-            data=html_data,
-            file_name=f"health_facilities_map_{selected_district}.html",
-            mime="text/html"
-        )
+        # Create HTML string for all maps
+        html_parts = []
+        html_parts.append("""
+        <html>
+        <head>
+            <title>Health Facility Maps</title>
+            <style>
+                body { max-width: 1200px; margin: 0 auto; padding: 20px; }
+                .map-container { margin-bottom: 30px; }
+            </style>
+        </head>
+        <body>
+        """)
+        html_parts.append(f"<h1 style='text-align:center'>Health Facility Maps - {selected_district} District</h1>")
         
-        # Combine all facilities data
-        all_facilities = pd.concat([
-            gpd.sjoin(facilities_gdf, district_shapefile[district_shapefile['FIRST_CHIE'] == chiefdom], 
-                     how="inner", predicate="within")
-            for chiefdom in chiefdoms
-        ])
+        # Add each figure to HTML
+        for fig in figures:
+            html_parts.append("<div class='map-container'>")
+            html_parts.append(fig.to_html(full_html=False, include_plotlyjs='cdn'))
+            html_parts.append("</div>")
+            
+        html_parts.append("</body></html>")
+        html_data = "".join(html_parts)
         
-        # Create CSV data
-        csv_data = all_facilities.to_csv(index=False)
-        
-        # Add download button
-        st.download_button(
-            label="Download All Facilities Data (CSV)",
-            data=csv_data,
-            file_name=f"health_facilities_{selected_district}.csv",
-            mime="text/csv"
-        )
+        # Download buttons
+        col1, col2 = st.columns(2)
+        with col1:
+            st.download_button(
+                label="Download Interactive Maps (HTML)",
+                data=html_data,
+                file_name=f"health_facility_maps_{selected_district}.html",
+                mime="text/html"
+            )
+            
+        with col2:
+            # Create CSV data
+            csv_data = all_facilities.to_csv(index=False)
+            st.download_button(
+                label="Download Facility Data (CSV)",
+                data=csv_data,
+                file_name=f"health_facilities_{selected_district}.csv",
+                mime="text/csv"
+            )
 
     except Exception as e:
         st.error(f"An error occurred: {str(e)}")
