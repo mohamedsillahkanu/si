@@ -183,18 +183,54 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
         <head>
             <title>Health Facility Maps</title>
             <style>
-                body { max-width: 1200px; margin: 0 auto; padding: 20px; }
-                .map-container { margin-bottom: 30px; }
+                body { 
+                    max-width: 1200px; 
+                    margin: 0 auto; 
+                    padding: 20px;
+                    background-color: #f5f5f5;
+                }
+                .map-container { 
+                    margin-bottom: 40px;
+                    background-color: white;
+                    padding: 20px;
+                    border-radius: 10px;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                }
+                h1 {
+                    text-align: center;
+                    padding: 20px;
+                    margin-bottom: 30px;
+                    font-size: 32px;
+                }
+                .facility-count {
+                    text-align: center;
+                    font-size: 18px;
+                    margin-top: 10px;
+                }
             </style>
         </head>
         <body>
         """)
         html_parts.append(f"<h1 style='text-align:center'>Health Facility Maps - {selected_district} District</h1>")
         
-        # Add each figure to HTML
-        for fig in figures:
+        # Add each figure to HTML with facility count
+        for i, fig in enumerate(figures):
             html_parts.append("<div class='map-container'>")
-            html_parts.append(fig.to_html(full_html=False, include_plotlyjs='cdn'))
+            html_parts.append(fig.to_html(
+                full_html=False,
+                include_plotlyjs='cdn' if i == 0 else False,  # Only include plotly.js once
+                config={'displayModeBar': True, 'scrollZoom': True}
+            ))
+            # Add facility count if enabled
+            if show_facility_count:
+                chiefdom = chiefdoms[i]
+                chiefdom_facilities = gpd.sjoin(
+                    facilities_gdf,
+                    district_shapefile[district_shapefile['FIRST_CHIE'] == chiefdom],
+                    how="inner",
+                    predicate="within"
+                )
+                html_parts.append(f"<div class='facility-count'>Number of facilities: {len(chiefdom_facilities)}</div>")
             html_parts.append("</div>")
             
         html_parts.append("</body></html>")
