@@ -102,17 +102,23 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
         chiefdoms = sorted(district_shapefile['FIRST_CHIE'].unique())
         
         # Create subplot figure with 20x1 layout
-        subplot_titles = [f"{chiefdom}" for chiefdom in chiefdoms[:20]]
+        # Create titles for all 20 rows, using empty strings for rows without chiefdoms
+        subplot_titles = [f"{chiefdoms[i]}" if i < len(chiefdoms) else "" for i in range(n_rows)]
+        
         fig = make_subplots(
-            rows=20,
+            rows=n_rows,
             cols=1,
             subplot_titles=subplot_titles,
-            specs=[[{"type": "scattermapbox"}] for _ in range(20)],
-            vertical_spacing=0.02  # Reduce spacing between subplots
+            specs=[[{"type": "scattermapbox"}] for _ in range(n_rows)],
+            vertical_spacing=0.01  # Reduce spacing between subplots
         )
 
         # Plot each chiefdom
-        for idx, chiefdom in enumerate(chiefdoms[:20]):
+        for idx in range(n_rows):
+            if idx >= len(chiefdoms):
+                continue
+                
+            chiefdom = chiefdoms[idx]
             # Filter shapefile for current chiefdom
             chiefdom_shapefile = district_shapefile[district_shapefile['FIRST_CHIE'] == chiefdom]
             
@@ -167,8 +173,8 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
 
         # Update overall layout
         fig.update_layout(
-            height=20 * 15,  # Total height = number of subplots * height per subplot
-            width=15,  # Set width to 15
+            height=n_rows * 300,  # Increased height for better visibility
+            width=800,  # Fixed width for better aspect ratio
             title={
                 'text': f"{map_title} {selected_district} District",
                 'y': 0.98,
