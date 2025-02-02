@@ -1,0 +1,85 @@
+<svg viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="800" height="400" fill="#f8f9fa"/>
+  
+  <!-- Welcome Text -->
+  <text x="400" y="180" text-anchor="middle" font-family="Arial, sans-serif" font-size="48" fill="#2d3748">
+    Welcome to
+    <animate 
+      attributeName="opacity"
+      values="0;1"
+      dur="1s"
+      begin="0s"
+      fill="freeze"/>
+  </text>
+  
+  <!-- App Name with gradient -->
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#4299e1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#667eea;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <text x="400" y="250" text-anchor="middle" font-family="Arial, sans-serif" font-size="64" font-weight="bold" fill="url(#gradient)">
+    Automation
+    <animate
+      attributeName="opacity"
+      values="0;1"
+      dur="1s"
+      begin="0.5s"
+      fill="freeze"/>
+    <animate
+      attributeName="y"
+      values="270;250"
+      dur="0.5s"
+      begin="0.5s"
+      fill="freeze"/>
+  </text>
+
+  <!-- Decorative Elements -->
+  <g>
+    <circle cx="200" cy="320" r="8" fill="#4299e1">
+      <animate
+        attributeName="r"
+        values="0;8"
+        dur="0.5s"
+        begin="1s"
+        fill="freeze"/>
+    </circle>
+    <circle cx="600" cy="320" r="8" fill="#667eea">
+      <animate
+        attributeName="r"
+        values="0;8"
+        dur="0.5s"
+        begin="1s"
+        fill="freeze"/>
+    </circle>
+    <line x1="220" y1="320" x2="580" y2="320" stroke="#4299e1" stroke-width="3">
+      <animate
+        attributeName="x2"
+        values="220;580"
+        dur="0.8s"
+        begin="1.2s"
+        fill="freeze"/>
+    </line>
+  </g>
+
+  <!-- Gear Icon -->
+  <g transform="translate(370, 100)">
+    <path d="M12 15V17M12 7V13M17 12H13M11 12H7M3 12C3 13.1819 3.23279 14.3522 3.68508 15.4442C4.13738 16.5361 4.80031 17.5282 5.63604 18.364C6.47177 19.1997 7.46392 19.8626 8.55585 20.3149C9.64778 20.7672 10.8181 21 12 21C13.1819 21 14.3522 20.7672 15.4442 20.3149C16.5361 19.8626 17.5282 19.1997 18.364 18.364C19.1997 17.5282 19.8626 16.5361 20.3149 15.4442C20.7672 14.3522 21 13.1819 21 12C21 9.61305 20.0518 7.32387 18.364 5.63604C16.6761 3.94821 14.3869 3 12 3C9.61305 3 7.32387 3.94821 5.63604 5.63604C3.94821 7.32387 3 9.61305 3 12Z" 
+      stroke="#4299e1" 
+      stroke-width="2" 
+      stroke-linecap="round" 
+      stroke-linejoin="round"
+      fill="none">
+      <animateTransform
+        attributeName="transform"
+        type="rotate"
+        from="0 12 12"
+        to="360 12 12"
+        dur="3s"
+        repeatCount="indefinite"/>
+    </path>
+  </g>
+</svg>
