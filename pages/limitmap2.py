@@ -53,11 +53,6 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
         shapefile = gpd.read_file("temp.shp")
         facility_data = pd.read_excel(facility_file)
 
-        # Debugging: Print column names and first few rows
-        st.write("Facility Data Columns:", facility_data.columns.tolist())
-        st.write("First few rows of facility data:")
-        st.write(facility_data.head())
-
         # Column selection
         st.header("Coordinate Column Selection")
         col3, col4, col5 = st.columns(3)
@@ -97,13 +92,16 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
                 index=0
             )
 
+        # Allow user to select additional hover columns
+        st.header("Hover Information")
+        hover_cols = st.multiselect(
+            "Select Additional Columns to Show in Hover",
+            [col for col in facility_data.columns if col not in [name_col, longitude_col, latitude_col]],
+            default=[]
+        )
+
         # Clean coordinate data
         facility_data = clean_coordinate_data(facility_data, longitude_col, latitude_col)
-
-        # Debugging: Print cleaned data
-        st.write(f"Number of facilities after cleaning: {len(facility_data)}")
-        st.write("Sample of cleaned data:")
-        st.write(facility_data[[name_col, longitude_col, latitude_col]].head())
 
         # Map customization
         st.header("Map Customization")
@@ -178,6 +176,20 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
                 )
             )
         
+        # Prepare hover text
+        def create_hover_text(row):
+            hover_info = [f"Facility: {row[name_col]}"]
+            hover_info.append(f"Latitude: {row[latitude_col]:.4f}")
+            hover_info.append(f"Longitude: {row[longitude_col]:.4f}")
+            
+            # Add selected additional columns
+            for col in hover_cols:
+                hover_info.append(f"{col}: {row[col]}")
+            
+            return "<br>".join(hover_info)
+        
+        district_facilities['hover_text'] = district_facilities.apply(create_hover_text, axis=1)
+        
         # Add facilities
         if len(district_facilities) > 0:
             fig.add_trace(
@@ -189,14 +201,8 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
                         size=point_size,
                         color=point_color,
                     ),
-                    text=district_facilities[name_col],
-                    hovertemplate=(
-                        "Facility: %{text}<br>" +
-                        f"Chiefdom: {district_facilities['FIRST_CHIE'] if 'FIRST_CHIE' in district_facilities.columns else 'N/A'}<br>" +
-                        "Latitude: %{lat:.4f}<br>" +
-                        "Longitude: %{lon:.4f}" +
-                        "<extra></extra>"
-                    )
+                    text=district_facilities['hover_text'],
+                    hoverinfo='text'
                 )
             )
 
