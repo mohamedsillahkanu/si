@@ -3,7 +3,7 @@ import geopandas as gpd
 import pandas as pd
 import plotly.graph_objects as go
 import numpy as np
-from shapely.geometry import Point
+from shapely.geometry import Point, Polygon
 
 def clean_coordinate_data(df, longitude_col, latitude_col):
     """
@@ -23,6 +23,18 @@ def clean_coordinate_data(df, longitude_col, latitude_col):
     cleaned_df = cleaned_df.dropna(subset=[longitude_col, latitude_col])
     
     return cleaned_df
+
+def get_polygon_centroid(polygon):
+    """
+    Get the centroid of a polygon
+    """
+    if isinstance(polygon, Polygon):
+        return polygon.centroid.coords[0]
+    elif isinstance(polygon, MultiPolygon):
+        # For multipolygon, use the centroid of the largest polygon
+        largest_polygon = max(polygon.geoms, key=lambda p: p.area)
+        return largest_polygon.centroid.coords[0]
+    return None
 
 st.set_page_config(layout="wide", page_title="Health Facility Map Generator")
 st.title("Interactive Health Facility Map Generator")
@@ -111,11 +123,13 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
             map_title = st.text_input("Map Title", "Health Facility Distribution")
             title_font_size = st.slider("Title Font Size", 12, 48, 24)
             point_size = st.slider("Point Size", 5, 20, 10)
+            chiefdom_label_size = st.slider("Chiefdom Label Size", 8, 20, 12)
 
         with col7:
             point_color = st.color_picker("Point Color", "#FF4B4B")
             background_color = st.color_picker("Background Color", "#FFFFFF")
             boundary_width = st.slider("Boundary Line Width", 1, 10, 3)
+            chiefdom_label_color = st.color_picker("Chiefdom Label Color", "#000000")
 
         # Create GeoDataFrame from facility data
         geometry = [Point(xy) for xy in zip(facility_data[longitude_col], facility_data[latitude_col])]
@@ -146,7 +160,7 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
         # Create figure
         fig = go.Figure()
         
-        # Add chiefdom boundaries
+        # Add chiefdom boundaries and labels
         for _, chiefdom in district_shapefile.iterrows():
             # Convert chiefdom geometry to GeoJSON
             chiefdom_geojson = chiefdom.geometry.__geo_interface__
@@ -175,6 +189,24 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
                     hovertemplate=f"Chiefdom: {chiefdom['FIRST_CHIE']}<extra></extra>"
                 )
             )
+            
+            # Add chiefdom label
+            # Get centroid coordinates
+            centroid = get_polygon_centroid(chiefdom.geometry)
+            if centroid:
+                fig.add_trace(
+                    go.Scattermapbox(
+                        mode='text',
+                        lon=[centroid[0]],
+                        lat=[centroid[1]],
+                        text=[chiefdom['FIRST_CHIE']],
+                        textfont=dict(
+                            color=chiefdom_label_color,
+                            size=chiefdom_label_size
+                        ),
+                        hoverinfo='none'
+                    )
+                )
         
         # Prepare hover text
         def create_hover_text(row):
