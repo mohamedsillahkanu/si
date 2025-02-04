@@ -5,7 +5,7 @@ from jellyfish import jaro_winkler_similarity
 from io import BytesIO
 from PIL import Image
 
-st.image("https://raw.githubusercontent.com/mohamedsillahkanu/si/4a7954a650c20056f19da5a77fe5d09ed4e49526/welcome-animation.svg", caption="Welcome Animation")
+
 
 
 def calculate_match(column1, column2, threshold):
@@ -124,63 +124,113 @@ def main():
 
     # Step 3: Column Selection and Matching
     elif st.session_state.step == 3:
-        st.header("Step 3: Select Columns for Matching")
+    st.header("Step 3: Select Columns for Matching")
+    
+    mfl_col = st.selectbox("Select HF Name column in Master HF List:", 
+                          st.session_state.master_hf_list.columns)
+    dhis2_col = st.selectbox("Select HF Name column in DHIS2 HF List:", 
+                            st.session_state.health_facilities_dhis2_list.columns)
+    
+    threshold = st.slider("Set Match Threshold (0-100):", 
+                        min_value=0, max_value=100, value=70)
+    
+    if st.button("Perform Matching"):
+        # Process data
+        master_hf_list_clean = st.session_state.master_hf_list.copy()
+        dhis2_list_clean = st.session_state.health_facilities_dhis2_list.copy()
         
-        mfl_col = st.selectbox("Select HF Name column in Master HF List:", 
-                              st.session_state.master_hf_list.columns)
-        dhis2_col = st.selectbox("Select HF Name column in DHIS2 HF List:", 
-                                st.session_state.health_facilities_dhis2_list.columns)
+        # Convert name columns to string and handle duplicates
+        master_hf_list_clean[mfl_col] = master_hf_list_clean[mfl_col].astype(str)
+        master_hf_list_clean = master_hf_list_clean.drop_duplicates(subset=[mfl_col])
+        dhis2_list_clean[dhis2_col] = dhis2_list_clean[dhis2_col].astype(str)
         
-        threshold = st.slider("Set Match Threshold (0-100):", 
-                            min_value=0, max_value=100, value=70)
-
-        if st.button("Perform Matching"):
-            # Process data
-            master_hf_list_clean = st.session_state.master_hf_list.copy()
-            dhis2_list_clean = st.session_state.health_facilities_dhis2_list.copy()
+        # Display facility counts
+        st.write("### Counts of Health Facilities")
+        st.write(f"Count of HFs in DHIS2 list: {len(dhis2_list_clean)}")
+        st.write(f"Count of HFs in MFL list: {len(master_hf_list_clean)}")
+        
+        # Perform matching
+        with st.spinner("Performing matching..."):
+            # Get initial matching results
+            hf_name_match_results = calculate_match(
+                master_hf_list_clean[mfl_col],
+                dhis2_list_clean[dhis2_col],
+                threshold
+            )
             
-            master_hf_list_clean[mfl_col] = master_hf_list_clean[mfl_col].astype(str)
-            master_hf_list_clean = master_hf_list_clean.drop_duplicates(subset=[mfl_col])
-            dhis2_list_clean[dhis2_col] = dhis2_list_clean[dhis2_col].astype(str)
-
-            st.write("### Counts of Health Facilities")
-            st.write(f"Count of HFs in DHIS2 list: {len(dhis2_list_clean)}")
-            st.write(f"Count of HFs in MFL list: {len(master_hf_list_clean)}")
-
-            # Perform matching
-            with st.spinner("Performing matching..."):
-                hf_name_match_results = calculate_match(
-                    master_hf_list_clean[mfl_col],
-                    dhis2_list_clean[dhis2_col],
-                    threshold
+            # Rename the matching columns for clarity
+            hf_name_match_results = hf_name_match_results.rename(
+                columns={
+                    'Col1': 'HF_Name_in_MFL',
+                    'Col2': 'HF_Name_in_DHIS2'
+                }
+            )
+            
+            # Add the replacement column based on threshold
+            hf_name_match_results['New_HF_Name_in_MFL'] = np.where(
+                hf_name_match_results['Match_Score'] >= threshold,
+                hf_name_match_results['HF_Name_in_DHIS2'],
+                hf_name_match_results['HF_Name_in_MFL']
+            )
+            
+            # Create separate dataframes with suffix for each source
+            master_hf_cols = {col: f"{col}_MFL" for col in master_hf_list_clean.columns if col != mfl_col}
+            dhis2_cols = {col: f"{col}_DHIS2" for col in dhis2_list_clean.columns if col != dhis2_col}
+            
+            # Rename columns in original dataframes
+            master_hf_list_clean = master_hf_list_clean.rename(columns=master_hf_cols)
+            dhis2_list_clean = dhis2_list_clean.rename(columns=dhis2_cols)
+            
+            # Merge matching results with original dataframes
+            merged_results = (
+                hf_name_match_results
+                .merge(
+                    master_hf_list_clean,
+                    left_on='HF_Name_in_MFL',
+                    right_on=mfl_col,
+                    how='left'
                 )
-
-                # Rename columns and add new column for replacements
-                hf_name_match_results = hf_name_match_results.rename(
-                    columns={'Col1': 'HF_Name_in_MFL', 'Col2': 'HF_Name_in_DHIS2'}
+                .merge(
+                    dhis2_list_clean,
+                    left_on='HF_Name_in_DHIS2',
+                    right_on=dhis2_col,
+                    how='left'
                 )
-                hf_name_match_results['New_HF_Name_in_MFL'] = np.where(
-                    hf_name_match_results['Match_Score'] >= threshold,
-                    hf_name_match_results['HF_Name_in_DHIS2'],
-                    hf_name_match_results['HF_Name_in_MFL']
-                )
+            )
+            
+            # Drop duplicate columns from the merge
+            if mfl_col in merged_results.columns:
+                merged_results = merged_results.drop(columns=[mfl_col])
+            if dhis2_col in merged_results.columns:
+                merged_results = merged_results.drop(columns=[dhis2_col])
+            
+            # Reorder columns to put matching-related columns first
+            matching_cols = [
+                'HF_Name_in_MFL',
+                'HF_Name_in_DHIS2',
+                'New_HF_Name_in_MFL',
+                'Match_Score'
+            ]
+            other_cols = [col for col in merged_results.columns if col not in matching_cols]
+            final_col_order = matching_cols + other_cols
+            merged_results = merged_results[final_col_order]
+            
+            # Display results
+            st.write("### Matching Results")
+            st.write("The results include all columns from both datasets with suffixes:")
+            st.write("- '_MFL' for columns from the Master Facility List")
+            st.write("- '_DHIS2' for columns from the DHIS2 list")
+            st.dataframe(merged_results)
+            
+            # Add download button for the results
+            csv = merged_results.to_csv(index=False)
+            st.download_button(
+                label="Download Matching Results",
+                data=csv,
+                file_name="facility_matching_results.csv",
+                mime="text/csv"
+            )  
 
-                # Display results
-                st.write("### Matching Results")
-                st.dataframe(hf_name_match_results)
-
-                # Download results
-                output = BytesIO()
-                with pd.ExcelWriter(output, engine='openpyxl') as writer:
-                    hf_name_match_results.to_excel(writer, index=False)
-                output.seek(0)
-
-                st.download_button(
-                    label="Download Matching Results as Excel",
-                    data=output,
-                    file_name="hf_name_matching_results.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                )
 
         if st.button("Start Over"):
             st.session_state.step = 1
