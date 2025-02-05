@@ -1,15 +1,19 @@
 import streamlit as st
 import geopandas as gpd
 import folium
+from folium import plugins
 import tempfile
 import os
 from streamlit_folium import folium_static
 import pandas as pd
+import random
+
+def generate_color():
+    """Generate a random color for district visualization"""
+    return f'#{random.randint(0, 0xFFFFFF):06x}'
 
 def process_shapefile(shp_file, shx_file, dbf_file):
-    """Process uploaded shapefile and group by FIRST_DNAM"""
     with tempfile.TemporaryDirectory() as tmp_dir:
-        # Save uploaded files
         file_paths = {}
         for file_obj, ext in [(shp_file, 'shp'), (shx_file, 'shx'), (dbf_file, 'dbf')]:
             if file_obj is not None:
@@ -18,64 +22,113 @@ def process_shapefile(shp_file, shx_file, dbf_file):
                     f.write(file_obj.getvalue())
                 file_paths[ext] = file_path
         
-        # Read shapefile
-        gdf = gpd.read_file(file_paths['shp'])
-        
-        # Create a DataFrame for FIRST_DNAM and FIRST_CHIE
-        if 'FIRST_DNAM' in gdf.columns and 'FIRST_CHIE' in gdf.columns:
-            chiefs_df = gdf[['FIRST_DNAM', 'FIRST_CHIE']].drop_duplicates()
-            chiefs_by_district = chiefs_df.groupby('FIRST_DNAM')['FIRST_CHIE'].agg(list).reset_index()
-            return gdf, chiefs_by_district
-        return gdf, None
+        return gpd.read_file(file_paths['shp'])
 
 def create_map(gdf):
-    """Create Folium map with hoverable features"""
     # Get center of the shapefile
     center_lat = gdf.geometry.centroid.y.mean()
     center_lon = gdf.geometry.centroid.x.mean()
     
     # Create base map
     m = folium.Map(location=[center_lat, center_lon], 
-                   zoom_start=12)
+                   zoom_start=12,
+                   tiles='CartoDB positron')
     
-    # Add GeoJSON layer with tooltips
-    tooltip_fields = [col for col in gdf.columns if isinstance(gdf[col].iloc[0], (str, int, float))]
-    
-    folium.GeoJson(
-        gdf,
-        name='Areas',
-        style_function=lambda x: {
-            'fillColor': '#ff7800',
-            'color': '#000000',
-            'weight': 2,
-            'fillOpacity': 0.5
-        },
-        highlight_function=lambda x: {
-            'weight': 3,
-            'fillOpacity': 0.7
-        },
-        tooltip=folium.GeoJsonTooltip(
-            fields=tooltip_fields,
-            aliases=tooltip_fields,
-            style="""
-                background-color: white;
-                color: #333333;
-                font-family: arial;
-                font-size: 12px;
-                padding: 10px;
-            """
-        )
-    ).add_to(m)
-    
+    # Create color dictionary for districts
+    if 'FIRST_DNAM' in gdf.columns:
+        districts = gdf['FIRST_DNAM'].unique()
+        district_colors = {district: generate_color() for district in districts}
+        
+        # Group by district
+        for district in districts:
+            district_data = gdf[gdf['FIRST_DNAM'] == district]
+            
+            # Add district layer
+            folium.GeoJson(
+                district_data,
+                name=f"District: {district}",
+                style_function=lambda x, district=district: {
+                    'fillColor': district_colors[district],
+                    'color': 'black',
+                    'weight': 2,
+                    'fillOpacity': 0.3
+                },
+                tooltip=folium.GeoJsonTooltip(
+                    fields=['FIRST_DNAM', 'FIRST_CHIE', 'STRUCTURE'],
+                    aliases=['District', 'Chief', 'Structure'],
+                    style="""
+                        background-color: white;
+                        color: #333333;
+                        font-family: arial;
+                        font-size: 12px;
+                        padding: 10px;
+                    """
+                ),
+                popup=folium.GeoJsonPopup(
+                    fields=['STRUCTURE', 'FIRST_CHIE', 'FIRST_DNAM'],
+                    aliases=['Structure', 'Chief', 'District'],
+                    style="""
+                        background-color: white;
+                        color: #333333;
+                        font-family: arial;
+                        font-size: 12px;
+                        padding: 10px;
+                    """
+                )
+            ).add_to(m)
+
+            # Add markers for structures if available
+            if 'STRUCTURE' in gdf.columns:
+                for idx, row in district_data.iterrows():
+                    if pd.notna(row['STRUCTURE']):
+                        folium.CircleMarker(
+                            location=[row.geometry.centroid.y, row.geometry.centroid.x],
+                            radius=6,
+                            popup=f"""<b>Structure:</b> {row['STRUCTURE']}<br>
+                                     <b>District:</b> {row['FIRST_DNAM']}<br>
+                                     <b>Chief:</b> {row['FIRST_CHIE']}""",
+                            color='red',
+                            fill=True,
+                            fill_color='red'
+                        ).add_to(m)
+
     # Add layer control
     folium.LayerControl().add_to(m)
     
+    # Add search function
+    if 'STRUCTURE' in gdf.columns:
+        search_data = []
+        for idx, row in gdf.iterrows():
+            if pd.notna(row['STRUCTURE']):
+                search_data.append({
+                    'loc': [row.geometry.centroid.y, row.geometry.centroid.x],
+                    'title': f"Structure: {row['STRUCTURE']}"
+                })
+        
+        search = plugins.Search(
+            layer=None,
+            geom_type='Point',
+            placeholder='Search for structures',
+            collapsed=False,
+            search_label='title',
+            search_zoom=18,
+            position='topright'
+        ).add_to(m)
+        
+        for item in search_data:
+            folium.CircleMarker(
+                location=item['loc'],
+                radius=1,
+                popup=item['title'],
+                search_label=item['title'],
+            ).add_to(search)
+
     return m
 
 def main():
-    st.title("Geographic Feature Analysis")
+    st.title("Structure Analysis by District")
+    st.write("Upload shapefile to view structures within each district")
     
-    # File upload section
     col1, col2, col3 = st.columns(3)
     with col1:
         shp_file = st.file_uploader("Upload .shp file", type=['shp'])
@@ -86,33 +139,36 @@ def main():
     
     if all([shp_file, shx_file, dbf_file]):
         try:
-            # Process shapefile
-            gdf, chiefs_by_district = process_shapefile(shp_file, shx_file, dbf_file)
+            gdf = process_shapefile(shp_file, shx_file, dbf_file)
             
-            # Display chiefs by district if available
-            if chiefs_by_district is not None:
-                st.subheader("Chiefs by District")
-                for _, row in chiefs_by_district.iterrows():
-                    with st.expander(f"🏛️ {row['FIRST_DNAM']}"):
-                        for chief in row['FIRST_CHIE']:
-                            st.write(f"👤 {chief}")
-            
-            # Create and display map
-            st.subheader("Map Visualization")
-            m = create_map(gdf)
-            folium_static(m)
-            
-            # Display data summary
-            st.subheader("Data Summary")
-            if 'FIRST_DNAM' in gdf.columns:
-                num_districts = len(gdf['FIRST_DNAM'].unique())
-                st.write(f"Number of Districts: {num_districts}")
-            if 'FIRST_CHIE' in gdf.columns:
-                num_chiefs = len(gdf['FIRST_CHIE'].unique())
-                st.write(f"Number of Chiefs: {num_chiefs}")
-            
+            if 'STRUCTURE' in gdf.columns:
+                # Display statistics first
+                st.subheader("Summary Statistics")
+                total_structures = gdf['STRUCTURE'].count()
+                total_districts = len(gdf['FIRST_DNAM'].unique())
+                st.write(f"Total Structures: {total_structures}")
+                st.write(f"Total Districts: {total_districts}")
+                
+                # Create expandable sections for each district
+                st.subheader("Structures by District")
+                for district in sorted(gdf['FIRST_DNAM'].unique()):
+                    district_data = gdf[gdf['FIRST_DNAM'] == district]
+                    with st.expander(f"District: {district} ({len(district_data)} structures)"):
+                        for _, row in district_data.iterrows():
+                            if pd.notna(row['STRUCTURE']):
+                                st.write(f"🏛️ {row['STRUCTURE']}")
+                
+                # Display interactive map
+                st.subheader("Interactive Map")
+                m = create_map(gdf)
+                folium_static(m, width=1000, height=600)
+                
+            else:
+                st.error("No structure information found in the shapefile")
+                
         except Exception as e:
             st.error(f"Error processing files: {str(e)}")
+            st.write("Please ensure your shapefile contains structure information")
     else:
         st.info("Please upload all required files (.shp, .shx, .dbf)")
 
