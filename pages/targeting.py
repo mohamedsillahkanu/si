@@ -4,7 +4,7 @@ import numpy as np
 import base64
 from io import BytesIO
 
-st.set_page_config(page_title="Dataset Conditioner", layout="wide")
+st.set_page_config(page_title="Dataset Logical Conditioner", layout="wide")
 
 def read_file(file):
     """Read uploaded file into a dataframe."""
@@ -21,15 +21,19 @@ if 'datasets' not in st.session_state:
     st.session_state.datasets = {}
 if 'merged_df' not in st.session_state:
     st.session_state.merged_df = None
-if 'selected_columns' not in st.session_state:
-    st.session_state.selected_columns = []
-if 'column_conditions' not in st.session_state:
-    st.session_state.column_conditions = {}
+if 'conditions' not in st.session_state:
+    st.session_state.conditions = []
 if 'result_column_name' not in st.session_state:
     st.session_state.result_column_name = "result"
+if 'logic_operator' not in st.session_state:
+    st.session_state.logic_operator = "AND"
+if 'true_value' not in st.session_state:
+    st.session_state.true_value = "Yes"
+if 'false_value' not in st.session_state:
+    st.session_state.false_value = "No"
 
 # App header
-st.title("Dataset Conditioner")
+st.title("Dataset Logical Conditioner")
 
 # Sidebar for uploading files
 with st.sidebar:
@@ -57,8 +61,7 @@ with st.sidebar:
         if st.button("Clear All Datasets"):
             st.session_state.datasets = {}
             st.session_state.merged_df = None
-            st.session_state.selected_columns = []
-            st.session_state.column_conditions = {}
+            st.session_state.conditions = []
             st.experimental_rerun()
 
 # Main workspace
@@ -170,118 +173,172 @@ with tab1:
 
 # Tab 2: Create Conditions
 with tab2:
-    st.header("Create Conditions")
+    st.header("Create Conditions with AND/OR Logic")
     
     if st.session_state.merged_df is None:
         st.info("Please prepare your dataset in the 'Merge Datasets' tab first.")
     else:
-        # Step 1: Select columns for conditions
-        st.subheader("1. Select Columns for Conditions")
+        # Define result settings
+        st.subheader("1. Set Result Column Settings")
         
-        all_columns = st.session_state.merged_df.columns.tolist()
-        selected_columns = st.multiselect(
-            "Select columns to create conditions for:",
-            options=all_columns
-        )
-        
-        # Update the selected columns in session state
-        if st.button("Confirm Selected Columns"):
-            st.session_state.selected_columns = selected_columns
-            # Reset column conditions if columns changed
-            st.session_state.column_conditions = {col: {} for col in selected_columns}
-            st.success(f"Selected {len(selected_columns)} columns for conditions")
-        
-        # Step 2: Define conditions for each selected column
-        if st.session_state.selected_columns:
-            st.subheader("2. Define Conditions for Selected Columns")
-            
-            # Name for the result column
+        col1, col2 = st.columns(2)
+        with col1:
             result_column_name = st.text_input(
                 "Name for the result column:", 
                 value=st.session_state.result_column_name
             )
             st.session_state.result_column_name = result_column_name
+        
+        with col2:
+            logic_operator = st.selectbox(
+                "Combine conditions with:", 
+                options=["AND", "OR"],
+                index=0 if st.session_state.logic_operator == "AND" else 1
+            )
+            st.session_state.logic_operator = logic_operator
+        
+        st.write("#### Values for Result Column")
+        col1, col2 = st.columns(2)
+        with col1:
+            true_value = st.text_input(
+                "Value when conditions are TRUE:", 
+                value=st.session_state.true_value
+            )
+            st.session_state.true_value = true_value
+        
+        with col2:
+            false_value = st.text_input(
+                "Value when conditions are FALSE:", 
+                value=st.session_state.false_value
+            )
+            st.session_state.false_value = false_value
+        
+        # Add conditions
+        st.subheader("2. Add Conditions")
+        
+        # Create form to add a new condition
+        with st.form("add_condition_form"):
+            st.write("#### New Condition")
             
-            # Create a section for each selected column
-            for col in st.session_state.selected_columns:
-                with st.expander(f"Condition for: {col}", expanded=True):
-                    # Get unique values for the column
-                    unique_values = st.session_state.merged_df[col].dropna().unique()
-                    
-                    # Display unique values for reference
-                    if len(unique_values) > 10:
-                        st.write(f"Column has {len(unique_values)} unique values. Sample: {', '.join(map(str, unique_values[:10]))}, ...")
-                    else:
-                        st.write(f"Unique values: {', '.join(map(str, unique_values))}")
-                    
-                    # Select a value for the condition
-                    if len(unique_values) <= 20:
-                        # If few unique values, use a selectbox
-                        selected_value = st.selectbox(
-                            f"Select value to check for in {col}:",
-                            options=unique_values,
-                            key=f"value_{col}"
-                        )
-                    else:
-                        # If many unique values, use a text input
-                        selected_value = st.text_input(
-                            f"Enter value to check for in {col}:",
-                            key=f"value_{col}"
-                        )
-                    
-                    # Define what happens when condition is met
-                    true_value = st.text_input(
-                        f"Value when {col} equals '{selected_value}':",
-                        value="Yes" if col not in st.session_state.column_conditions else st.session_state.column_conditions[col].get("true_value", "Yes"),
-                        key=f"true_{col}"
-                    )
-                    
-                    false_value = st.text_input(
-                        f"Value when {col} does not equal '{selected_value}':",
-                        value="No" if col not in st.session_state.column_conditions else st.session_state.column_conditions[col].get("false_value", "No"),
-                        key=f"false_{col}"
-                    )
-                    
-                    # Save this column's condition settings
-                    if st.button(f"Save condition for {col}"):
-                        st.session_state.column_conditions[col] = {
-                            "value": selected_value,
-                            "true_value": true_value,
-                            "false_value": false_value
-                        }
-                        st.success(f"Saved condition for column: {col}")
+            all_columns = st.session_state.merged_df.columns.tolist()
+            source_column = st.selectbox("Select column:", all_columns)
             
-            # Display summary of all conditions
-            if st.session_state.column_conditions:
-                st.subheader("3. Summary of Defined Conditions")
+            # Show sample values for the selected column
+            if source_column:
+                unique_values = st.session_state.merged_df[source_column].dropna().unique()
+                if len(unique_values) > 5:
+                    st.write(f"Sample values: {', '.join(map(str, unique_values[:5]))}, ...")
+                else:
+                    st.write(f"Unique values: {', '.join(map(str, unique_values))}")
+            
+            # Operator selection
+            operator = st.selectbox(
+                "Condition operator:", 
+                options=["equals", "not equals", "greater than", "less than", "contains", "does not contain"]
+            )
+            
+            # Value for condition
+            if source_column and len(unique_values) <= 20 and operator in ["equals", "not equals"]:
+                # If few unique values and using equals/not equals, show dropdown
+                condition_value = st.selectbox(
+                    "Select value:",
+                    options=unique_values
+                )
+            else:
+                # Otherwise use text input
+                condition_value = st.text_input(
+                    "Enter value for condition:"
+                )
+            
+            submit_condition = st.form_submit_button("Add Condition")
+        
+        if submit_condition and source_column and condition_value:
+            new_condition = {
+                "column": source_column,
+                "operator": operator,
+                "value": condition_value
+            }
+            st.session_state.conditions.append(new_condition)
+            st.success(f"Added condition: {source_column} {operator} {condition_value}")
+            st.experimental_rerun()
+        
+        # Display existing conditions
+        if st.session_state.conditions:
+            st.subheader("3. Current Conditions")
+            
+            # Display each condition with a remove button
+            for i, condition in enumerate(st.session_state.conditions):
+                col1, col2, col3 = st.columns([3, 1, 1])
                 
-                for col, condition in st.session_state.column_conditions.items():
-                    if "value" in condition:
-                        st.write(f"- If {col} equals '{condition['value']}', set to '{condition['true_value']}', otherwise '{condition['false_value']}'")
+                with col1:
+                    st.write(f"{condition['column']} {condition['operator']} '{condition['value']}'")
                 
-                # Apply all conditions button
-                if st.button("Apply All Conditions"):
-                    result_df = st.session_state.merged_df.copy()
+                with col3:
+                    if st.button("Remove", key=f"remove_{i}"):
+                        st.session_state.conditions.pop(i)
+                        st.experimental_rerun()
+            
+            st.write(f"These conditions will be combined with {st.session_state.logic_operator} logic.")
+            
+            # Apply conditions button
+            if st.button("Apply Conditions"):
+                result_df = st.session_state.merged_df.copy()
+                
+                # Apply conditions based on the logical operator
+                if st.session_state.conditions:
+                    # Initialize a mask based on the logic operator
+                    if st.session_state.logic_operator == "AND":
+                        # Start with all True for AND logic
+                        final_mask = pd.Series([True] * len(result_df))
+                    else:  # OR
+                        # Start with all False for OR logic
+                        final_mask = pd.Series([False] * len(result_df))
                     
-                    # Initialize the result column with default value (first column's false value)
-                    default_value = list(st.session_state.column_conditions.values())[0]["false_value"]
-                    result_df[result_column_name] = default_value
+                    # Apply each condition to build the mask
+                    for condition in st.session_state.conditions:
+                        column = condition["column"]
+                        operator = condition["operator"]
+                        value = condition["value"]
+                        
+                        # Convert value to numeric if the column is numeric
+                        if pd.api.types.is_numeric_dtype(result_df[column]) and str(value).replace('.', '', 1).isdigit():
+                            value = float(value)
+                        
+                        # Apply the operator to create a condition mask
+                        if operator == "equals":
+                            condition_mask = result_df[column] == value
+                        elif operator == "not equals":
+                            condition_mask = result_df[column] != value
+                        elif operator == "greater than":
+                            condition_mask = result_df[column] > value
+                        elif operator == "less than":
+                            condition_mask = result_df[column] < value
+                        elif operator == "contains":
+                            condition_mask = result_df[column].astype(str).str.contains(str(value), na=False)
+                        elif operator == "does not contain":
+                            condition_mask = ~result_df[column].astype(str).str.contains(str(value), na=False)
+                        
+                        # Combine with final mask based on logic operator
+                        if st.session_state.logic_operator == "AND":
+                            final_mask = final_mask & condition_mask
+                        else:  # OR
+                            final_mask = final_mask | condition_mask
                     
-                    # Apply each condition
-                    for col, condition in st.session_state.column_conditions.items():
-                        if "value" in condition:
-                            # Create a mask for where this condition is true
-                            mask = result_df[col] == condition["value"]
-                            
-                            # Update the result column where the condition is true
-                            result_df.loc[mask, result_column_name] = condition["true_value"]
+                    # Create the result column
+                    result_df[result_column_name] = np.where(
+                        final_mask, 
+                        true_value, 
+                        false_value
+                    )
                     
                     st.session_state.merged_df = result_df
-                    st.success(f"Applied all conditions and created column: {result_column_name}")
+                    st.success(f"Successfully applied conditions and created column: {result_column_name}")
                     
-                    # Show preview of result
+                    # Show preview
                     st.subheader("Result Preview")
                     st.dataframe(st.session_state.merged_df.head())
+                else:
+                    st.error("Please add at least one condition.")
 
 # Tab 3: Download Results
 with tab3:
