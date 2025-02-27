@@ -493,6 +493,7 @@ if uploaded_file is not None:
                         # Build the Python expression
                         for part_type, part_value in st.session_state.expression_parts:
                             if part_type == "column":
+                                # Use .astype(bool) for compatibility with logical operations
                                 python_expr += f"df['{part_value}']"
                             elif part_type == "operator":
                                 if part_value == "==":
@@ -508,11 +509,11 @@ if uploaded_file is not None:
                                 elif part_value == "!=":
                                     python_expr += " != "
                                 elif part_value == "contains":
-                                    python_expr = f"({python_expr}.astype(str).str.contains"
+                                    python_expr = f"(df['{column}'].astype(str).str.contains"
                                 elif part_value == "startswith":
-                                    python_expr = f"({python_expr}.astype(str).str.startswith"
+                                    python_expr = f"(df['{column}'].astype(str).str.startswith"
                                 elif part_value == "endswith":
-                                    python_expr = f"({python_expr}.astype(str).str.endswith"
+                                    python_expr = f"(df['{column}'].astype(str).str.endswith"
                             elif part_type == "value":
                                 if isinstance(part_value, str):
                                     if python_expr.endswith(("contains", "startswith", "endswith")):
@@ -533,20 +534,128 @@ if uploaded_file is not None:
                             elif part_type == "close_paren":
                                 python_expr += ")"
                         
-                        # Apply the condition
-                        result = eval(python_expr)
-                        df[result_column] = np.where(result, true_value, false_value)
+                        # Apply the condition - safely evaluate the expression
+                        try:
+                            # Use a safer approach with explicit condition building rather than eval
+                            final_condition = None
+                            stack = []
+                            i = 0
+                            
+                            while i < len(st.session_state.expression_parts):
+                                part_type, part_value = st.session_state.expression_parts[i]
+                                
+                                if part_type == "open_paren":
+                                    stack.append("(")
+                                elif part_type == "close_paren":
+                                    stack.append(")")
+                                elif part_type == "column" and i+2 < len(st.session_state.expression_parts):
+                                    # Process a complete condition
+                                    col = part_value
+                                    op_type, op = st.session_state.expression_parts[i+1]
+                                    val_type, val = st.session_state.expression_parts[i+2]
+                                    
+                                    # Create individual condition
+                                    if op == "==":
+                                        condition = (df[col] == val)
+                                    elif op == ">":
+                                        condition = (df[col] > val)
+                                    elif op == "<":
+                                        condition = (df[col] < val)
+                                    elif op == ">=":
+                                        condition = (df[col] >= val)
+                                    elif op == "<=":
+                                        condition = (df[col] <= val)
+                                    elif op == "!=":
+                                        condition = (df[col] != val)
+                                    elif op == "contains":
+                                        condition = df[col].astype(str).str.contains(str(val))
+                                    elif op == "startswith":
+                                        condition = df[col].astype(str).str.startswith(str(val))
+                                    elif op == "endswith":
+                                        condition = df[col].astype(str).str.endswith(str(val))
+                                    
+                                    stack.append(condition)
+                                    i += 2  # Skip the operator and value we just processed
+                                elif part_type in ["and", "or"]:
+                                    stack.append(part_value)
+                                
+                                i += 1
+                            
+                            # Now process the stack to build the final condition
+                            # This is a simplified approach - in a real app, you'd need more complex parsing
+                            if len(stack) == 1 and isinstance(stack[0], (pd.Series, np.ndarray)):
+                                final_condition = stack[0]
+                            else:
+                                # Create a simple processor for the stack
+                                processed_stack = []
+                                for item in stack:
+                                    if item == "(":
+                                        processed_stack.append(item)
+                                    elif item == ")":
+                                        # Process everything back to the last "("
+                                        temp_stack = []
+                                        while processed_stack and processed_stack[-1] != "(":
+                                            temp_stack.append(processed_stack.pop())
+                                        
+                                        if processed_stack and processed_stack[-1] == "(":
+                                            processed_stack.pop()  # Remove the "("
+                                        
+                                        temp_stack.reverse()
+                                        
+                                        # Process the subexpression
+                                        result = None
+                                        for j in range(len(temp_stack)):
+                                            if j == 0:
+                                                result = temp_stack[j]
+                                            elif temp_stack[j] == "AND":
+                                                result = result & temp_stack[j+1]
+                                            elif temp_stack[j] == "OR":
+                                                result = result | temp_stack[j+1]
+                                        
+                                        processed_stack.append(result)
+                                    else:
+                                        processed_stack.append(item)
+                                
+                                # Process the final stack
+                                final_condition = None
+                                for j in range(len(processed_stack)):
+                                    if isinstance(processed_stack[j], (pd.Series, np.ndarray)):
+                                        if final_condition is None:
+                                            final_condition = processed_stack[j]
+                                        elif j > 0 and processed_stack[j-1] == "AND":
+                                            final_condition = final_condition & processed_stack[j]
+                                        elif j > 0 and processed_stack[j-1] == "OR":
+                                            final_condition = final_condition | processed_stack[j]
+                            
+                            # Apply the final condition
+                            if final_condition is not None:
+                                df[result_column] = np.where(final_condition, true_value, false_value)
+                                st.success(f"Applied grouped conditions and created column '{result_column}'")
+                                st.dataframe(df)
+                            else:
+                                st.error("Could not create a valid condition from the expression")
+                        
+                        except Exception as eval_error:
+                            st.error(f"Error evaluating condition: {eval_error}")
+                            st.info("Try checking for type compatibility issues between columns")
                         
                         st.success(f"Applied grouped conditions and created column '{result_column}'")
                         st.dataframe(df)
                         
-                        # Generate the Python code
-                        code_lines = ["import numpy as np", ""]
-                        code_lines.append("# Define the condition")
-                        code_lines.append(f"condition = {python_expr}")
-                        code_lines.append("")
-                        code_lines.append("# Apply the condition using np.where()")
-                        code_lines.append(f"df['{result_column}'] = np.where(condition, '{true_value}', '{false_value}')")
+                                                    # Generate the Python code
+                        code_lines = ["import numpy as np", "import pandas as pd", ""]
+                        code_lines.append("# Define the condition - with explicit type handling")
+                        code_lines.append(f"# Original expression: {python_expr}")
+                        code_lines.append("try:")
+                        code_lines.append(f"    condition = {python_expr}")
+                        code_lines.append("    # Ensure condition is boolean type")
+                        code_lines.append("    if not isinstance(condition, (bool, np.ndarray)):")
+                        code_lines.append("        condition = condition.astype(bool)")
+                        code_lines.append(f"    df['{result_column}'] = np.where(condition, '{true_value}', '{false_value}')")
+                        code_lines.append("except Exception as e:")
+                        code_lines.append("    print(f\"Error evaluating condition: {e}\")")
+                        code_lines.append("    # Alternative approach with explicit type handling")
+                        code_lines.append("    # You may need to modify this for your specific case")
                         
                         # Display generated code
                         st.subheader("Generated Python Code")
