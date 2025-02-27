@@ -6,14 +6,19 @@ import io
 st.set_page_config(layout="wide", page_title="DataFrame Condition Builder")
 
 st.title("DataFrame Condition Builder")
-st.write("Upload a CSV file and apply conditional operations using np.where()")
+st.write("Upload a CSV or Excel file and apply conditional operations using np.where()")
 
 # File upload
-uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
+uploaded_file = st.file_uploader("Choose a file", type=["csv", "xlsx", "xls"])
 
 if uploaded_file is not None:
-    # Load the data
-    df = pd.read_csv(uploaded_file)
+    # Load the data based on file type
+    file_extension = uploaded_file.name.split('.')[-1].lower()
+    
+    if file_extension == 'csv':
+        df = pd.read_csv(uploaded_file)
+    elif file_extension in ['xlsx', 'xls']:
+        df = pd.read_excel(uploaded_file)
     
     # Display original dataframe
     st.subheader("Original DataFrame")
