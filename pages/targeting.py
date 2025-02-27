@@ -16,16 +16,48 @@ def read_file(file):
         st.error(f"Unsupported file format: {file.name}")
         return None
 
+def apply_condition(df, condition):
+    """Apply a single condition and return a boolean Series"""
+    col = condition["source_column"]
+    op = condition["operator"]
+    val = condition["value"]
+    
+    # Try to convert value to numeric if column is numeric
+    if pd.api.types.is_numeric_dtype(df[col]) and val.replace('.', '', 1).isdigit():
+        val = float(val)
+    
+    # Apply condition based on operator
+    if op == "equals":
+        return df[col] == val
+    elif op == "not equals":
+        return df[col] != val
+    elif op == "greater than":
+        return df[col] > val
+    elif op == "less than":
+        return df[col] < val
+    elif op == "contains":
+        return df[col].astype(str).str.contains(str(val), na=False)
+    elif op == "does not contain":
+        return ~df[col].astype(str).str.contains(str(val), na=False)
+    elif op == "is null":
+        return df[col].isna()
+    elif op == "is not null":
+        return ~df[col].isna()
+    
+    return pd.Series([False] * len(df))
+
 # Initialize session state
 if 'datasets' not in st.session_state:
     st.session_state.datasets = {}
 if 'merged_df' not in st.session_state:
     st.session_state.merged_df = None
-if 'conditions' not in st.session_state:
-    st.session_state.conditions = []
+if 'condition_groups' not in st.session_state:
+    st.session_state.condition_groups = []
+if 'temp_conditions' not in st.session_state:
+    st.session_state.temp_conditions = []
 
 # App header
-st.title("Multi-Dataset Merger with Conditional Logic")
+st.title("Multi-Dataset Merger with Complex Conditions")
 
 # Sidebar for uploading files
 with st.sidebar:
@@ -53,7 +85,8 @@ with st.sidebar:
         if st.button("Clear All Datasets"):
             st.session_state.datasets = {}
             st.session_state.merged_df = None
-            st.session_state.conditions = []
+            st.session_state.condition_groups = []
+            st.session_state.temp_conditions = []
             st.experimental_rerun()
 
 # Main workspace
@@ -73,6 +106,7 @@ with tab1:
         base_dataset = st.selectbox("Select base dataset:", dataset_names)
         
         merge_list = []
+        merge_settings = {}
         
         # Start with base dataset
         if base_dataset:
@@ -84,47 +118,45 @@ with tab1:
                 if st.checkbox(f"Merge with {name}", key=f"merge_{i}"):
                     merge_list.append(name)
                     
-                    if merge_list:
-                        st.subheader(f"Merge Settings for {name}")
-                        
-                        # Find common columns
-                        second_df = st.session_state.datasets[name]
-                        common_cols = list(set(result_df.columns).intersection(set(second_df.columns)))
-                        
-                        # Select merge columns
-                        merge_cols = st.multiselect(
-                            f"Select columns to join on for {name}:",
-                            common_cols,
-                            default=common_cols[0] if common_cols else None,
-                            key=f"cols_{i}"
-                        )
-                        
-                        # Select merge type
-                        merge_type = st.selectbox(
-                            f"Join type for {name}:",
-                            ["Left join", "Inner join", "Right join", "Outer join"],
-                            key=f"type_{i}"
-                        )
-                        
-                        merge_how = {
-                            "Left join": "left",
-                            "Inner join": "inner", 
-                            "Right join": "right",
-                            "Outer join": "outer"
-                        }[merge_type]
-                        
+                    # Find common columns
+                    second_df = st.session_state.datasets[name]
+                    common_cols = list(set(result_df.columns).intersection(set(second_df.columns)))
+                    
+                    # Select merge columns
+                    merge_cols = st.multiselect(
+                        f"Select columns to join on for {name}:",
+                        common_cols,
+                        default=common_cols[0] if common_cols else None,
+                        key=f"cols_{i}"
+                    )
+                    
+                    # Select merge type
+                    merge_type = st.selectbox(
+                        f"Join type for {name}:",
+                        ["Left join", "Inner join", "Right join", "Outer join"],
+                        key=f"type_{i}"
+                    )
+                    
+                    # Store merge settings for this dataset
+                    merge_settings[name] = {
+                        "columns": merge_cols,
+                        "type": merge_type
+                    }
+            
             # Perform merge button
             if merge_list and st.button("Perform Merge"):
+                result_df = base_df.copy()
+                
                 # Sequentially merge datasets
-                for i, name in enumerate(merge_list):
+                for name in merge_list:
                     second_df = st.session_state.datasets[name]
-                    merge_cols = st.session_state[f"cols_{i}"]
+                    merge_cols = merge_settings[name]["columns"]
                     merge_how = {
                         "Left join": "left",
                         "Inner join": "inner", 
                         "Right join": "right",
                         "Outer join": "outer"
-                    }[st.session_state[f"type_{i}"]]
+                    }[merge_settings[name]["type"]]
                     
                     # Perform the merge
                     result_df = pd.merge(
@@ -146,105 +178,163 @@ with tab1:
 
 # Tab 2: Apply Conditions
 with tab2:
-    st.header("Apply Conditional Logic")
+    st.header("Apply Complex Conditional Logic")
     
     if st.session_state.merged_df is None:
         st.info("Please merge datasets in the 'Merge Datasets' tab first.")
     else:
-        st.subheader("Create Conditional Columns")
+        st.subheader("Create Condition Groups")
         
-        # Add a new condition
-        with st.expander("Add New Condition", expanded=True):
-            all_columns = st.session_state.merged_df.columns.tolist()
+        # Display all columns available for conditions
+        all_columns = st.session_state.merged_df.columns.tolist()
+        
+        # Section to create a new condition group
+        with st.expander("Create New Condition Group", expanded=True):
+            st.write("A condition group combines multiple conditions with AND/OR logic into a single result column.")
             
-            col1, col2 = st.columns(2)
-            with col1:
-                source_col = st.selectbox("Select column for condition:", all_columns)
+            # Group name and result values
+            group_name = st.text_input("Name for result column:", value="condition_result")
+            group_logic = st.selectbox("Combine conditions with:", ["AND", "OR"])
+            true_value = st.text_input("Value when conditions are TRUE:", value="Yes")
+            false_value = st.text_input("Value when conditions are FALSE:", value="No")
+            
+            # Temporary conditions for this group
+            st.write("### Add conditions to this group")
+            
+            # Add a new condition to the group
+            with st.form("add_condition"):
+                st.write("Add a new condition:")
                 
-                # Show sample values
-                if source_col:
-                    unique_vals = st.session_state.merged_df[source_col].dropna().unique()
-                    if len(unique_vals) > 5:
-                        st.write(f"Sample values: {', '.join(map(str, unique_vals[:5]))}, ...")
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    source_col = st.selectbox("Select column:", all_columns)
+                    
+                    # Show sample values
+                    if source_col:
+                        unique_vals = st.session_state.merged_df[source_col].dropna().unique()
+                        if len(unique_vals) > 5:
+                            st.write(f"Sample values: {', '.join(map(str, unique_vals[:5]))}, ...")
+                        else:
+                            st.write(f"Unique values: {', '.join(map(str, unique_vals))}")
+                    
+                    operator = st.selectbox("Condition type:", [
+                        "equals", "not equals", "greater than", "less than", 
+                        "contains", "does not contain", "is null", "is not null"
+                    ])
+                
+                with col2:
+                    # Only show value input if operator requires it
+                    if operator not in ["is null", "is not null"]:
+                        condition_value = st.text_input("Condition value:")
                     else:
-                        st.write(f"Unique values: {', '.join(map(str, unique_vals))}")
+                        condition_value = ""
                 
-                operator = st.selectbox("Condition type:", 
-                                      ["equals", "not equals", "greater than", "less than", "contains", "does not contain"])
+                add_condition = st.form_submit_button("Add to Group")
                 
-                condition_value = st.text_input("Condition value:")
-            
-            with col2:
-                new_col_name = st.text_input("New column name:", 
-                                           value=f"{source_col}_flag" if source_col else "")
-                true_value = st.text_input("Value when TRUE:", value="Yes")
-                false_value = st.text_input("Value when FALSE:", value="No")
-            
-            if st.button("Add Condition"):
-                if source_col and new_col_name:
+                if add_condition:
                     new_condition = {
                         "source_column": source_col,
                         "operator": operator,
-                        "value": condition_value,
-                        "new_column": new_col_name,
-                        "true_value": true_value,
-                        "false_value": false_value
+                        "value": condition_value
                     }
                     
-                    if 'conditions' not in st.session_state:
-                        st.session_state.conditions = []
-                    
-                    st.session_state.conditions.append(new_condition)
-                    st.success(f"Added condition for column: {source_col}")
-                else:
-                    st.error("Please select a column and provide a name for the new column.")
-        
-        # Display existing conditions
-        if st.session_state.conditions:
-            st.subheader("Current Conditions")
+                    st.session_state.temp_conditions.append(new_condition)
             
-            for i, condition in enumerate(st.session_state.conditions):
-                with st.expander(f"Condition {i+1}: {condition['new_column']}"):
-                    st.write(f"If {condition['source_column']} {condition['operator']} '{condition['value']}' then '{condition['true_value']}' else '{condition['false_value']}'")
-                    
-                    if st.button(f"Remove condition", key=f"remove_{i}"):
-                        st.session_state.conditions.pop(i)
-                        st.experimental_rerun()
-            
-            # Apply all conditions
-            if st.button("Apply All Conditions"):
-                result_df = st.session_state.merged_df.copy()
+            # Display current conditions in this group
+            if st.session_state.temp_conditions:
+                st.write("### Current conditions in this group:")
                 
-                for condition in st.session_state.conditions:
-                    col = condition["source_column"]
+                for i, condition in enumerate(st.session_state.temp_conditions):
+                    col_name = condition["source_column"]
                     op = condition["operator"]
                     val = condition["value"]
-                    new_col = condition["new_column"]
-                    true_val = condition["true_value"]
-                    false_val = condition["false_value"]
                     
-                    # Try to convert value to numeric if column is numeric
-                    if pd.api.types.is_numeric_dtype(result_df[col]) and val.replace('.', '', 1).isdigit():
-                        val = float(val)
+                    if op in ["is null", "is not null"]:
+                        st.write(f"{i+1}. {col_name} {op}")
+                    else:
+                        st.write(f"{i+1}. {col_name} {op} '{val}'")
                     
-                    # Apply condition based on operator
-                    if op == "equals":
-                        result_df[new_col] = np.where(result_df[col] == val, true_val, false_val)
-                    elif op == "not equals":
-                        result_df[new_col] = np.where(result_df[col] != val, true_val, false_val)
-                    elif op == "greater than":
-                        result_df[new_col] = np.where(result_df[col] > val, true_val, false_val)
-                    elif op == "less than":
-                        result_df[new_col] = np.where(result_df[col] < val, true_val, false_val)
-                    elif op == "contains":
-                        result_df[new_col] = np.where(result_df[col].astype(str).str.contains(str(val), na=False), 
-                                                   true_val, false_val)
-                    elif op == "does not contain":
-                        result_df[new_col] = np.where(~result_df[col].astype(str).str.contains(str(val), na=False), 
-                                                    true_val, false_val)
+                    if st.button(f"Remove", key=f"remove_temp_{i}"):
+                        st.session_state.temp_conditions.pop(i)
+                        st.experimental_rerun()
+            
+            # Save the condition group
+            if st.button("Save Condition Group"):
+                if not st.session_state.temp_conditions:
+                    st.error("Please add at least one condition to the group.")
+                elif not group_name:
+                    st.error("Please provide a name for the result column.")
+                else:
+                    new_group = {
+                        "name": group_name,
+                        "logic": group_logic,
+                        "true_value": true_value,
+                        "false_value": false_value,
+                        "conditions": st.session_state.temp_conditions.copy()
+                    }
+                    
+                    st.session_state.condition_groups.append(new_group)
+                    st.session_state.temp_conditions = []
+                    st.success(f"Saved condition group: {group_name}")
+                    st.experimental_rerun()
+        
+        # Display existing condition groups
+        if st.session_state.condition_groups:
+            st.subheader("Saved Condition Groups")
+            
+            for i, group in enumerate(st.session_state.condition_groups):
+                with st.expander(f"Group: {group['name']} ({len(group['conditions'])} conditions)"):
+                    st.write(f"Logic: {group['logic']}")
+                    st.write(f"Values: {group['true_value']} when TRUE, {group['false_value']} when FALSE")
+                    
+                    st.write("Conditions:")
+                    for j, condition in enumerate(group['conditions']):
+                        col_name = condition["source_column"]
+                        op = condition["operator"]
+                        val = condition["value"]
+                        
+                        if op in ["is null", "is not null"]:
+                            st.write(f"{j+1}. {col_name} {op}")
+                        else:
+                            st.write(f"{j+1}. {col_name} {op} '{val}'")
+                    
+                    if st.button(f"Remove Group", key=f"remove_group_{i}"):
+                        st.session_state.condition_groups.pop(i)
+                        st.experimental_rerun()
+            
+            # Apply all condition groups
+            if st.button("Apply All Condition Groups"):
+                result_df = st.session_state.merged_df.copy()
+                
+                for group in st.session_state.condition_groups:
+                    # Initialize result arrays for each condition
+                    condition_results = []
+                    
+                    # Apply each condition in the group
+                    for condition in group["conditions"]:
+                        condition_result = apply_condition(result_df, condition)
+                        condition_results.append(condition_result)
+                    
+                    # Combine conditions based on group logic
+                    if group["logic"] == "AND":
+                        final_result = pd.Series([True] * len(result_df))
+                        for result in condition_results:
+                            final_result = final_result & result
+                    else:  # OR
+                        final_result = pd.Series([False] * len(result_df))
+                        for result in condition_results:
+                            final_result = final_result | result
+                    
+                    # Set the values in the new column
+                    result_df[group["name"]] = np.where(
+                        final_result, 
+                        group["true_value"], 
+                        group["false_value"]
+                    )
                 
                 st.session_state.merged_df = result_df
-                st.success("Successfully applied all conditions!")
+                st.success("Successfully applied all condition groups!")
                 
                 # Display preview of result
                 st.subheader("Result Preview")
