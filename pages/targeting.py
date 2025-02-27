@@ -1,403 +1,338 @@
 import streamlit as st
 import pandas as pd
-import geopandas as gpd
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.patches import Patch
 import io
-import tempfile
-import os
 
-st.set_page_config(page_title="Simple GeoAnalysis Tool", layout="wide")
+st.set_page_config(layout="wide", page_title="DataFrame Condition Builder")
 
-# Initialize session state variables
-if 'data' not in st.session_state:
-    st.session_state.data = None
-if 'shapefile' not in st.session_state:
-    st.session_state.shapefile = None
-if 'merged_data' not in st.session_state:
-    st.session_state.merged_data = None
-if 'map_image' not in st.session_state:
-    st.session_state.map_image = None
+st.title("DataFrame Condition Builder")
+st.write("Upload a CSV file and apply conditional operations using np.where()")
 
-# Helper function to save uploaded file
-def save_uploaded_file(uploaded_file):
-    with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(uploaded_file.name)[1]) as tmp_file:
-        tmp_file.write(uploaded_file.getvalue())
-        return tmp_file.name
+# File upload
+uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
 
-# Create a simple map
-def create_map(gdf, category_column, colors, title="", legend_title=""):
-    fig, ax = plt.subplots(figsize=(10, 8), dpi=300)
+if uploaded_file is not None:
+    # Load the data
+    df = pd.read_csv(uploaded_file)
     
-    # Calculate category counts for legend
-    category_counts = gdf[category_column].value_counts()
+    # Display original dataframe
+    st.subheader("Original DataFrame")
+    st.dataframe(df)
     
-    # Plot the map
-    gdf.plot(ax=ax, color=gdf[category_column].map(colors))
+    # Get column names for selection
+    columns = df.columns.tolist()
     
-    # Add borders
-    gdf.boundary.plot(color='gray', linewidth=0.5, ax=ax)
+    # Create tabs for different operations
+    tab1, tab2 = st.tabs(["Single Column Conditions", "Multiple Column Conditions"])
     
-    # District boundaries if FIRST_DNAM exists
-    if 'FIRST_DNAM' in gdf.columns:
-        district_boundaries = gdf.dissolve(by='FIRST_DNAM')
-        district_boundaries.boundary.plot(
-            ax=ax, color='black', linewidth=1.0, zorder=2
+    with tab1:
+        st.subheader("Apply conditions to a single column")
+        
+        # Select column to apply conditions
+        target_column = st.selectbox("Select column to apply conditions:", columns, key="single_col")
+        
+        # Display column data type
+        col_dtype = df[target_column].dtype
+        st.info(f"Column data type: {col_dtype}")
+        
+        # Add condition type selector
+        condition_type = st.selectbox(
+            "Select condition type:",
+            ["Simple Condition", "Multiple Conditions (AND)", "Multiple Conditions (OR)"],
+            key="cond_type_single"
         )
-    
-    # Add legend with counts
-    legend_elements = []
-    for key in colors.keys():
-        if key in category_counts:
-            patch = Patch(
-                facecolor=colors[key],
-                edgecolor='black',
-                linewidth=1,
-                label=f"{key} ({category_counts.get(key, 0)})"
+        
+        # Create result column name
+        result_column = st.text_input("Result column name:", f"{target_column}_result", key="result_single")
+        
+        if condition_type == "Simple Condition":
+            # Simple condition inputs
+            operator = st.selectbox(
+                "Select operator:",
+                ["==", ">", "<", ">=", "<=", "!=", "contains", "startswith", "endswith"],
+                key="op_simple"
             )
-            legend_elements.append(patch)
-    
-    ax.legend(
-        handles=legend_elements,
-        title=legend_title,
-        loc='center left',
-        bbox_to_anchor=(1, 0.5),
-        fontsize=10,
-        frameon=True,
-        edgecolor='black',
-        facecolor='white'
-    )
-    
-    # Remove axes
-    ax.axis('off')
-    
-    # Add title
-    plt.title(title, pad=10, fontsize=14, fontweight='bold')
-    plt.tight_layout(pad=0.5)
-    
-    return fig
-
-# App title
-st.title("Simple Geospatial Analysis Tool")
-
-# Create tabs
-tab1, tab2, tab3, tab4 = st.tabs(["Data Upload", "Data Processing", "Create Map", "Export"])
-
-# Tab 1: Data Upload
-with tab1:
-    st.header("Upload Your Data")
-    
-    # Data upload
-    data_file = st.file_uploader("Upload Excel or CSV file", type=["xlsx", "xls", "csv"])
-    
-    if data_file:
-        try:
-            if data_file.name.endswith('.csv'):
-                df = pd.read_csv(data_file)
+            
+            # Value input based on data type
+            if pd.api.types.is_numeric_dtype(df[target_column]):
+                value = st.number_input("Value:", value=0, key="val_simple")
             else:
-                df = pd.read_excel(data_file)
+                value = st.text_input("Value:", "", key="val_simple")
             
-            st.session_state.data = df
-            st.success(f"Successfully loaded data with {len(df)} rows and {len(df.columns)} columns.")
-            st.write("Data Preview:")
-            st.dataframe(df.head())
-        except Exception as e:
-            st.error(f"Error loading data file: {e}")
-    
-    # Shapefile upload
-    shapefile = st.file_uploader(
-        "Upload shapefile components (.shp, .shx, .dbf)",
-        type=["shp", "shx", "dbf", "prj"],
-        accept_multiple_files=True
-    )
-    
-    if shapefile:
-        required_extensions = ['.shp', '.shx', '.dbf']
-        uploaded_extensions = [os.path.splitext(file.name)[1].lower() for file in shapefile]
-        
-        if all(ext in uploaded_extensions for ext in required_extensions):
-            temp_dir = tempfile.mkdtemp()
+            # True and False values
+            true_value = st.text_input("Value if True:", "True", key="true_simple")
+            false_value = st.text_input("Value if False:", "False", key="false_simple")
             
-            # Save all components
-            for file in shapefile:
-                file_path = os.path.join(temp_dir, file.name)
-                with open(file_path, 'wb') as f:
-                    f.write(file.getvalue())
-            
-            # Find the .shp file
-            shp_file = next(f for f in shapefile if f.name.endswith('.shp'))
-            shp_path = os.path.join(temp_dir, shp_file.name)
-            
-            # Read the shapefile
-            try:
-                gdf = gpd.read_file(shp_path)
-                st.session_state.shapefile = gdf
-                st.success(f"Successfully loaded shapefile with {len(gdf)} features.")
-                st.write("Shapefile Preview:")
-                st.dataframe(gdf.head())
-            except Exception as e:
-                st.error(f"Error loading shapefile: {e}")
-        else:
-            st.warning("Please upload all required shapefile components (.shp, .shx, .dbf)")
-
-# Tab 2: Data Processing
-with tab2:
-    st.header("Process Your Data")
-    
-    if st.session_state.data is None or st.session_state.shapefile is None:
-        st.info("Please upload both data file and shapefile in the Data Upload tab.")
-    else:
-        df = st.session_state.data
-        gdf = st.session_state.shapefile
-        
-        # Clean string columns
-        st.subheader("Clean String Columns")
-        
-        string_columns = df.select_dtypes(include=['object']).columns.tolist()
-        columns_to_clean = st.multiselect(
-            "Select string columns to clean (strip whitespace):",
-            string_columns
-        )
-        
-        if columns_to_clean and st.button("Clean Selected Columns"):
-            for col in columns_to_clean:
-                df[col] = df[col].astype(str).str.strip()
-            st.session_state.data = df
-            st.success(f"Cleaned {len(columns_to_clean)} columns.")
-        
-        # String columns in shapefile
-        shapefile_string_columns = gdf.select_dtypes(include=['object']).columns.tolist()
-        shapefile_string_columns = [col for col in shapefile_string_columns if col != 'geometry']
-        
-        shapefile_columns_to_clean = st.multiselect(
-            "Select shapefile string columns to clean:",
-            shapefile_string_columns
-        )
-        
-        if shapefile_columns_to_clean and st.button("Clean Shapefile Columns"):
-            for col in shapefile_columns_to_clean:
-                gdf[col] = gdf[col].astype(str).str.strip()
-            st.session_state.shapefile = gdf
-            st.success(f"Cleaned {len(shapefile_columns_to_clean)} shapefile columns.")
-        
-        # Merge datasets
-        st.subheader("Merge Data with Shapefile")
-        
-        # Find common columns
-        common_columns = list(set(df.columns) & set(gdf.columns))
-        
-        if common_columns:
-            st.write(f"Found {len(common_columns)} common columns: {', '.join(common_columns)}")
-            st.info("Will use common columns with left join and validate='1:1'")
-            
-            if st.button("Merge Data"):
+            if st.button("Apply Simple Condition", key="apply_simple"):
                 try:
-                    merged_gdf = gdf.merge(
-                        df,
-                        on=common_columns,
-                        how='left',
-                        validate="1:1"
-                    )
+                    if operator == "==":
+                        df[result_column] = np.where(df[target_column] == value, true_value, false_value)
+                    elif operator == ">":
+                        df[result_column] = np.where(df[target_column] > value, true_value, false_value)
+                    elif operator == "<":
+                        df[result_column] = np.where(df[target_column] < value, true_value, false_value)
+                    elif operator == ">=":
+                        df[result_column] = np.where(df[target_column] >= value, true_value, false_value)
+                    elif operator == "<=":
+                        df[result_column] = np.where(df[target_column] <= value, true_value, false_value)
+                    elif operator == "!=":
+                        df[result_column] = np.where(df[target_column] != value, true_value, false_value)
+                    elif operator == "contains":
+                        df[result_column] = np.where(df[target_column].astype(str).str.contains(str(value)), true_value, false_value)
+                    elif operator == "startswith":
+                        df[result_column] = np.where(df[target_column].astype(str).str.startswith(str(value)), true_value, false_value)
+                    elif operator == "endswith":
+                        df[result_column] = np.where(df[target_column].astype(str).str.endswith(str(value)), true_value, false_value)
                     
-                    st.session_state.merged_data = merged_gdf
-                    st.success(f"Successfully merged data. Result has {len(merged_gdf)} features.")
-                    st.write("Merged Data Preview:")
-                    st.dataframe(merged_gdf.head())
+                    st.success(f"Applied condition and created column '{result_column}'")
+                    st.dataframe(df)
                 except Exception as e:
-                    st.error(f"Error merging data: {e}")
-        else:
-            st.warning("No common columns found between data and shapefile.")
+                    st.error(f"Error applying condition: {e}")
         
-        # Create calculated fields if data is merged
-        if st.session_state.merged_data is not None:
-            st.subheader("Create Calculated Fields")
+        elif condition_type == "Multiple Conditions (AND)":
+            # Number of conditions
+            num_conditions = st.number_input("Number of conditions:", min_value=1, max_value=5, value=2, key="num_and")
             
-            merged_gdf = st.session_state.merged_data
+            conditions = []
             
+            for i in range(num_conditions):
+                st.markdown(f"**Condition {i+1}**")
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    operator = st.selectbox(
+                        f"Operator {i+1}:",
+                        ["==", ">", "<", ">=", "<=", "!=", "contains", "startswith", "endswith"],
+                        key=f"op_and_{i}"
+                    )
+                
+                with col2:
+                    if pd.api.types.is_numeric_dtype(df[target_column]):
+                        value = st.number_input(f"Value {i+1}:", value=0, key=f"val_and_{i}")
+                    else:
+                        value = st.text_input(f"Value {i+1}:", "", key=f"val_and_{i}")
+                
+                conditions.append((operator, value))
+            
+            # True and False values
+            true_value = st.text_input("Value if ALL conditions are True:", "True", key="true_and")
+            false_value = st.text_input("Value if ANY condition is False:", "False", key="false_and")
+            
+            if st.button("Apply AND Conditions", key="apply_and"):
+                try:
+                    # Start with all True condition
+                    combined_condition = np.ones(len(df), dtype=bool)
+                    
+                    # AND all conditions together
+                    for op, val in conditions:
+                        if op == "==":
+                            combined_condition = combined_condition & (df[target_column] == val)
+                        elif op == ">":
+                            combined_condition = combined_condition & (df[target_column] > val)
+                        elif op == "<":
+                            combined_condition = combined_condition & (df[target_column] < val)
+                        elif op == ">=":
+                            combined_condition = combined_condition & (df[target_column] >= val)
+                        elif op == "<=":
+                            combined_condition = combined_condition & (df[target_column] <= val)
+                        elif op == "!=":
+                            combined_condition = combined_condition & (df[target_column] != val)
+                        elif op == "contains":
+                            combined_condition = combined_condition & (df[target_column].astype(str).str.contains(str(val)))
+                        elif op == "startswith":
+                            combined_condition = combined_condition & (df[target_column].astype(str).str.startswith(str(val)))
+                        elif op == "endswith":
+                            combined_condition = combined_condition & (df[target_column].astype(str).str.endswith(str(val)))
+                    
+                    df[result_column] = np.where(combined_condition, true_value, false_value)
+                    
+                    st.success(f"Applied AND conditions and created column '{result_column}'")
+                    st.dataframe(df)
+                except Exception as e:
+                    st.error(f"Error applying conditions: {e}")
+        
+        elif condition_type == "Multiple Conditions (OR)":
+            # Number of conditions
+            num_conditions = st.number_input("Number of conditions:", min_value=1, max_value=5, value=2, key="num_or")
+            
+            conditions = []
+            
+            for i in range(num_conditions):
+                st.markdown(f"**Condition {i+1}**")
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    operator = st.selectbox(
+                        f"Operator {i+1}:",
+                        ["==", ">", "<", ">=", "<=", "!=", "contains", "startswith", "endswith"],
+                        key=f"op_or_{i}"
+                    )
+                
+                with col2:
+                    if pd.api.types.is_numeric_dtype(df[target_column]):
+                        value = st.number_input(f"Value {i+1}:", value=0, key=f"val_or_{i}")
+                    else:
+                        value = st.text_input(f"Value {i+1}:", "", key=f"val_or_{i}")
+                
+                conditions.append((operator, value))
+            
+            # True and False values
+            true_value = st.text_input("Value if ANY condition is True:", "True", key="true_or")
+            false_value = st.text_input("Value if ALL conditions are False:", "False", key="false_or")
+            
+            if st.button("Apply OR Conditions", key="apply_or"):
+                try:
+                    # Start with all False condition
+                    combined_condition = np.zeros(len(df), dtype=bool)
+                    
+                    # OR all conditions together
+                    for op, val in conditions:
+                        if op == "==":
+                            combined_condition = combined_condition | (df[target_column] == val)
+                        elif op == ">":
+                            combined_condition = combined_condition | (df[target_column] > val)
+                        elif op == "<":
+                            combined_condition = combined_condition | (df[target_column] < val)
+                        elif op == ">=":
+                            combined_condition = combined_condition | (df[target_column] >= val)
+                        elif op == "<=":
+                            combined_condition = combined_condition | (df[target_column] <= val)
+                        elif op == "!=":
+                            combined_condition = combined_condition | (df[target_column] != val)
+                        elif op == "contains":
+                            combined_condition = combined_condition | (df[target_column].astype(str).str.contains(str(val)))
+                        elif op == "startswith":
+                            combined_condition = combined_condition | (df[target_column].astype(str).str.startswith(str(val)))
+                        elif op == "endswith":
+                            combined_condition = combined_condition | (df[target_column].astype(str).str.endswith(str(val)))
+                    
+                    df[result_column] = np.where(combined_condition, true_value, false_value)
+                    
+                    st.success(f"Applied OR conditions and created column '{result_column}'")
+                    st.dataframe(df)
+                except Exception as e:
+                    st.error(f"Error applying conditions: {e}")
+    
+    with tab2:
+        st.subheader("Apply conditions across multiple columns")
+        
+        # Number of columns to include in condition
+        num_columns = st.number_input("Number of columns to include:", min_value=1, max_value=5, value=2, key="num_multi_col")
+        
+        # Create column selectors and conditions
+        column_conditions = []
+        
+        for i in range(num_columns):
+            st.markdown(f"**Column {i+1} Condition**")
             col1, col2, col3 = st.columns(3)
             
             with col1:
-                new_column_name = st.text_input("New column name:")
-                column1 = st.selectbox("First column:", [c for c in merged_gdf.columns if c != 'geometry'])
+                column = st.selectbox(f"Column {i+1}:", columns, key=f"multi_col_{i}")
             
             with col2:
-                operation = st.selectbox("Operation:", ["divide", "multiply", "add", "subtract"])
-                
-            with col3:
-                column2 = st.selectbox("Second column:", [c for c in merged_gdf.columns if c != 'geometry'])
-                scaling = st.number_input("Scaling factor (e.g., 1000):", value=1.0)
-            
-            if st.button("Calculate Field") and new_column_name and column1 and column2:
-                try:
-                    # Convert columns to numeric if needed
-                    merged_gdf[column1] = pd.to_numeric(merged_gdf[column1], errors='coerce').fillna(0)
-                    merged_gdf[column2] = pd.to_numeric(merged_gdf[column2], errors='coerce').fillna(0)
-                    
-                    # Perform calculation
-                    if operation == "divide":
-                        # Handle division by zero
-                        result = np.where(
-                            merged_gdf[column2] != 0,
-                            merged_gdf[column1] / merged_gdf[column2],
-                            0
-                        ) * scaling
-                    elif operation == "multiply":
-                        result = merged_gdf[column1] * merged_gdf[column2] * scaling
-                    elif operation == "add":
-                        result = (merged_gdf[column1] + merged_gdf[column2]) * scaling
-                    elif operation == "subtract":
-                        result = (merged_gdf[column1] - merged_gdf[column2]) * scaling
-                    
-                    merged_gdf[new_column_name] = result
-                    st.session_state.merged_data = merged_gdf
-                    st.success(f"Created new column: {new_column_name}")
-                except Exception as e:
-                    st.error(f"Error calculating field: {e}")
-            
-            # Create categorical field
-            st.subheader("Create Categorical Field")
-            
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                category_column_name = st.text_input("New category column name:")
-                source_column = st.selectbox(
-                    "Source column:",
-                    [c for c in merged_gdf.columns if c != 'geometry']
+                operator = st.selectbox(
+                    f"Operator {i+1}:",
+                    ["==", ">", "<", ">=", "<=", "!=", "contains", "startswith", "endswith"],
+                    key=f"multi_op_{i}"
                 )
             
-            with col2:
-                threshold = st.text_input("Threshold value:")
-                true_value = st.text_input("Value when true:", value="Yes")
-                false_value = st.text_input("Value when false:", value="No")
+            with col3:
+                if pd.api.types.is_numeric_dtype(df[column]):
+                    value = st.number_input(f"Value {i+1}:", value=0, key=f"multi_val_{i}")
+                else:
+                    value = st.text_input(f"Value {i+1}:", "", key=f"multi_val_{i}")
             
-            if st.button("Create Category") and category_column_name and source_column and threshold:
-                try:
-                    # Convert to numeric if possible
-                    if threshold.replace('.', '', 1).isdigit():
-                        threshold = float(threshold)
+            column_conditions.append((column, operator, value))
+        
+        # Condition combination method
+        combination_method = st.radio(
+            "Combine conditions using:",
+            ["AND (all conditions must be true)", "OR (any condition can be true)"],
+            key="multi_combine"
+        )
+        
+        # Result column name and values
+        result_column = st.text_input("Result column name:", "multi_column_result", key="result_multi")
+        true_value = st.text_input("Value if condition is True:", "True", key="true_multi")
+        false_value = st.text_input("Value if condition is False:", "False", key="false_multi")
+        
+        if st.button("Apply Multi-Column Conditions", key="apply_multi"):
+            try:
+                if combination_method.startswith("AND"):
+                    # Start with all True
+                    combined_condition = np.ones(len(df), dtype=bool)
                     
-                    # Convert source column to numeric if needed
-                    if pd.api.types.is_numeric_dtype(merged_gdf[source_column]):
-                        merged_gdf[source_column] = pd.to_numeric(merged_gdf[source_column], errors='coerce').fillna(0)
+                    # AND all conditions
+                    for col, op, val in column_conditions:
+                        if op == "==":
+                            combined_condition = combined_condition & (df[col] == val)
+                        elif op == ">":
+                            combined_condition = combined_condition & (df[col] > val)
+                        elif op == "<":
+                            combined_condition = combined_condition & (df[col] < val)
+                        elif op == ">=":
+                            combined_condition = combined_condition & (df[col] >= val)
+                        elif op == "<=":
+                            combined_condition = combined_condition & (df[col] <= val)
+                        elif op == "!=":
+                            combined_condition = combined_condition & (df[col] != val)
+                        elif op == "contains":
+                            combined_condition = combined_condition & (df[col].astype(str).str.contains(str(val)))
+                        elif op == "startswith":
+                            combined_condition = combined_condition & (df[col].astype(str).str.startswith(str(val)))
+                        elif op == "endswith":
+                            combined_condition = combined_condition & (df[col].astype(str).str.endswith(str(val)))
+                
+                else:  # OR
+                    # Start with all False
+                    combined_condition = np.zeros(len(df), dtype=bool)
                     
-                    # Create category
-                    merged_gdf[category_column_name] = np.where(
-                        merged_gdf[source_column] > threshold,
-                        true_value,
-                        false_value
-                    )
-                    
-                    st.session_state.merged_data = merged_gdf
-                    st.success(f"Created new category column: {category_column_name}")
-                except Exception as e:
-                    st.error(f"Error creating category: {e}")
-
-# Tab 3: Create Map
-with tab3:
-    st.header("Create Map")
+                    # OR all conditions
+                    for col, op, val in column_conditions:
+                        if op == "==":
+                            combined_condition = combined_condition | (df[col] == val)
+                        elif op == ">":
+                            combined_condition = combined_condition | (df[col] > val)
+                        elif op == "<":
+                            combined_condition = combined_condition | (df[col] < val)
+                        elif op == ">=":
+                            combined_condition = combined_condition | (df[col] >= val)
+                        elif op == "<=":
+                            combined_condition = combined_condition | (df[col] <= val)
+                        elif op == "!=":
+                            combined_condition = combined_condition | (df[col] != val)
+                        elif op == "contains":
+                            combined_condition = combined_condition | (df[col].astype(str).str.contains(str(val)))
+                        elif op == "startswith":
+                            combined_condition = combined_condition | (df[col].astype(str).str.startswith(str(val)))
+                        elif op == "endswith":
+                            combined_condition = combined_condition | (df[col].astype(str).str.endswith(str(val)))
+                
+                # Apply the combined condition
+                df[result_column] = np.where(combined_condition, true_value, false_value)
+                
+                st.success(f"Applied multi-column conditions and created column '{result_column}'")
+                st.dataframe(df)
+            except Exception as e:
+                st.error(f"Error applying conditions: {e}")
     
-    if st.session_state.merged_data is None:
-        st.info("Please process your data in the Data Processing tab first.")
-    else:
-        gdf = st.session_state.merged_data
-        
-        # Get categorical columns
-        categorical_columns = [col for col in gdf.columns if col != 'geometry' and 
-                              (gdf[col].dtype == 'object' or pd.api.types.is_categorical_dtype(gdf[col]))]
-        
-        # Select column for mapping
-        map_column = st.selectbox("Select column for mapping:", categorical_columns)
-        
-        if map_column:
-            # Get unique categories
-            unique_categories = gdf[map_column].dropna().unique()
-            
-            # Map settings
-            st.subheader("Map Settings")
-            
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                map_title = st.text_input("Map title:")
-                legend_title = st.text_input("Legend title:")
-            
-            # Color selection
-            st.subheader("Color Selection")
-            
-            # Default colors
-            default_colors = {
-                'Yes': '#B0E0E6',  # Light blue
-                'No': 'white'
-            }
-            
-            colors = {}
-            for category in unique_categories:
-                default_color = default_colors.get(category, '#CCCCCC')
-                color = st.color_picker(f"Color for {category}:", default_color)
-                colors[category] = color
-            
-            # Generate map button
-            if st.button("Generate Map"):
-                try:
-                    fig = create_map(
-                        gdf,
-                        map_column,
-                        colors,
-                        title=map_title,
-                        legend_title=legend_title
-                    )
-                    
-                    st.pyplot(fig)
-                    
-                    # Save map for download
-                    buf = io.BytesIO()
-                    fig.savefig(buf, format='png', dpi=300, bbox_inches='tight')
-                    buf.seek(0)
-                    st.session_state.map_image = buf
-                    
-                    st.success("Map generated successfully!")
-                except Exception as e:
-                    st.error(f"Error generating map: {e}")
-
-# Tab 4: Export
-with tab4:
-    st.header("Export Results")
+    # Add download button for modified DataFrame
+    st.subheader("Download Modified DataFrame")
     
-    if st.session_state.merged_data is None:
-        st.info("Please process your data before exporting.")
-    else:
-        st.subheader("Download Processed Data")
-        
-        # Prepare data for download
-        try:
-            # Excel export
-            output = io.BytesIO()
-            with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-                # Drop geometry column for Excel export
-                data_for_excel = st.session_state.merged_data.drop(columns=['geometry'])
-                data_for_excel.to_excel(writer, index=False, sheet_name='Data')
-            output.seek(0)
-            
-            st.download_button(
-                label="Download Excel File",
-                data=output,
-                file_name="processed_data.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
-        except Exception as e:
-            st.error(f"Error preparing Excel download: {e}")
-        
-        # Download map if available
-        if st.session_state.map_image is not None:
-            st.subheader("Download Map")
-            
-            st.download_button(
-                label="Download Map as PNG",
-                data=st.session_state.map_image,
-                file_name="map.png",
-                mime="image/png"
-            )
-            
-            st.image(st.session_state.map_image, caption="Generated Map")
+    csv = df.to_csv(index=False)
+    st.download_button(
+        label="Download as CSV",
+        data=csv,
+        file_name="modified_dataframe.csv",
+        mime="text/csv",
+    )
+    
+    # Add custom np.where() code generator
+    st.subheader("Generated np.where() Code")
+    st.write("Here's the Python code you can use to reproduce this operation:")
+    
+    code = "import numpy as np\n\n"
+    code += "# Apply the condition(s)\n"
+    code += f"df['{result_column}'] = np.where(<your_condition_here>, '{true_value}', '{false_value}')"
+    
+    st.code(code, language="python")
