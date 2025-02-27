@@ -322,173 +322,211 @@ if uploaded_file is not None:
                 st.error(f"Error applying conditions: {e}")
     
     with tab3:
-        st.subheader("Create advanced conditions with mixed AND/OR logic")
+        st.subheader("Simple AND/OR Mixer")
         
         st.markdown("""
-        This tab allows you to build complex conditions by mixing AND and OR operations.
-        You'll define condition groups, where conditions within a group use AND logic,
-        and the groups themselves are combined with OR logic.
+        Build a condition using a mix of AND and OR logic.
+        Just add conditions one by one and choose how each should connect to the previous one.
         """)
         
-        # Number of condition groups
-        num_groups = st.number_input("Number of condition groups (OR between groups):", 
-                                     min_value=1, max_value=5, value=2, key="num_groups")
+        # Initialize session state to store conditions if not already present
+        if 'conditions' not in st.session_state:
+            st.session_state.conditions = []
+            st.session_state.connections = []  # "AND" or "OR" between conditions
         
-        all_groups = []
-        
-        for g in range(num_groups):
-            st.markdown(f"### Condition Group {g+1}")
-            st.markdown("Conditions within this group are combined with AND")
+        # Display current condition builder
+        if st.session_state.conditions:
+            st.markdown("### Your Current Condition")
             
-            # Number of conditions in this group
-            num_conditions = st.number_input(f"Number of conditions in group {g+1}:", 
-                                           min_value=1, max_value=5, value=2, key=f"num_cond_group_{g}")
+            condition_text = ""
+            for i, ((col, op, val), connection) in enumerate(zip(st.session_state.conditions, 
+                                                              st.session_state.connections + [""])):
+                if i > 0:
+                    condition_text += f" **{st.session_state.connections[i-1]}** "
+                condition_text += f"({col} {op} {val})"
             
-            group_conditions = []
+            st.markdown(condition_text)
             
-            for i in range(num_conditions):
-                st.markdown(f"**Condition {i+1} in Group {g+1}**")
-                col1, col2, col3 = st.columns(3)
-                
-                with col1:
-                    column = st.selectbox(f"Column (G{g+1}C{i+1}):", columns, key=f"adv_col_{g}_{i}")
-                
-                with col2:
-                    operator = st.selectbox(
-                        f"Operator (G{g+1}C{i+1}):",
-                        ["==", ">", "<", ">=", "<=", "!=", "contains", "startswith", "endswith"],
-                        key=f"adv_op_{g}_{i}"
-                    )
-                
-                with col3:
-                    if pd.api.types.is_numeric_dtype(df[column]):
-                        value = st.number_input(f"Value (G{g+1}C{i+1}):", value=0, key=f"adv_val_{g}_{i}")
-                    else:
-                        value = st.text_input(f"Value (G{g+1}C{i+1}):", "", key=f"adv_val_{g}_{i}")
-                
-                group_conditions.append((column, operator, value))
+            if st.button("Clear All Conditions", key="clear_conditions"):
+                st.session_state.conditions = []
+                st.session_state.connections = []
+                st.experimental_rerun()
+        
+        # Add new condition
+        st.markdown("### Add a Condition")
+        
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            column = st.selectbox("Column:", columns, key="simple_mix_col")
+        
+        with col2:
+            operator = st.selectbox(
+                "Operator:",
+                ["==", ">", "<", ">=", "<=", "!=", "contains", "startswith", "endswith"],
+                key="simple_mix_op"
+            )
+        
+        with col3:
+            if pd.api.types.is_numeric_dtype(df[column]):
+                value = st.number_input("Value:", value=0, key="simple_mix_val")
+            else:
+                value = st.text_input("Value:", "", key="simple_mix_val")
+        
+        # Logic connector (AND/OR)
+        if st.session_state.conditions:  # Only show if we already have at least one condition
+            connection = st.radio(
+                "Connect with previous condition using:",
+                ["AND", "OR"],
+                horizontal=True,
+                key="simple_mix_connection"
+            )
+        else:
+            connection = "AND"  # Default, won't be used for first condition
+        
+        if st.button("Add This Condition", key="add_condition"):
+            st.session_state.conditions.append((column, operator, value))
+            if len(st.session_state.conditions) > 1:  # Don't add connection for first condition
+                st.session_state.connections.append(connection)
+            st.experimental_rerun()
+        
+        # Result configuration (only show if we have conditions)
+        if st.session_state.conditions:
+            st.markdown("### Result Configuration")
+            result_column = st.text_input("Result column name:", "mixed_condition_result", key="result_mix")
+            true_value = st.text_input("Value if condition is True:", "True", key="true_mix")
+            false_value = st.text_input("Value if condition is False:", "False", key="false_mix")
             
-            all_groups.append(group_conditions)
-        
-        # Result configuration
-        st.markdown("### Result Configuration")
-        result_column = st.text_input("Result column name:", "advanced_result", key="result_adv")
-        true_value = st.text_input("Value if condition is True:", "True", key="true_adv")
-        false_value = st.text_input("Value if condition is False:", "False", key="false_adv")
-        
-        # Display the built condition in pseudo-code
-        st.markdown("### Preview of your condition")
-        
-        condition_preview = "IF ("
-        for g_idx, group in enumerate(all_groups):
-            if g_idx > 0:
-                condition_preview += " OR "
-            
-            condition_preview += "("
-            for c_idx, (col, op, val) in enumerate(group):
-                if c_idx > 0:
-                    condition_preview += " AND "
-                condition_preview += f"{col} {op} {val}"
-            condition_preview += ")"
-        
-        condition_preview += f") THEN {true_value} ELSE {false_value}"
-        st.code(condition_preview)
-        
-        # Apply button
-        if st.button("Apply Advanced Conditions", key="apply_adv"):
-            try:
-                # Start with False for the entire OR condition
-                final_condition = np.zeros(len(df), dtype=bool)
-                
-                # Process each group (OR between groups)
-                for group in all_groups:
-                    # Start with True for each AND group
-                    group_condition = np.ones(len(df), dtype=bool)
+            if st.button("Apply Mixed Conditions", key="apply_mix"):
+                try:
+                    # Start with the first condition
+                    col, op, val = st.session_state.conditions[0]
                     
-                    # Process conditions within the group (AND within group)
-                    for col, op, val in group:
+                    if op == "==":
+                        final_condition = (df[col] == val)
+                    elif op == ">":
+                        final_condition = (df[col] > val)
+                    elif op == "<":
+                        final_condition = (df[col] < val)
+                    elif op == ">=":
+                        final_condition = (df[col] >= val)
+                    elif op == "<=":
+                        final_condition = (df[col] <= val)
+                    elif op == "!=":
+                        final_condition = (df[col] != val)
+                    elif op == "contains":
+                        final_condition = (df[col].astype(str).str.contains(str(val)))
+                    elif op == "startswith":
+                        final_condition = (df[col].astype(str).str.startswith(str(val)))
+                    elif op == "endswith":
+                        final_condition = (df[col].astype(str).str.endswith(str(val)))
+                    
+                    # Add remaining conditions with their connections
+                    for i in range(1, len(st.session_state.conditions)):
+                        col, op, val = st.session_state.conditions[i]
+                        connection = st.session_state.connections[i-1]
+                        
                         if op == "==":
-                            group_condition = group_condition & (df[col] == val)
+                            condition = (df[col] == val)
                         elif op == ">":
-                            group_condition = group_condition & (df[col] > val)
+                            condition = (df[col] > val)
                         elif op == "<":
-                            group_condition = group_condition & (df[col] < val)
+                            condition = (df[col] < val)
                         elif op == ">=":
-                            group_condition = group_condition & (df[col] >= val)
+                            condition = (df[col] >= val)
                         elif op == "<=":
-                            group_condition = group_condition & (df[col] <= val)
+                            condition = (df[col] <= val)
                         elif op == "!=":
-                            group_condition = group_condition & (df[col] != val)
+                            condition = (df[col] != val)
                         elif op == "contains":
-                            group_condition = group_condition & (df[col].astype(str).str.contains(str(val)))
+                            condition = (df[col].astype(str).str.contains(str(val)))
                         elif op == "startswith":
-                            group_condition = group_condition & (df[col].astype(str).str.startswith(str(val)))
+                            condition = (df[col].astype(str).str.startswith(str(val)))
                         elif op == "endswith":
-                            group_condition = group_condition & (df[col].astype(str).str.endswith(str(val)))
+                            condition = (df[col].astype(str).str.endswith(str(val)))
+                        
+                        if connection == "AND":
+                            final_condition = final_condition & condition
+                        else:  # "OR"
+                            final_condition = final_condition | condition
                     
-                    # Combine the group with OR logic
-                    final_condition = final_condition | group_condition
-                
-                # Apply the condition
-                df[result_column] = np.where(final_condition, true_value, false_value)
-                
-                st.success(f"Applied advanced conditions and created column '{result_column}'")
-                st.dataframe(df)
-                
-                # Generate the Python code
-                code_lines = ["import numpy as np", ""]
-                code_lines.append("# Define condition groups")
-                
-                for g_idx, group in enumerate(all_groups):
-                    code_lines.append(f"# Group {g_idx+1} (AND conditions)")
-                    conditions = []
-                    for c_idx, (col, op, val) in enumerate(group):
+                    # Apply the condition
+                    df[result_column] = np.where(final_condition, true_value, false_value)
+                    
+                    st.success(f"Applied mixed conditions and created column '{result_column}'")
+                    st.dataframe(df)
+                    
+                    # Generate Python code
+                    code_lines = ["import numpy as np", ""]
+                    
+                    # First condition
+                    col, op, val = st.session_state.conditions[0]
+                    if isinstance(val, str):
+                        val_str = f"'{val}'"
+                    else:
+                        val_str = str(val)
+                        
+                    if op == "==":
+                        code_lines.append(f"condition = (df['{col}'] == {val_str})")
+                    elif op == ">":
+                        code_lines.append(f"condition = (df['{col}'] > {val_str})")
+                    elif op == "<":
+                        code_lines.append(f"condition = (df['{col}'] < {val_str})")
+                    elif op == ">=":
+                        code_lines.append(f"condition = (df['{col}'] >= {val_str})")
+                    elif op == "<=":
+                        code_lines.append(f"condition = (df['{col}'] <= {val_str})")
+                    elif op == "!=":
+                        code_lines.append(f"condition = (df['{col}'] != {val_str})")
+                    elif op == "contains":
+                        code_lines.append(f"condition = (df['{col}'].astype(str).str.contains('{val}'))")
+                    elif op == "startswith":
+                        code_lines.append(f"condition = (df['{col}'].astype(str).str.startswith('{val}'))")
+                    elif op == "endswith":
+                        code_lines.append(f"condition = (df['{col}'].astype(str).str.endswith('{val}'))")
+                    
+                    # Remaining conditions
+                    for i in range(1, len(st.session_state.conditions)):
+                        col, op, val = st.session_state.conditions[i]
+                        connection = st.session_state.connections[i-1]
+                        
                         if isinstance(val, str):
                             val_str = f"'{val}'"
                         else:
                             val_str = str(val)
                             
                         if op == "==":
-                            conditions.append(f"(df['{col}'] == {val_str})")
+                            code_lines.append(f"condition = condition {' & ' if connection == 'AND' else ' | '}(df['{col}'] == {val_str})")
                         elif op == ">":
-                            conditions.append(f"(df['{col}'] > {val_str})")
+                            code_lines.append(f"condition = condition {' & ' if connection == 'AND' else ' | '}(df['{col}'] > {val_str})")
                         elif op == "<":
-                            conditions.append(f"(df['{col}'] < {val_str})")
+                            code_lines.append(f"condition = condition {' & ' if connection == 'AND' else ' | '}(df['{col}'] < {val_str})")
                         elif op == ">=":
-                            conditions.append(f"(df['{col}'] >= {val_str})")
+                            code_lines.append(f"condition = condition {' & ' if connection == 'AND' else ' | '}(df['{col}'] >= {val_str})")
                         elif op == "<=":
-                            conditions.append(f"(df['{col}'] <= {val_str})")
+                            code_lines.append(f"condition = condition {' & ' if connection == 'AND' else ' | '}(df['{col}'] <= {val_str})")
                         elif op == "!=":
-                            conditions.append(f"(df['{col}'] != {val_str})")
+                            code_lines.append(f"condition = condition {' & ' if connection == 'AND' else ' | '}(df['{col}'] != {val_str})")
                         elif op == "contains":
-                            conditions.append(f"(df['{col}'].astype(str).str.contains('{val}'))")
+                            code_lines.append(f"condition = condition {' & ' if connection == 'AND' else ' | '}(df['{col}'].astype(str).str.contains('{val}'))")
                         elif op == "startswith":
-                            conditions.append(f"(df['{col}'].astype(str).str.startswith('{val}'))")
+                            code_lines.append(f"condition = condition {' & ' if connection == 'AND' else ' | '}(df['{col}'].astype(str).str.startswith('{val}'))")
                         elif op == "endswith":
-                            conditions.append(f"(df['{col}'].astype(str).str.endswith('{val}'))")
+                            code_lines.append(f"condition = condition {' & ' if connection == 'AND' else ' | '}(df['{col}'].astype(str).str.endswith('{val}'))")
                     
-                    if len(conditions) == 1:
-                        code_lines.append(f"group_{g_idx+1} = {conditions[0]}")
-                    else:
-                        code_lines.append(f"group_{g_idx+1} = {' & '.join(conditions)}")
-                
-                code_lines.append("")
-                code_lines.append("# Combine groups with OR logic")
-                if len(all_groups) == 1:
-                    code_lines.append(f"final_condition = group_1")
-                else:
-                    code_lines.append(f"final_condition = {' | '.join([f'group_{i+1}' for i in range(len(all_groups))])}")
-                
-                code_lines.append("")
-                code_lines.append("# Apply the condition using np.where()")
-                code_lines.append(f"df['{result_column}'] = np.where(final_condition, '{true_value}', '{false_value}')")
-                
-                # Display generated code
-                st.subheader("Generated Python Code")
-                st.code("\n".join(code_lines), language="python")
-                
-            except Exception as e:
-                st.error(f"Error applying conditions: {e}")
+                    code_lines.append("")
+                    code_lines.append("# Apply the condition using np.where()")
+                    code_lines.append(f"df['{result_column}'] = np.where(condition, '{true_value}', '{false_value}')")
+                    
+                    # Display generated code
+                    st.subheader("Generated Python Code")
+                    st.code("\n".join(code_lines), language="python")
+                    
+                except Exception as e:
+                    st.error(f"Error applying conditions: {e}")
+        else:
+            st.info("Add at least one condition to apply mixed AND/OR logic.")
+
     
     # Add download button for modified DataFrame
     st.subheader("Download Modified DataFrame")
