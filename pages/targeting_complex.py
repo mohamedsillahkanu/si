@@ -322,210 +322,261 @@ if uploaded_file is not None:
                 st.error(f"Error applying conditions: {e}")
     
     with tab3:
-        st.subheader("Simple AND/OR Mixer")
+        st.subheader("Condition Builder with Grouping")
         
         st.markdown("""
-        Build a condition using a mix of AND and OR logic.
-        Just add conditions one by one and choose how each should connect to the previous one.
+        Build complex conditions with proper grouping and nesting.
+        You can create expressions like: (A==B) AND [(C==D) OR (E==F)]
         """)
         
-        # Initialize session state to store conditions if not already present
-        if 'conditions' not in st.session_state:
-            st.session_state.conditions = []
-            st.session_state.connections = []  # "AND" or "OR" between conditions
+        # Condition builder state
+        if 'expression_parts' not in st.session_state:
+            st.session_state.expression_parts = []  # Will store tuples of (type, value)
+            # types: "column", "operator", "value", "and", "or", "open_paren", "close_paren"
         
-        # Display current condition builder
-        if st.session_state.conditions:
-            st.markdown("### Your Current Condition")
+        # Display current expression
+        if st.session_state.expression_parts:
+            st.markdown("### Current Expression")
             
-            condition_text = ""
-            for i, ((col, op, val), connection) in enumerate(zip(st.session_state.conditions, 
-                                                              st.session_state.connections + [""])):
-                if i > 0:
-                    condition_text += f" **{st.session_state.connections[i-1]}** "
-                condition_text += f"({col} {op} {val})"
+            # Format the current expression nicely
+            expression_text = ""
+            for part_type, part_value in st.session_state.expression_parts:
+                if part_type == "column":
+                    expression_text += f" **{part_value}** "
+                elif part_type == "operator":
+                    expression_text += f" {part_value} "
+                elif part_type == "value":
+                    if isinstance(part_value, str):
+                        expression_text += f"'{part_value}'"
+                    else:
+                        expression_text += f"{part_value}"
+                elif part_type == "and":
+                    expression_text += f" **AND** "
+                elif part_type == "or":
+                    expression_text += f" **OR** "
+                elif part_type == "open_paren":
+                    expression_text += " ( "
+                elif part_type == "close_paren":
+                    expression_text += " ) "
             
-            st.markdown(condition_text)
+            st.markdown(expression_text)
             
-            if st.button("Clear All Conditions", key="clear_conditions"):
-                st.session_state.conditions = []
-                st.session_state.connections = []
+            # Clear button
+            if st.button("Clear Expression", key="clear_expression"):
+                st.session_state.expression_parts = []
                 st.experimental_rerun()
         
-        # Add new condition
-        st.markdown("### Add a Condition")
+        # Expression building tools
+        st.markdown("### Build Your Expression")
+        
+        # Add parentheses
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("Add Opening Parenthesis ( ", key="add_open_paren"):
+                st.session_state.expression_parts.append(("open_paren", "("))
+                st.experimental_rerun()
+        
+        with col2:
+            if st.button("Add Closing Parenthesis ) ", key="add_close_paren"):
+                st.session_state.expression_parts.append(("close_paren", ")"))
+                st.experimental_rerun()
+        
+        # Add condition
+        st.markdown("#### Add a Condition")
         
         col1, col2, col3 = st.columns(3)
         
         with col1:
-            column = st.selectbox("Column:", columns, key="simple_mix_col")
+            column = st.selectbox("Column:", columns, key="group_col")
         
         with col2:
             operator = st.selectbox(
                 "Operator:",
                 ["==", ">", "<", ">=", "<=", "!=", "contains", "startswith", "endswith"],
-                key="simple_mix_op"
+                key="group_op"
             )
         
         with col3:
             if pd.api.types.is_numeric_dtype(df[column]):
-                value = st.number_input("Value:", value=0, key="simple_mix_val")
+                value = st.number_input("Value:", value=0, key="group_val")
             else:
-                value = st.text_input("Value:", "", key="simple_mix_val")
+                value = st.text_input("Value:", "", key="group_val")
         
-        # Logic connector (AND/OR)
-        if st.session_state.conditions:  # Only show if we already have at least one condition
-            connection = st.radio(
-                "Connect with previous condition using:",
-                ["AND", "OR"],
-                horizontal=True,
-                key="simple_mix_connection"
-            )
-        else:
-            connection = "AND"  # Default, won't be used for first condition
-        
-        if st.button("Add This Condition", key="add_condition"):
-            st.session_state.conditions.append((column, operator, value))
-            if len(st.session_state.conditions) > 1:  # Don't add connection for first condition
-                st.session_state.connections.append(connection)
+        if st.button("Add This Condition", key="add_group_condition"):
+            st.session_state.expression_parts.append(("column", column))
+            st.session_state.expression_parts.append(("operator", operator))
+            st.session_state.expression_parts.append(("value", value))
             st.experimental_rerun()
         
-        # Result configuration (only show if we have conditions)
-        if st.session_state.conditions:
+        # Add logical operator
+        st.markdown("#### Add Logical Operator")
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if st.button("Add AND", key="add_and"):
+                st.session_state.expression_parts.append(("and", "AND"))
+                st.experimental_rerun()
+        
+        with col2:
+            if st.button("Add OR", key="add_or"):
+                st.session_state.expression_parts.append(("or", "OR"))
+                st.experimental_rerun()
+        
+        # Result configuration (only show if we have parts)
+        if st.session_state.expression_parts:
             st.markdown("### Result Configuration")
-            result_column = st.text_input("Result column name:", "mixed_condition_result", key="result_mix")
-            true_value = st.text_input("Value if condition is True:", "True", key="true_mix")
-            false_value = st.text_input("Value if condition is False:", "False", key="false_mix")
+            result_column = st.text_input("Result column name:", "grouped_condition_result", key="result_group")
+            true_value = st.text_input("Value if condition is True:", "True", key="true_group")
+            false_value = st.text_input("Value if condition is False:", "False", key="false_group")
             
-            if st.button("Apply Mixed Conditions", key="apply_mix"):
+            # Parse expression and create code
+            if st.button("Apply Grouped Conditions", key="apply_group"):
+                # Convert the visual expression to Python code
+                python_expr = ""
+                valid_expression = True
+                error_message = ""
+                
                 try:
-                    # Start with the first condition
-                    col, op, val = st.session_state.conditions[0]
+                    # Validate the expression structure
+                    if len(st.session_state.expression_parts) < 3:
+                        valid_expression = False
+                        error_message = "Expression is too short. Need at least one complete condition."
                     
-                    if op == "==":
-                        final_condition = (df[col] == val)
-                    elif op == ">":
-                        final_condition = (df[col] > val)
-                    elif op == "<":
-                        final_condition = (df[col] < val)
-                    elif op == ">=":
-                        final_condition = (df[col] >= val)
-                    elif op == "<=":
-                        final_condition = (df[col] <= val)
-                    elif op == "!=":
-                        final_condition = (df[col] != val)
-                    elif op == "contains":
-                        final_condition = (df[col].astype(str).str.contains(str(val)))
-                    elif op == "startswith":
-                        final_condition = (df[col].astype(str).str.startswith(str(val)))
-                    elif op == "endswith":
-                        final_condition = (df[col].astype(str).str.endswith(str(val)))
+                    # Check parentheses balance
+                    open_count = sum(1 for part_type, _ in st.session_state.expression_parts if part_type == "open_paren")
+                    close_count = sum(1 for part_type, _ in st.session_state.expression_parts if part_type == "close_paren")
+                    if open_count != close_count:
+                        valid_expression = False
+                        error_message = f"Unbalanced parentheses: {open_count} opening vs {close_count} closing"
                     
-                    # Add remaining conditions with their connections
-                    for i in range(1, len(st.session_state.conditions)):
-                        col, op, val = st.session_state.conditions[i]
-                        connection = st.session_state.connections[i-1]
+                    # Check for logical operators between conditions
+                    i = 0
+                    while i < len(st.session_state.expression_parts):
+                        part_type, part_value = st.session_state.expression_parts[i]
                         
-                        if op == "==":
-                            condition = (df[col] == val)
-                        elif op == ">":
-                            condition = (df[col] > val)
-                        elif op == "<":
-                            condition = (df[col] < val)
-                        elif op == ">=":
-                            condition = (df[col] >= val)
-                        elif op == "<=":
-                            condition = (df[col] <= val)
-                        elif op == "!=":
-                            condition = (df[col] != val)
-                        elif op == "contains":
-                            condition = (df[col].astype(str).str.contains(str(val)))
-                        elif op == "startswith":
-                            condition = (df[col].astype(str).str.startswith(str(val)))
-                        elif op == "endswith":
-                            condition = (df[col].astype(str).str.endswith(str(val)))
+                        # Skip parentheses
+                        if part_type in ["open_paren", "close_paren"]:
+                            i += 1
+                            continue
                         
-                        if connection == "AND":
-                            final_condition = final_condition & condition
-                        else:  # "OR"
-                            final_condition = final_condition | condition
-                    
-                    # Apply the condition
-                    df[result_column] = np.where(final_condition, true_value, false_value)
-                    
-                    st.success(f"Applied mixed conditions and created column '{result_column}'")
-                    st.dataframe(df)
-                    
-                    # Generate Python code
-                    code_lines = ["import numpy as np", ""]
-                    
-                    # First condition
-                    col, op, val = st.session_state.conditions[0]
-                    if isinstance(val, str):
-                        val_str = f"'{val}'"
-                    else:
-                        val_str = str(val)
-                        
-                    if op == "==":
-                        code_lines.append(f"condition = (df['{col}'] == {val_str})")
-                    elif op == ">":
-                        code_lines.append(f"condition = (df['{col}'] > {val_str})")
-                    elif op == "<":
-                        code_lines.append(f"condition = (df['{col}'] < {val_str})")
-                    elif op == ">=":
-                        code_lines.append(f"condition = (df['{col}'] >= {val_str})")
-                    elif op == "<=":
-                        code_lines.append(f"condition = (df['{col}'] <= {val_str})")
-                    elif op == "!=":
-                        code_lines.append(f"condition = (df['{col}'] != {val_str})")
-                    elif op == "contains":
-                        code_lines.append(f"condition = (df['{col}'].astype(str).str.contains('{val}'))")
-                    elif op == "startswith":
-                        code_lines.append(f"condition = (df['{col}'].astype(str).str.startswith('{val}'))")
-                    elif op == "endswith":
-                        code_lines.append(f"condition = (df['{col}'].astype(str).str.endswith('{val}'))")
-                    
-                    # Remaining conditions
-                    for i in range(1, len(st.session_state.conditions)):
-                        col, op, val = st.session_state.conditions[i]
-                        connection = st.session_state.connections[i-1]
-                        
-                        if isinstance(val, str):
-                            val_str = f"'{val}'"
-                        else:
-                            val_str = str(val)
+                        # Check for complete condition (column, operator, value)
+                        if part_type == "column" and i+2 < len(st.session_state.expression_parts):
+                            op_type, op_value = st.session_state.expression_parts[i+1]
+                            val_type, val_value = st.session_state.expression_parts[i+2]
                             
-                        if op == "==":
-                            code_lines.append(f"condition = condition {' & ' if connection == 'AND' else ' | '}(df['{col}'] == {val_str})")
-                        elif op == ">":
-                            code_lines.append(f"condition = condition {' & ' if connection == 'AND' else ' | '}(df['{col}'] > {val_str})")
-                        elif op == "<":
-                            code_lines.append(f"condition = condition {' & ' if connection == 'AND' else ' | '}(df['{col}'] < {val_str})")
-                        elif op == ">=":
-                            code_lines.append(f"condition = condition {' & ' if connection == 'AND' else ' | '}(df['{col}'] >= {val_str})")
-                        elif op == "<=":
-                            code_lines.append(f"condition = condition {' & ' if connection == 'AND' else ' | '}(df['{col}'] <= {val_str})")
-                        elif op == "!=":
-                            code_lines.append(f"condition = condition {' & ' if connection == 'AND' else ' | '}(df['{col}'] != {val_str})")
-                        elif op == "contains":
-                            code_lines.append(f"condition = condition {' & ' if connection == 'AND' else ' | '}(df['{col}'].astype(str).str.contains('{val}'))")
-                        elif op == "startswith":
-                            code_lines.append(f"condition = condition {' & ' if connection == 'AND' else ' | '}(df['{col}'].astype(str).str.startswith('{val}'))")
-                        elif op == "endswith":
-                            code_lines.append(f"condition = condition {' & ' if connection == 'AND' else ' | '}(df['{col}'].astype(str).str.endswith('{val}'))")
+                            if op_type == "operator" and val_type == "value":
+                                # This is a complete condition, now check what follows
+                                if i+3 < len(st.session_state.expression_parts):
+                                    next_type, next_value = st.session_state.expression_parts[i+3]
+                                    if next_type not in ["and", "or", "close_paren"]:
+                                        valid_expression = False
+                                        error_message = f"Expected AND/OR after condition at position {i+3}"
+                                i += 3  # Skip past this condition
+                            else:
+                                valid_expression = False
+                                error_message = f"Incomplete condition at position {i}"
+                                break
+                        elif part_type in ["and", "or"]:
+                            # After AND/OR, must have column or open_paren
+                            if i+1 < len(st.session_state.expression_parts):
+                                next_type, next_value = st.session_state.expression_parts[i+1]
+                                if next_type not in ["column", "open_paren"]:
+                                    valid_expression = False
+                                    error_message = f"Expected column or '(' after AND/OR at position {i+1}"
+                            i += 1
+                        else:
+                            valid_expression = False
+                            error_message = f"Unexpected token at position {i}"
+                            break
                     
-                    code_lines.append("")
-                    code_lines.append("# Apply the condition using np.where()")
-                    code_lines.append(f"df['{result_column}'] = np.where(condition, '{true_value}', '{false_value}')")
-                    
-                    # Display generated code
-                    st.subheader("Generated Python Code")
-                    st.code("\n".join(code_lines), language="python")
-                    
+                    if valid_expression:
+                        # Build the Python expression
+                        for part_type, part_value in st.session_state.expression_parts:
+                            if part_type == "column":
+                                python_expr += f"df['{part_value}']"
+                            elif part_type == "operator":
+                                if part_value == "==":
+                                    python_expr += " == "
+                                elif part_value == ">":
+                                    python_expr += " > "
+                                elif part_value == "<":
+                                    python_expr += " < "
+                                elif part_value == ">=":
+                                    python_expr += " >= "
+                                elif part_value == "<=":
+                                    python_expr += " <= "
+                                elif part_value == "!=":
+                                    python_expr += " != "
+                                elif part_value == "contains":
+                                    python_expr = f"({python_expr}.astype(str).str.contains"
+                                elif part_value == "startswith":
+                                    python_expr = f"({python_expr}.astype(str).str.startswith"
+                                elif part_value == "endswith":
+                                    python_expr = f"({python_expr}.astype(str).str.endswith"
+                            elif part_type == "value":
+                                if isinstance(part_value, str):
+                                    if python_expr.endswith(("contains", "startswith", "endswith")):
+                                        python_expr += f"('{part_value}'))"
+                                    else:
+                                        python_expr += f"'{part_value}'"
+                                else:
+                                    if python_expr.endswith(("contains", "startswith", "endswith")):
+                                        python_expr += f"('{part_value}'))"
+                                    else:
+                                        python_expr += f"{part_value}"
+                            elif part_type == "and":
+                                python_expr += " & "
+                            elif part_type == "or":
+                                python_expr += " | "
+                            elif part_type == "open_paren":
+                                python_expr += "("
+                            elif part_type == "close_paren":
+                                python_expr += ")"
+                        
+                        # Apply the condition
+                        result = eval(python_expr)
+                        df[result_column] = np.where(result, true_value, false_value)
+                        
+                        st.success(f"Applied grouped conditions and created column '{result_column}'")
+                        st.dataframe(df)
+                        
+                        # Generate the Python code
+                        code_lines = ["import numpy as np", ""]
+                        code_lines.append("# Define the condition")
+                        code_lines.append(f"condition = {python_expr}")
+                        code_lines.append("")
+                        code_lines.append("# Apply the condition using np.where()")
+                        code_lines.append(f"df['{result_column}'] = np.where(condition, '{true_value}', '{false_value}')")
+                        
+                        # Display generated code
+                        st.subheader("Generated Python Code")
+                        st.code("\n".join(code_lines), language="python")
+                    else:
+                        st.error(f"Invalid expression: {error_message}")
+                
                 except Exception as e:
                     st.error(f"Error applying conditions: {e}")
         else:
-            st.info("Add at least one condition to apply mixed AND/OR logic.")
+            st.info("Start building your expression using the tools above.")
+        
+        # Show expression examples
+        with st.expander("Example Expressions"):
+            st.markdown("""
+            ### Simple Examples:
+            - `(column1 == value1) AND (column2 > value2)`
+            - `(column1 != value1) OR (column2 <= value2)`
+            
+            ### Complex Example:
+            - `(column1 == value1) AND [(column2 > value2) OR (column3 contains value3)]`
+            
+            ### How to Build:
+            1. Click "Add Opening Parenthesis" if needed
+            2. Add a condition using the column, operator, and value selectors
+            3. Click "Add Closing Parenthesis" if needed
+            4. Add logical operators (AND/OR) between conditions
+            5. Use parentheses to group conditions as needed
+            """)
+
 
     
     # Add download button for modified DataFrame
