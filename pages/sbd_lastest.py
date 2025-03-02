@@ -89,15 +89,13 @@ if uploaded_file:
     filter_categories = ["District", "Chiefdom", "PHU Name", "Community Name", "School Name"]
     filter_category = st.sidebar.selectbox("Filter by Category", filter_categories)
     
-    # Find all columns for visualization (both numeric and categorical)
-    columns_for_viz = [col for col in extracted_df.columns if col not in filter_categories]
+    # Check if both required columns exist
+    required_columns = ["ITN received", "ITN given"]
+    missing_columns = [col for col in required_columns if col not in extracted_df.columns]
     
-    if not columns_for_viz:
-        st.warning("No columns found for visualization")
+    if missing_columns:
+        st.warning(f"Missing required columns: {', '.join(missing_columns)}. Please ensure your data includes both 'ITN received' and 'ITN given' columns.")
     else:
-        # Select which column to visualize
-        selected_column = st.sidebar.selectbox("Select Column for Visualization", columns_for_viz)
-        
         # Apply filters based on selection
         filter_values = sorted(extracted_df[filter_category].dropna().unique().tolist())
         selected_filter_value = st.sidebar.selectbox(f"Select {filter_category}", filter_values)
@@ -110,55 +108,105 @@ if uploaded_file:
             st.write(f"### Filtered Data - {len(filtered_df)} records")
             st.dataframe(filtered_df)
             
-            # Create visualization
-            st.subheader(f"📊 Count of {selected_column} for {filter_category}: {selected_filter_value}")
+            # Create grouped bar chart for ITN received and ITN given
+            st.subheader(f"📊 ITN Received vs. ITN Given for {filter_category}: {selected_filter_value}")
             
-            # Get counts based on the selected column
-            if pd.api.types.is_numeric_dtypes(filtered_df[selected_column]):
-                # For numeric columns, create bins
-                counts = pd.cut(filtered_df[selected_column], bins=10).value_counts().sort_index()
+            # Group data by the next level of hierarchy if available
+            if filter_category == "District" and "Chiefdom" in filtered_df.columns:
+                group_by = "Chiefdom"
+            elif filter_category == "Chiefdom" and "PHU Name" in filtered_df.columns:
+                group_by = "PHU Name"
+            elif filter_category == "PHU Name" and "Community Name" in filtered_df.columns:
+                group_by = "Community Name"
+            elif filter_category == "Community Name" and "School Name" in filtered_df.columns:
+                group_by = "School Name"
+            else:
+                # If no clear hierarchy, use the first available column that's not the filter category
+                available_groups = [col for col in filter_categories if col != filter_category and col in filtered_df.columns]
+                group_by = available_groups[0] if available_groups else "index"
+            
+            if group_by != "index":
+                # Group by the selected column
+                grouped_data = filtered_df.groupby(group_by).agg({
+                    "ITN received": "sum",
+                    "ITN given": "sum"
+                }).reset_index()
                 
-                # Create the visualization
-                fig, ax = plt.subplots(figsize=(12, 8))
-                counts.plot(kind="bar", ax=ax, color="skyblue")
-                ax.set_title(f"Distribution of {selected_column} for {filter_category}: {selected_filter_value}")
-                ax.set_ylabel("Count")
-                ax.set_xlabel(selected_column)
+                # Sort by ITN received in descending order
+                grouped_data = grouped_data.sort_values("ITN received", ascending=False)
+                
+                # Determine if we need to adjust figure height based on number of items
+                num_items = len(grouped_data)
+                # Adjust figure height based on number of items (0.3 inches per item, minimum 8 inches)
+                fig_height = max(8, 0.3 * num_items)
+                
+                # Create the visualization with adaptive height
+                fig, ax = plt.subplots(figsize=(14, fig_height))
+                
+                # Set the width of the bars
+                bar_width = 0.35
+                
+                # Set the positions of the bars on the x-axis
+                x = np.arange(len(grouped_data))
+                
+                # Create the bars
+                received_bars = ax.bar(x - bar_width/2, grouped_data["ITN received"], bar_width, 
+                                        color="royalblue", label="ITN received")
+                given_bars = ax.bar(x + bar_width/2, grouped_data["ITN given"], bar_width,
+                                    color="lightcoral", label="ITN given")
                 
                 # Add count labels on top of each bar
-                for i, count in enumerate(counts):
-                    ax.text(i, count + 0.1, str(count), ha='center')
-                    
-                plt.xticks(rotation=45, ha="right")
-                plt.tight_layout()
-                st.pyplot(fig)
-            else:
-                # For categorical columns
-                counts = filtered_df[selected_column].value_counts().sort_values(ascending=False)
+                for i, bar in enumerate(received_bars):
+                    height = bar.get_height()
+                    ax.text(bar.get_x() + bar.get_width()/2., height + 5,
+                            f"{int(height)}", ha='center', va='bottom', fontsize=8)
                 
-                # Limit to top 20 values if there are too many
-                if len(counts) > 20:
-                    st.info(f"Showing top 20 of {len(counts)} values")
-                    counts = counts.nlargest(20)
+                for i, bar in enumerate(given_bars):
+                    height = bar.get_height()
+                    ax.text(bar.get_x() + bar.get_width()/2., height + 5,
+                            f"{int(height)}", ha='center', va='bottom', fontsize=8)
                 
-                # Create the visualization
-                fig, ax = plt.subplots(figsize=(12, 8))
-                counts.plot(kind="bar", ax=ax, color="skyblue")
-                ax.set_title(f"Count of {selected_column} for {filter_category}: {selected_filter_value}")
+                # Customize the chart
+                ax.set_title(f"ITN Received vs. Given by {group_by} in {selected_filter_value}")
+                ax.set_xlabel(group_by)
                 ax.set_ylabel("Count")
-                ax.set_xlabel(selected_column)
+                ax.set_xticks(x)
                 
-                # Add count labels on top of each bar
-                for i, count in enumerate(counts):
-                    ax.text(i, count + 0.1, str(count), ha='center')
-                    
-                plt.xticks(rotation=45, ha="right")
+                # Adjust text size and rotation based on number of items
+                if num_items > 30:
+                    fontsize = 6
+                elif num_items > 15:
+                    fontsize = 8
+                else:
+                    fontsize = 10
+                
+                ax.set_xticklabels(grouped_data[group_by], rotation=90, ha="center", fontsize=fontsize)
+                ax.legend()
+                
+                # Add grid lines for better readability
+                ax.grid(axis='y', linestyle='--', alpha=0.7)
+                
+                # Adjust layout
                 plt.tight_layout()
                 st.pyplot(fig)
                 
-            # Show a table with the count data
-            st.write(f"#### Data Table - Counts for {selected_column}")
-            if pd.api.types.is_numeric_dtypes(filtered_df[selected_column]):
-                st.dataframe(counts.reset_index().rename(columns={0: "Count"}))
+                # Show a table with the data
+                st.write(f"#### Data Table - ITN Metrics by {group_by}")
+                st.dataframe(grouped_data)
+                
+                # Calculate and show totals and percentages
+                total_received = grouped_data["ITN received"].sum()
+                total_given = grouped_data["ITN given"].sum()
+                
+                st.write("#### Summary")
+                summary_data = {
+                    "Metric": ["Total ITN Received", "Total ITN Given", "Utilization Rate (%)"],
+                    "Value": [
+                        f"{int(total_received):,}",
+                        f"{int(total_given):,}",
+                        f"{(total_given / total_received * 100) if total_received > 0 else 0:.2f}%"
+                    ]
+                }
+                st.dataframe(pd.DataFrame(summary_data))
             else:
-                st.dataframe(counts.reset_index().rename(columns={"index": selected_column, selected_column: "Count"}))
+                st.warning(f"No suitable grouping column found for {filter_category}: {selected_filter_value}")
