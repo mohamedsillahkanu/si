@@ -73,8 +73,14 @@ if uploaded_file:
     
     # Filter categories
     filter_categories = ["District", "Chiefdom", "PHU Name", "Community Name", "School Name"]
-    filter_category = st.sidebar.selectbox("Filter by Category", filter_categories)
     
+    # Create radio buttons for each grouping level
+    grouping_selection = st.sidebar.radio(
+        "Select the level for grouping:",
+        filter_categories,
+        index=0  # Default to 'District'
+    )
+
     # Check if both required columns exist
     required_columns = ["ITN received", "ITN given"]
     missing_columns = [col for col in required_columns if col not in extracted_df.columns]
@@ -83,9 +89,9 @@ if uploaded_file:
         st.warning(f"Missing required columns: {', '.join(missing_columns)}. Please ensure your data includes both 'ITN received' and 'ITN given' columns.")
     else:
         # Apply filters based on selection
-        filter_values = sorted(extracted_df[filter_category].dropna().unique().tolist())
-        selected_filter_value = st.sidebar.selectbox(f"Select {filter_category}", filter_values)
-        filtered_df = extracted_df[extracted_df[filter_category] == selected_filter_value]
+        filter_values = sorted(extracted_df[grouping_selection].dropna().unique().tolist())
+        selected_filter_value = st.sidebar.selectbox(f"Select {grouping_selection}", filter_values)
+        filtered_df = extracted_df[extracted_df[grouping_selection] == selected_filter_value]
         
         # Check if we have data after filtering
         if filtered_df.empty:
@@ -104,7 +110,7 @@ if uploaded_file:
             }
 
             # Determine the columns to group by based on the selected filter
-            group_by_columns = grouping_hierarchy.get(filter_category, ["District"])
+            group_by_columns = grouping_hierarchy.get(grouping_selection, ["District"])
 
             # Perform the grouping
             grouped_data = filtered_df.groupby(group_by_columns).agg({
@@ -132,7 +138,7 @@ if uploaded_file:
             ax.bar(x + bar_width / 2, grouped_data["ITN given"], width=bar_width, label="ITN Given", color="orange")
 
             # Set labels and title
-            ax.set_xlabel(filter_category)
+            ax.set_xlabel(grouping_selection)
             ax.set_ylabel("Count")
             ax.set_title(f"📊 ITN Received vs. ITN Given ({' | '.join(group_by_columns)})")
             ax.set_xticks(x)
