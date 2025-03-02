@@ -141,6 +141,6 @@ if uploaded_file:
         ax.set_xlabel("")
         
         ax.set_ylabel("Count")
-        plt.xticks(rotation=45, ha='right')
+        plt.xticks(rotation=90, ha='right')
         plt.tight_layout()
         st.pyplot(fig)
