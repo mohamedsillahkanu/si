@@ -204,7 +204,7 @@ if uploaded_file:
         # Create a bar chart
         fig, ax = plt.subplots(figsize=(12, 8))
         grouped_data.plot(kind="bar", x="Group", y=["ITN received", "ITN given"], ax=ax, color=["blue", "orange"])
-        ax.set_title("Group")
+        ax.set_title(f"Group: {grouped_data['Group'].unique()[0]}")  # If you want a unique value from the column
         
         # Remove x-label as requested
         ax.set_xlabel("")
