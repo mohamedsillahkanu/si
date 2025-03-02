@@ -65,8 +65,77 @@ if uploaded_file:
     st.subheader("📋 Extracted Data")
     st.dataframe(extracted_df)
     
+    # Summary buttons section
+    st.subheader("📊 Summary Reports")
+    
+    # Create two columns for the summary buttons
+    col1, col2 = st.columns(2)
+    
+    # Button for District Summary
+    with col1:
+        district_summary_button = st.button("Show District Summary")
+    
+    # Button for Chiefdom Summary
+    with col2:
+        chiefdom_summary_button = st.button("Show Chiefdom Summary")
+    
+    # Display District Summary when button is clicked
+    if district_summary_button:
+        st.subheader("📈 Summary by District")
+        
+        # Group by District and aggregate
+        district_summary = extracted_df.groupby("District").agg({
+            "ITN received": "sum",
+            "ITN given": "sum"
+        }).reset_index()
+        
+        # Calculate difference
+        district_summary["Difference"] = district_summary["ITN received"] - district_summary["ITN given"]
+        
+        # Display summary table
+        st.dataframe(district_summary)
+        
+        # Create a bar chart for district summary
+        fig, ax = plt.subplots(figsize=(12, 8))
+        district_summary.plot(kind="bar", x="District", y=["ITN received", "ITN given"], ax=ax, color=["blue", "orange"])
+        ax.set_title("📊 ITN Received vs. ITN Given by District")
+        ax.set_xlabel("")
+        ax.set_ylabel("Count")
+        plt.xticks(rotation=45, ha='right')
+        plt.tight_layout()
+        st.pyplot(fig)
+    
+    # Display Chiefdom Summary when button is clicked
+    if chiefdom_summary_button:
+        st.subheader("📈 Summary by Chiefdom")
+        
+        # Group by District and Chiefdom and aggregate
+        chiefdom_summary = extracted_df.groupby(["District", "Chiefdom"]).agg({
+            "ITN received": "sum",
+            "ITN given": "sum"
+        }).reset_index()
+        
+        # Calculate difference
+        chiefdom_summary["Difference"] = chiefdom_summary["ITN received"] - chiefdom_summary["ITN given"]
+        
+        # Display summary table
+        st.dataframe(chiefdom_summary)
+        
+        # Create a temporary label for the chart
+        chiefdom_summary['Label'] = chiefdom_summary['District'] + ' | ' + chiefdom_summary['Chiefdom']
+        
+        # Create a bar chart for chiefdom summary
+        fig, ax = plt.subplots(figsize=(14, 10))
+        chiefdom_summary.plot(kind="bar", x="Label", y=["ITN received", "ITN given"], ax=ax, color=["blue", "orange"])
+        ax.set_title("📊 ITN Received vs. ITN Given by District and Chiefdom")
+        ax.set_xlabel("")
+        ax.set_ylabel("Count")
+        plt.xticks(rotation=45, ha='right')
+        plt.tight_layout()
+        st.pyplot(fig)
+    
     # Visualization and filtering section
-    st.subheader("🔍 Data Filtering and Visualization")
+    st.subheader("🔍 Detailed Data Filtering and Visualization")
     
     # Create a sidebar for filtering options
     st.sidebar.header("Filter Options")
@@ -126,7 +195,7 @@ if uploaded_file:
         grouped_data["Difference"] = grouped_data["ITN received"] - grouped_data["ITN given"]
         
         # Summary Table with separate columns for each level
-        st.subheader("📊 Summary Table")
+        st.subheader("📊 Detailed Summary Table")
         st.dataframe(grouped_data)
         
         # Create a temporary group column for the chart
@@ -141,6 +210,6 @@ if uploaded_file:
         ax.set_xlabel("")
         
         ax.set_ylabel("Count")
-        plt.xticks(rotation=0, ha='right')
+        plt.xticks(rotation=45, ha='right')
         plt.tight_layout()
         st.pyplot(fig)
