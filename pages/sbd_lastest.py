@@ -199,7 +199,7 @@ if uploaded_file:
         st.dataframe(grouped_data)
         
         # Create a temporary group column for the chart
-        grouped_data['Group'] = grouped_data[group_columns].apply(lambda row: ' | '.join(row.astype(str)), axis=1)
+        grouped_data['Group'] = grouped_data[group_columns].apply(lambda row: '\n'.join(row.astype(str)), axis=1)
         
         # Create a bar chart
         fig, ax = plt.subplots(figsize=(12, 8))
