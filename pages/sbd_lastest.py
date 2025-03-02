@@ -1,8 +1,8 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
 import re
 import numpy as np
+import matplotlib.pyplot as plt
 
 # Streamlit App
 st.title("📊 Text Data Extraction & Visualization")
@@ -71,87 +71,105 @@ if uploaded_file:
     # Create a sidebar for filtering options
     st.sidebar.header("Filter Options")
     
-    # Filter categories
-    filter_categories = ["District", "Chiefdom", "PHU Name", "Community Name", "School Name"]
-    
-    # Create radio buttons for each grouping level
+    # Create radio buttons to select which level to group by
     grouping_selection = st.sidebar.radio(
         "Select the level for grouping:",
-        filter_categories,
+        ["District", "Chiefdom", "PHU Name", "Community Name", "School Name"],
         index=0  # Default to 'District'
     )
-
-    # Check if both required columns exist
-    required_columns = ["ITN received", "ITN given"]
-    missing_columns = [col for col in required_columns if col not in extracted_df.columns]
     
-    if missing_columns:
-        st.warning(f"Missing required columns: {', '.join(missing_columns)}. Please ensure your data includes both 'ITN received' and 'ITN given' columns.")
-    else:
-        # Apply filters based on selection
-        filter_values = sorted(extracted_df[grouping_selection].dropna().unique().tolist())
-        selected_filter_value = st.sidebar.selectbox(f"Select {grouping_selection}", filter_values)
-        filtered_df = extracted_df[extracted_df[grouping_selection] == selected_filter_value]
+    # Display the corresponding select boxes based on grouping selection
+    if grouping_selection == "District":
+        districts_filtered = sorted(extracted_df["District"].dropna().unique())
+        selected_district = st.sidebar.selectbox("Select District", districts_filtered)
+        # Filter data based on the selected district
+        filtered_df = extracted_df[extracted_df["District"] == selected_district]
+        # Further group by 'Chiefdom'
+        chiefdoms_filtered = sorted(filtered_df["Chiefdom"].dropna().unique())
+        selected_chiefdom = st.sidebar.selectbox("Select Chiefdom", chiefdoms_filtered)
+        filtered_df = filtered_df[filtered_df["Chiefdom"] == selected_chiefdom]
+
+    elif grouping_selection == "Chiefdom":
+        chiefdoms_filtered = sorted(extracted_df["Chiefdom"].dropna().unique())
+        selected_chiefdom = st.sidebar.selectbox("Select Chiefdom", chiefdoms_filtered)
+        # Filter data based on selected chiefdom
+        filtered_df = extracted_df[extracted_df["Chiefdom"] == selected_chiefdom]
+        # Further group by 'District'
+        districts_filtered = sorted(filtered_df["District"].dropna().unique())
+        selected_district = st.sidebar.selectbox("Select District", districts_filtered)
+        filtered_df = filtered_df[filtered_df["District"] == selected_district]
+    
+    elif grouping_selection == "PHU Name":
+        phu_filtered = sorted(extracted_df["PHU Name"].dropna().unique())
+        selected_phu = st.sidebar.selectbox("Select PHU Name", phu_filtered)
+        filtered_df = extracted_df[extracted_df["PHU Name"] == selected_phu]
+        # Further group by 'District' and 'Chiefdom'
+        districts_filtered = sorted(filtered_df["District"].dropna().unique())
+        selected_district = st.sidebar.selectbox("Select District", districts_filtered)
+        filtered_df = filtered_df[filtered_df["District"] == selected_district]
+        chiefdoms_filtered = sorted(filtered_df["Chiefdom"].dropna().unique())
+        selected_chiefdom = st.sidebar.selectbox("Select Chiefdom", chiefdoms_filtered)
+        filtered_df = filtered_df[filtered_df["Chiefdom"] == selected_chiefdom]
         
-        # Check if we have data after filtering
-        if filtered_df.empty:
-            st.warning("No data available with the selected filters")
-        else:
-            st.write(f"### Filtered Data - {len(filtered_df)} records")
-            st.dataframe(filtered_df)
-            
-            # Define the grouping hierarchy
-            grouping_hierarchy = {
-                "District": ["District"],
-                "Chiefdom": ["District", "Chiefdom"],
-                "PHU Name": ["District", "Chiefdom", "PHU Name"],
-                "Community Name": ["District", "Chiefdom", "PHU Name", "Community Name"],
-                "School Name": ["District", "Chiefdom", "PHU Name", "Community Name", "School Name"]
-            }
+    elif grouping_selection == "Community Name":
+        community_filtered = sorted(extracted_df["Community Name"].dropna().unique())
+        selected_community = st.sidebar.selectbox("Select Community Name", community_filtered)
+        filtered_df = extracted_df[extracted_df["Community Name"] == selected_community]
+        # Further group by 'District', 'Chiefdom', and 'PHU Name'
+        districts_filtered = sorted(filtered_df["District"].dropna().unique())
+        selected_district = st.sidebar.selectbox("Select District", districts_filtered)
+        filtered_df = filtered_df[filtered_df["District"] == selected_district]
+        chiefdoms_filtered = sorted(filtered_df["Chiefdom"].dropna().unique())
+        selected_chiefdom = st.sidebar.selectbox("Select Chiefdom", chiefdoms_filtered)
+        filtered_df = filtered_df[filtered_df["Chiefdom"] == selected_chiefdom]
+        phu_filtered = sorted(filtered_df["PHU Name"].dropna().unique())
+        selected_phu = st.sidebar.selectbox("Select PHU Name", phu_filtered)
+        filtered_df = filtered_df[filtered_df["PHU Name"] == selected_phu]
 
-            # Determine the columns to group by based on the selected filter
-            group_by_columns = grouping_hierarchy.get(grouping_selection, ["District"])
+    elif grouping_selection == "School Name":
+        school_filtered = sorted(extracted_df["School Name"].dropna().unique())
+        selected_school = st.sidebar.selectbox("Select School Name", school_filtered)
+        filtered_df = extracted_df[extracted_df["School Name"] == selected_school]
+        # Further group by 'District', 'Chiefdom', 'PHU Name', and 'Community Name'
+        districts_filtered = sorted(filtered_df["District"].dropna().unique())
+        selected_district = st.sidebar.selectbox("Select District", districts_filtered)
+        filtered_df = filtered_df[filtered_df["District"] == selected_district]
+        chiefdoms_filtered = sorted(filtered_df["Chiefdom"].dropna().unique())
+        selected_chiefdom = st.sidebar.selectbox("Select Chiefdom", chiefdoms_filtered)
+        filtered_df = filtered_df[filtered_df["Chiefdom"] == selected_chiefdom]
+        phu_filtered = sorted(filtered_df["PHU Name"].dropna().unique())
+        selected_phu = st.sidebar.selectbox("Select PHU Name", phu_filtered)
+        filtered_df = filtered_df[filtered_df["PHU Name"] == selected_phu]
+        community_filtered = sorted(filtered_df["Community Name"].dropna().unique())
+        selected_community = st.sidebar.selectbox("Select Community Name", community_filtered)
+        filtered_df = filtered_df[filtered_df["Community Name"] == selected_community]
 
-            # Perform the grouping
-            grouped_data = filtered_df.groupby(group_by_columns).agg({
-                "ITN received": "sum",
-                "ITN given": "sum"
-            }).reset_index()
+    # Check if data is available after filtering
+    if filtered_df.empty:
+        st.warning("No data available for the selected filters.")
+    else:
+        st.write(f"### Filtered Data - {len(filtered_df)} records")
+        st.dataframe(filtered_df)
+        
+        # Define grouping columns based on selection
+        group_columns = ["District", "Chiefdom", "PHU Name", "Community Name", "School Name"][:len(filtered_df.columns) - 1]
 
-            # Set x-axis labels based on the selected grouping level
-            x_labels = grouped_data[group_by_columns].apply(lambda row: " | ".join(row.values.astype(str)), axis=1)
+        # Group by selected columns
+        grouped_data = filtered_df.groupby(group_columns).agg({
+            "ITN received": "sum",
+            "ITN given": "sum"
+        }).reset_index()
 
-            # Sorting
-            grouped_data = grouped_data.sort_values("ITN received", ascending=False)
+        # Create a bar chart
+        fig, ax = plt.subplots(figsize=(12, 8))
+        grouped_data.plot(kind="bar", x=group_columns, y=["ITN received", "ITN given"], ax=ax, color=["blue", "orange"])
+        ax.set_title(f"📊 ITN Received vs. ITN Given by {' | '.join(group_columns)}")
+        ax.set_xlabel("Group")
+        ax.set_ylabel("Count")
+        st.pyplot(fig)
 
-            # Adjust figure height dynamically
-            num_items = len(grouped_data)
-            fig_height = max(8, 0.3 * num_items)
-
-            # Create the bar chart
-            fig, ax = plt.subplots(figsize=(14, fig_height))
-            bar_width = 0.35
-            x = np.arange(len(grouped_data))
-
-            # Plot bars
-            ax.bar(x - bar_width / 2, grouped_data["ITN received"], width=bar_width, label="ITN Received", color="blue")
-            ax.bar(x + bar_width / 2, grouped_data["ITN given"], width=bar_width, label="ITN Given", color="orange")
-
-            # Set labels and title
-            ax.set_xlabel(grouping_selection)
-            ax.set_ylabel("Count")
-            ax.set_title(f"📊 ITN Received vs. ITN Given ({' | '.join(group_by_columns)})")
-            ax.set_xticks(x)
-            ax.set_xticklabels(x_labels, rotation=45, ha="right")
-
-            # Add legend
-            ax.legend()
-
-            # Display the chart
-            st.pyplot(fig)
-
-            # Summary Table
-            st.subheader("📊 Summary Table")
-            summary_df = grouped_data.copy()
-            summary_df["Difference (ITN Received - ITN Given)"] = summary_df["ITN received"] - summary_df["ITN given"]
-            st.dataframe(summary_df)
+        # Summary Table
+        st.subheader("📊 Summary Table")
+        summary_df = grouped_data.copy()
+        summary_df["Difference (ITN Received - ITN Given)"] = summary_df["ITN received"] - summary_df["ITN given"]
+        st.dataframe(summary_df)
