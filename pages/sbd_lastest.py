@@ -143,3 +143,9 @@ if uploaded_file:
 
             # Display the chart
             st.pyplot(fig)
+
+            # Summary Table
+            st.subheader("📊 Summary Table")
+            summary_df = grouped_data.copy()
+            summary_df["Difference (ITN Received - ITN Given)"] = summary_df["ITN received"] - summary_df["ITN given"]
+            st.dataframe(summary_df)
