@@ -86,25 +86,22 @@ if uploaded_file:
     st.sidebar.header("Filter Options")
     
     # Filter categories
-    filter_categories = ["All", "District", "Chiefdom", "PHU Name", "Community Name", "School Name"]
+    filter_categories = ["District", "Chiefdom", "PHU Name", "Community Name", "School Name"]
     filter_category = st.sidebar.selectbox("Filter by Category", filter_categories)
     
-    # Find numeric columns for visualization
-    numeric_columns = extracted_df.select_dtypes(include=[np.number]).columns.tolist()
+    # Find all columns for visualization (both numeric and categorical)
+    columns_for_viz = [col for col in extracted_df.columns if col not in filter_categories]
     
-    if not numeric_columns:
-        st.warning("No numeric columns found for visualization")
+    if not columns_for_viz:
+        st.warning("No columns found for visualization")
     else:
-        # Select which numeric column to visualize
-        numeric_column = st.sidebar.selectbox("Select Numeric Column for Visualization", numeric_columns)
-        
-        filtered_df = extracted_df.copy()
+        # Select which column to visualize
+        selected_column = st.sidebar.selectbox("Select Column for Visualization", columns_for_viz)
         
         # Apply filters based on selection
-        if filter_category != "All":
-            filter_values = sorted(extracted_df[filter_category].dropna().unique().tolist())
-            selected_filter_value = st.sidebar.selectbox(f"Select {filter_category}", filter_values)
-            filtered_df = extracted_df[extracted_df[filter_category] == selected_filter_value]
+        filter_values = sorted(extracted_df[filter_category].dropna().unique().tolist())
+        selected_filter_value = st.sidebar.selectbox(f"Select {filter_category}", filter_values)
+        filtered_df = extracted_df[extracted_df[filter_category] == selected_filter_value]
         
         # Check if we have data after filtering
         if filtered_df.empty:
@@ -113,55 +110,55 @@ if uploaded_file:
             st.write(f"### Filtered Data - {len(filtered_df)} records")
             st.dataframe(filtered_df)
             
-            # Visualization based on selected filter and numeric column
-            st.subheader(f"📊 Visualization of {numeric_column} by {filter_category}")
+            # Create visualization
+            st.subheader(f"📊 Count of {selected_column} for {filter_category}: {selected_filter_value}")
             
-            if filter_category == "All":
-                # Summary stats for the entire dataset
-                avg_value = filtered_df[numeric_column].mean()
-                st.write(f"Average {numeric_column}: {avg_value:.2f}")
+            # Get counts based on the selected column
+            if pd.api.types.is_numeric_dtypes(filtered_df[selected_column]):
+                # For numeric columns, create bins
+                counts = pd.cut(filtered_df[selected_column], bins=10).value_counts().sort_index()
                 
-                # Show distribution of the numeric column
-                fig, ax = plt.subplots(figsize=(10, 6))
-                filtered_df[numeric_column].hist(ax=ax, bins=20, color="skyblue", edgecolor="black")
-                ax.set_title(f"Distribution of {numeric_column}")
-                ax.set_xlabel(numeric_column)
-                ax.set_ylabel("Frequency")
+                # Create the visualization
+                fig, ax = plt.subplots(figsize=(12, 8))
+                counts.plot(kind="bar", ax=ax, color="skyblue")
+                ax.set_title(f"Distribution of {selected_column} for {filter_category}: {selected_filter_value}")
+                ax.set_ylabel("Count")
+                ax.set_xlabel(selected_column)
+                
+                # Add count labels on top of each bar
+                for i, count in enumerate(counts):
+                    ax.text(i, count + 0.1, str(count), ha='center')
+                    
+                plt.xticks(rotation=45, ha="right")
+                plt.tight_layout()
                 st.pyplot(fig)
             else:
-                # Group by the selected category
-                grouped_data = filtered_df.groupby(filter_category)[numeric_column].mean().sort_values(ascending=False)
+                # For categorical columns
+                counts = filtered_df[selected_column].value_counts().sort_values(ascending=False)
                 
-                # Check if we have data to visualize
-                if grouped_data.empty:
-                    st.warning(f"No data available for {filter_category} with values in {numeric_column}")
-                else:
-                    # Limit to top 20 values if there are too many
-                    if len(grouped_data) > 20:
-                        st.info(f"Showing top 20 of {len(grouped_data)} values")
-                        grouped_data = grouped_data.nlargest(20)
+                # Limit to top 20 values if there are too many
+                if len(counts) > 20:
+                    st.info(f"Showing top 20 of {len(counts)} values")
+                    counts = counts.nlargest(20)
+                
+                # Create the visualization
+                fig, ax = plt.subplots(figsize=(12, 8))
+                counts.plot(kind="bar", ax=ax, color="skyblue")
+                ax.set_title(f"Count of {selected_column} for {filter_category}: {selected_filter_value}")
+                ax.set_ylabel("Count")
+                ax.set_xlabel(selected_column)
+                
+                # Add count labels on top of each bar
+                for i, count in enumerate(counts):
+                    ax.text(i, count + 0.1, str(count), ha='center')
                     
-                    # Create the visualization
-                    fig, ax = plt.subplots(figsize=(12, 8))
-                    grouped_data.plot(kind="bar", ax=ax, color="skyblue")
-                    ax.set_title(f"Average {numeric_column} by {filter_category}")
-                    ax.set_ylabel(f"Average {numeric_column}")
-                    ax.set_xlabel(filter_category)
-                    plt.xticks(rotation=45, ha="right")
-                    plt.tight_layout()
-                    st.pyplot(fig)
-                    
-                    # Show a table with the data
-                    st.write(f"#### Data Table - Average {numeric_column} by {filter_category}")
-                    st.dataframe(grouped_data.reset_index())
-                    
-                    # Show additional statistics
-                    st.write("#### Summary Statistics")
-                    count_data = filtered_df.groupby(filter_category)[numeric_column].count()
-                    summary_df = pd.DataFrame({
-                        f"Average {numeric_column}": grouped_data,
-                        "Count": count_data,
-                        f"Min {numeric_column}": filtered_df.groupby(filter_category)[numeric_column].min(),
-                        f"Max {numeric_column}": filtered_df.groupby(filter_category)[numeric_column].max()
-                    }).reset_index()
-                    st.dataframe(summary_df)
+                plt.xticks(rotation=45, ha="right")
+                plt.tight_layout()
+                st.pyplot(fig)
+                
+            # Show a table with the count data
+            st.write(f"#### Data Table - Counts for {selected_column}")
+            if pd.api.types.is_numeric_dtypes(filtered_df[selected_column]):
+                st.dataframe(counts.reset_index().rename(columns={0: "Count"}))
+            else:
+                st.dataframe(counts.reset_index().rename(columns={"index": selected_column, selected_column: "Count"}))
