@@ -51,10 +51,10 @@ if uploaded_file:
         "Community Name": community_names,
         "School Name": school_names
     })
-
-    # Copy all other columns from the original DataFrame
+    
+    # Add all other columns from the original DataFrame
     for column in df_original.columns:
-        if column != "Scan QR code":
+        if column != "Scan QR code":  # Skip the QR code column since we've already processed it
             extracted_df[column] = df_original[column]
     
     # Display Original Data Sample
@@ -68,70 +68,78 @@ if uploaded_file:
     # Visualization and filtering section
     st.subheader("🔍 Data Filtering and Visualization")
     
-    # Sidebar filters
+    # Create a sidebar for filtering options
     st.sidebar.header("Filter Options")
     
     # Filter categories
     filter_categories = ["District", "Chiefdom", "PHU Name", "Community Name", "School Name"]
     filter_category = st.sidebar.selectbox("Filter by Category", filter_categories)
     
-    # Check required columns
+    # Check if both required columns exist
     required_columns = ["ITN received", "ITN given"]
     missing_columns = [col for col in required_columns if col not in extracted_df.columns]
-
+    
     if missing_columns:
-        st.warning(f"Missing required columns: {', '.join(missing_columns)}. Please ensure your data includes 'ITN received' and 'ITN given'.")
+        st.warning(f"Missing required columns: {', '.join(missing_columns)}. Please ensure your data includes both 'ITN received' and 'ITN given' columns.")
     else:
-        # Apply filters
+        # Apply filters based on selection
         filter_values = sorted(extracted_df[filter_category].dropna().unique().tolist())
         selected_filter_value = st.sidebar.selectbox(f"Select {filter_category}", filter_values)
         filtered_df = extracted_df[extracted_df[filter_category] == selected_filter_value]
         
+        # Check if we have data after filtering
         if filtered_df.empty:
             st.warning("No data available with the selected filters")
         else:
             st.write(f"### Filtered Data - {len(filtered_df)} records")
             st.dataframe(filtered_df)
             
-            # Grouped bar chart
-            st.subheader(f"📊 ITN Received vs. ITN Given for {filter_category}: {selected_filter_value}")
-
-            # Determine grouping level
-            hierarchy = {
-                "District": "Chiefdom",
-                "Chiefdom": "PHU Name",
-                "PHU Name": "Community Name",
-                "Community Name": "School Name"
+            # Define the grouping hierarchy
+            grouping_hierarchy = {
+                "District": ["District"],
+                "Chiefdom": ["District", "Chiefdom"],
+                "PHU Name": ["District", "Chiefdom", "PHU Name"],
+                "Community Name": ["District", "Chiefdom", "PHU Name", "Community Name"],
+                "School Name": ["District", "Chiefdom", "PHU Name", "Community Name", "School Name"]
             }
-            group_by = hierarchy.get(filter_category, None)
 
-            if group_by and group_by in filtered_df.columns:
-                grouped_data = filtered_df.groupby(group_by).agg({
-                    "ITN received": "sum",
-                    "ITN given": "sum"
-                }).reset_index()
+            # Determine the columns to group by based on the selected filter
+            group_by_columns = grouping_hierarchy.get(filter_category, ["District"])
 
-                # Sort by ITN received
-                grouped_data = grouped_data.sort_values("ITN received", ascending=False)
+            # Perform the grouping
+            grouped_data = filtered_df.groupby(group_by_columns).agg({
+                "ITN received": "sum",
+                "ITN given": "sum"
+            }).reset_index()
 
-                # Adaptive figure height
-                num_items = len(grouped_data)
-                fig_height = max(6, 0.3 * num_items)
+            # Set x-axis labels based on the selected grouping level
+            x_labels = grouped_data[group_by_columns].apply(lambda row: " | ".join(row.values.astype(str)), axis=1)
 
-                # Create bar chart
-                fig, ax = plt.subplots(figsize=(12, fig_height))
-                x = np.arange(len(grouped_data))
-                bar_width = 0.35
+            # Sorting
+            grouped_data = grouped_data.sort_values("ITN received", ascending=False)
 
-                ax.bar(x - bar_width/2, grouped_data["ITN received"], width=bar_width, label="ITN Received", color="skyblue")
-                ax.bar(x + bar_width/2, grouped_data["ITN given"], width=bar_width, label="ITN Given", color="orange")
+            # Adjust figure height dynamically
+            num_items = len(grouped_data)
+            fig_height = max(8, 0.3 * num_items)
 
-                # Labeling
-                ax.set_xticks(x)
-                ax.set_xticklabels(grouped_data[group_by], rotation=45, ha="right")
-                ax.set_title(f"ITN Distribution by {group_by}")
-                ax.set_ylabel("Count")
-                ax.legend()
+            # Create the bar chart
+            fig, ax = plt.subplots(figsize=(14, fig_height))
+            bar_width = 0.35
+            x = np.arange(len(grouped_data))
 
-                # Display chart
-                st.pyplot(fig)
+            # Plot bars
+            ax.bar(x - bar_width / 2, grouped_data["ITN received"], width=bar_width, label="ITN Received", color="blue")
+            ax.bar(x + bar_width / 2, grouped_data["ITN given"], width=bar_width, label="ITN Given", color="orange")
+
+            # Set labels and title
+            ax.set_xlabel(filter_category)
+            ax.set_ylabel("Count")
+            ax.set_title(f"📊 ITN Received vs. ITN Given ({' | '.join(group_by_columns)})")
+            ax.set_xticks(x)
+            ax.set_xticklabels(x_labels, rotation=45, ha="right")
+
+            # Add legend
+            ax.legend()
+
+            # Display the chart
+            st.pyplot(fig)
