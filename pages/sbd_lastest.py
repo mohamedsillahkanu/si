@@ -199,12 +199,12 @@ if uploaded_file:
         st.dataframe(grouped_data)
         
         # Create a temporary group column for the chart
-        grouped_data['Group'] = grouped_data[group_columns].apply(lambda row: '\n'.join(row.astype(str)), axis=1)
+        grouped_data['Group'] = grouped_data[group_columns].apply(lambda row: ','.join(row.astype(str)), axis=1)
         
         # Create a bar chart
         fig, ax = plt.subplots(figsize=(12, 8))
         grouped_data.plot(kind="bar", x="Group", y=["ITN received", "ITN given"], ax=ax, color=["blue", "orange"])
-        ax.set_title(f"📊 ITN Received vs. ITN Given")
+        ax.set_title(f"📊 {grouped_data['Group']}")
         
         # Remove x-label as requested
         ax.set_xlabel("")
