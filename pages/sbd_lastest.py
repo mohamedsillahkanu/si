@@ -122,7 +122,7 @@ if uploaded_file:
         st.dataframe(chiefdom_summary)
         
         # Create a temporary label for the chart
-        chiefdom_summary['Label'] = chiefdom_summary['District'] + ' | ' + chiefdom_summary['Chiefdom']
+        chiefdom_summary['Label'] = chiefdom_summary['District'] + '\n' + chiefdom_summary['Chiefdom']
         
         # Create a bar chart for chiefdom summary
         fig, ax = plt.subplots(figsize=(14, 10))
