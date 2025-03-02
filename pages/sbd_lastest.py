@@ -151,18 +151,21 @@ if uploaded_file:
         st.write(f"### Filtered Data - {len(filtered_df)} records")
         st.dataframe(filtered_df)
         
-        # Define grouping columns based on selection
+        # Combine grouping columns into a single column for x-axis
         group_columns = ["District", "Chiefdom", "PHU Name", "Community Name", "School Name"][:len(filtered_df.columns) - 1]
-
-        # Group by selected columns
-        grouped_data = filtered_df.groupby(group_columns).agg({
+        
+        # Create a single column for x-axis by combining selected grouping columns
+        filtered_df['Group'] = filtered_df[group_columns].apply(lambda row: ' | '.join(row.dropna().astype(str)), axis=1)
+        
+        # Group by the combined group column
+        grouped_data = filtered_df.groupby("Group").agg({
             "ITN received": "sum",
             "ITN given": "sum"
         }).reset_index()
 
         # Create a bar chart
         fig, ax = plt.subplots(figsize=(12, 8))
-        grouped_data.plot(kind="bar", x=group_columns, y=["ITN received", "ITN given"], ax=ax, color=["blue", "orange"])
+        grouped_data.plot(kind="bar", x="Group", y=["ITN received", "ITN given"], ax=ax, color=["blue", "orange"])
         ax.set_title(f"📊 ITN Received vs. ITN Given by {' | '.join(group_columns)}")
         ax.set_xlabel("Group")
         ax.set_ylabel("Count")
