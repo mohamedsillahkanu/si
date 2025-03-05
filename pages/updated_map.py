@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import to_hex
 import io
 
-# Displaying the App Header
+# Display the App Header
 st.image("icf_sl (1).jpg", caption="MAP GENERATOR", use_column_width=True)
 
 # Load the shapefile
@@ -95,4 +95,3 @@ if uploaded_file is not None:
     plt.savefig(buf, format="png", bbox_inches="tight", dpi=300)
     buf.seek(0)
     st.download_button(label="Download Map", data=buf, file_name=f"{image_name}.png", mime="image/png")
-
