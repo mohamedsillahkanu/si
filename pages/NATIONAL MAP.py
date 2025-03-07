@@ -117,7 +117,7 @@ if uploaded_file is not None:
         if len(shapefile_columns) == 2 and len(excel_columns) == 2:
             column1_line_color = st.selectbox(f"Select Line Color for '{shapefile_columns[0]}' boundaries:", options=["White", "Black", "Red"], index=1)
             column1_line_width = st.slider(f"Select Line Width for '{shapefile_columns[0]}' boundaries:", min_value=0.5, max_value=10.0, value=2.5)
-            column2_line_color = st.selectbox(f"Select Line Color for '{shapefile_columns[1]}' boundaries:", options=["gray", "White", "Black", "Red"], index=1)
+            column2_line_color = st.selectbox(f"Select Line Color for '{shapefile_columns[1]}' boundaries:", options=["Gray", "White", "Black", "Red"], index=1)
             column2_line_width = st.slider(f"Select Line Width for '{shapefile_columns[1]}' boundaries:", min_value=0.5, max_value=10.0, value=2.5)
 
         # Generate the map upon button click
