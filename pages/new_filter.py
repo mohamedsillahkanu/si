@@ -16,7 +16,7 @@ uploaded_file = st.file_uploader("Upload Excel or CSV file", type=["xlsx", "csv"
 if uploaded_file is not None:
     df = pd.read_excel(uploaded_file) if uploaded_file.name.endswith('.xlsx') else pd.read_csv(uploaded_file)
 
-    # Exclude merging columns from being mapped
+    # Exclude merging columns
     excluded_columns = ['FIRST_DNAM', 'FIRST_CHIE']
     available_columns = [col for col in df.columns if col not in excluded_columns]
 
@@ -25,7 +25,6 @@ if uploaded_file is not None:
 
     # Map Settings
     st.subheader("Map Settings")
-    map_column = st.selectbox("Select Map Column:", available_columns)
     map_title = st.text_input("Map Title:")
     legend_title = st.text_input("Legend Title:")
     font_size = st.slider("Font Size:", min_value=8, max_value=24, value=15)
@@ -66,18 +65,22 @@ if uploaded_file is not None:
             # Merge with filtered data
             merged_gdf = gdf.merge(df, on=["FIRST_DNAM", "FIRST_CHIE"], how="left")
 
-            # Color Mapping
-            unique_categories = sorted(df[map_column].dropna().unique().tolist())
-            cmap = plt.get_cmap(color_palette_name)
-            num_colors = min(len(unique_categories), cmap.N)
-            colors = [to_hex(cmap(i / (num_colors - 1))) for i in range(num_colors)]
-            color_mapping = {category: colors[i % num_colors] for i, category in enumerate(unique_categories)}
+            # Auto-select a column with categorical data for coloring
+            categorical_columns = df.select_dtypes(include=['object', 'category']).columns.tolist()
+            if categorical_columns:
+                map_column = categorical_columns[0]  # Use the first categorical column
+                unique_categories = sorted(df[map_column].dropna().unique().tolist())
 
-            # Generate Map
-            fig, ax = plt.subplots(figsize=(10, 6))
-            merged_gdf.plot(column=map_column, cmap=color_palette_name, linewidth=line_width, edgecolor=line_color.lower(), ax=ax, legend=True)
-            ax.set_title(map_title, fontsize=font_size)
-            ax.axis("off")
+                cmap = plt.get_cmap(color_palette_name)
+                num_colors = min(len(unique_categories), cmap.N)
+                colors = [to_hex(cmap(i / (num_colors - 1))) for i in range(num_colors)]
+                color_mapping = {category: colors[i % num_colors] for i, category in enumerate(unique_categories)}
 
-            # Display Map
-            st.pyplot(fig)
+                # Generate Map
+                fig, ax = plt.subplots(figsize=(10, 6))
+                merged_gdf.plot(column=map_column, cmap=color_palette_name, linewidth=line_width, edgecolor=line_color.lower(), ax=ax, legend=True)
+                ax.set_title(map_title, fontsize=font_size)
+                ax.axis("off")
+
+                # Display Map
+                st.pyplot(fig)
