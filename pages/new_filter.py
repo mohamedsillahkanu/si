@@ -16,8 +16,8 @@ uploaded_file = st.file_uploader("Upload Excel or CSV file", type=["xlsx", "csv"
 if uploaded_file is not None:
     df = pd.read_excel(uploaded_file) if uploaded_file.name.endswith('.xlsx') else pd.read_csv(uploaded_file)
 
-    # Exclude certain columns
-    excluded_columns = ['FIRST_DNAM', 'FIRST_CHIE', 'adm3']
+    # Exclude merging columns from being mapped
+    excluded_columns = ['FIRST_DNAM', 'FIRST_CHIE']
     available_columns = [col for col in df.columns if col not in excluded_columns]
 
     # User Inputs
@@ -32,10 +32,13 @@ if uploaded_file is not None:
         line_color = st.selectbox("Line Color:", options=["White", "Black", "Red"], index=1)
         line_width = st.slider("Line Width:", min_value=0.5, max_value=5.0, value=2.5)
 
+        # Select filter columns
+        st.subheader("Select Columns to Filter")
+        selected_filter_columns = st.multiselect("Choose columns to apply filters:", available_columns)
+
         # Dynamic Filtering Section
-        st.subheader("Filter Data (Optional)")
         selected_filters = {}
-        for column in available_columns:
+        for column in selected_filter_columns:
             unique_values = sorted(df[column].dropna().unique().tolist())
             selected_value = st.multiselect(f"Select values for {column}:", unique_values, default=unique_values)
             if selected_value:
@@ -44,7 +47,7 @@ if uploaded_file is not None:
         submit_button = st.form_submit_button("Generate Map")
 
     if submit_button:
-        # Apply filters dynamically
+        # Apply filters dynamically based on selected columns
         if selected_filters:
             for col, values in selected_filters.items():
                 df = df[df[col].isin(values)]
