@@ -20,42 +20,50 @@ if uploaded_file is not None:
     excluded_columns = ['FIRST_DNAM', 'FIRST_CHIE']
     available_columns = [col for col in df.columns if col not in excluded_columns]
 
-    # User Inputs
-    with st.form("map_settings"):
-        st.subheader("Map Settings")
-        map_column = st.selectbox("Select Map Column:", available_columns)
-        map_title = st.text_input("Map Title:")
-        legend_title = st.text_input("Legend Title:")
-        font_size = st.slider("Font Size:", min_value=8, max_value=24, value=15)
+    # Merge with Shapefile using both FIRST_DNAM and FIRST_CHIE
+    merged_gdf = gdf.merge(df, on=["FIRST_DNAM", "FIRST_CHIE"], how="left")
 
-        color_palette_name = st.selectbox("Color Palette:", options=list(plt.colormaps()), index=list(plt.colormaps()).index('Set3'))
-        line_color = st.selectbox("Line Color:", options=["White", "Black", "Red"], index=1)
-        line_width = st.slider("Line Width:", min_value=0.5, max_value=5.0, value=2.5)
+    # Map Settings
+    st.subheader("Map Settings")
+    map_column = st.selectbox("Select Map Column:", available_columns)
+    map_title = st.text_input("Map Title:")
+    legend_title = st.text_input("Legend Title:")
+    font_size = st.slider("Font Size:", min_value=8, max_value=24, value=15)
 
-        # Select filter columns
-        st.subheader("Select Columns to Filter")
-        selected_filter_columns = st.multiselect("Choose columns to apply filters:", available_columns)
+    color_palette_name = st.selectbox("Color Palette:", options=list(plt.colormaps()), index=list(plt.colormaps()).index('Set3'))
+    line_color = st.selectbox("Line Color:", options=["White", "Black", "Red"], index=1)
+    line_width = st.slider("Line Width:", min_value=0.5, max_value=5.0, value=2.5)
 
-        # Dynamic Filtering Section
-        selected_filters = {}
-        for column in selected_filter_columns:
-            unique_values = sorted(df[column].dropna().unique().tolist())
-            selected_value = st.multiselect(f"Select values for {column}:", unique_values, default=unique_values)
-            if selected_value:
-                selected_filters[column] = selected_value
+    # **Column Selection for Filtering**
+    st.subheader("Select Columns to Filter")
+    selected_filter_columns = st.multiselect("Choose columns to apply filters:", available_columns)
 
-        submit_button = st.form_submit_button("Generate Map")
+    # **Show Selected Columns & Their Unique Values**
+    selected_filters = {}
+    if selected_filter_columns:
+        col1, col2 = st.columns(2)  # Left: Column Names | Right: Unique Values
 
-    if submit_button:
-        # Apply filters dynamically based on selected columns
-        if selected_filters:
-            for col, values in selected_filters.items():
-                df = df[df[col].isin(values)]
+        with col1:
+            st.write("### Selected Columns")
+            for column in selected_filter_columns:
+                st.write(f"✅ {column}")
+
+        with col2:
+            st.write("### Select Values for Each Column")
+            for column in selected_filter_columns:
+                unique_values = sorted(df[column].dropna().unique().tolist())
+                selected_value = st.radio(f"{column}:", unique_values, key=column)
+                selected_filters[column] = selected_value  # Store selected values
+
+    # **Apply Filters & Generate Map**
+    if selected_filters:
+        for col, value in selected_filters.items():
+            df = df[df[col] == value]
 
         if df.empty:
             st.warning("No data matches the selected filters. Please adjust your selection.")
         else:
-            # Merge with Shapefile using both FIRST_DNAM and FIRST_CHIE
+            # Merge with filtered data
             merged_gdf = gdf.merge(df, on=["FIRST_DNAM", "FIRST_CHIE"], how="left")
 
             # Color Mapping
@@ -73,6 +81,3 @@ if uploaded_file is not None:
 
             # Display Map
             st.pyplot(fig)
-
-            # Download Option
-            st.download_button(label="Download Map", data=plt.savefig(fname="Generated_Map", format="png"), file_name="Generated_Map.png", mime="image/png")
