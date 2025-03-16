@@ -67,3 +67,7 @@ networkx>=3.2.0
 requests>=2.31.0
 matplotlib>=3.7.0
 Pillow>=10.0.0
+pdfminer.six>=20221105
+chardet>=5.0.0
+cryptography>=40.0.0
+pillow>=9.5.0
