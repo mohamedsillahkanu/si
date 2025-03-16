@@ -2,69 +2,54 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import itertools
+import numpy as np
 
-# Sample DataFrame (replace with your actual data)
-df = pd.DataFrame({
-    'Category': ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'],
-    'Value': [10, 20, 30, 25, 15, 40, 35, 50],
-    'Region': ['North', 'South', 'East', 'West', 'North', 'South', 'East', 'West'],
-    'Year': [2020, 2021, 2020, 2021, 2020, 2021, 2020, 2021],
-    'Sales': [100, 200, 150, 175, 120, 230, 180, 250],
-    'Revenue': [10, 30, 25, 20, 15, 40, 35, 45]
-})
+# Define unique values for each category
+categories = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
+regions = ['North', 'South', 'East', 'West']
+years = [2020, 2021, 2022]
 
-# List of 10 criteria (customize based on your needs)
-criteria_list = ['Sales', 'Revenue', 'Value', 'Category', 'Region', 'Year']
+# Generate all possible combinations of (Category, Region, Year)
+data = list(itertools.product(categories, regions, years))
 
-# Streamlit Sidebar - Criteria Selection
-st.sidebar.header('Select Criteria')
-criteria = st.sidebar.radio('Select Criteria', criteria_list)
+# Create a DataFrame with values for each combination
+df = pd.DataFrame(data, columns=['Category', 'Region', 'Year'])
 
-# Sidebar Filters for the selected criterion
-if criteria == 'Sales':
-    region_filter = st.sidebar.selectbox('Select Region', df['Region'].unique())
-    year_filter = st.sidebar.selectbox('Select Year', df['Year'].unique())
-    filtered_df = df[(df['Region'] == region_filter) & (df['Year'] == year_filter)]
-    
-elif criteria == 'Revenue':
-    category_filter = st.sidebar.selectbox('Select Category', df['Category'].unique())
-    year_filter = st.sidebar.selectbox('Select Year', df['Year'].unique())
-    filtered_df = df[(df['Category'] == category_filter) & (df['Year'] == year_filter)]
-    
-elif criteria == 'Value':
-    category_filter = st.sidebar.selectbox('Select Category', df['Category'].unique())
-    region_filter = st.sidebar.selectbox('Select Region', df['Region'].unique())
-    filtered_df = df[(df['Category'] == category_filter) & (df['Region'] == region_filter)]
-    
-elif criteria == 'Category':
-    region_filter = st.sidebar.selectbox('Select Region', df['Region'].unique())
-    filtered_df = df[df['Region'] == region_filter]
+# Generate random values for Sales, Revenue, and Value
+np.random.seed(42)  # For reproducibility
+df['Sales'] = np.random.randint(50, 300, size=len(df))
+df['Revenue'] = np.random.randint(10, 100, size=len(df))
+df['Value'] = np.random.randint(5, 50, size=len(df))
 
-elif criteria == 'Region':
-    category_filter = st.sidebar.selectbox('Select Category', df['Category'].unique())
-    year_filter = st.sidebar.selectbox('Select Year', df['Year'].unique())
-    filtered_df = df[(df['Category'] == category_filter) & (df['Year'] == year_filter)]
+# Sidebar filters
+st.sidebar.header('Filters')
+category_filter = st.sidebar.selectbox('Select Category', df['Category'].unique())
+region_filter = st.sidebar.selectbox('Select Region', df['Region'].unique())
 
-elif criteria == 'Year':
-    category_filter = st.sidebar.selectbox('Select Category', df['Category'].unique())
-    region_filter = st.sidebar.selectbox('Select Region', df['Region'].unique())
-    filtered_df = df[(df['Category'] == category_filter) & (df['Region'] == region_filter)]
+# Create a new column marking if the row meets the selected criteria
+df['Criteria_Met'] = df.apply(
+    lambda row: "Yes" if (row['Category'] == category_filter) & (row['Region'] == region_filter) else "No", axis=1
+)
 
-# Filtered DataFrame Preview
-st.write("Filtered Data:", filtered_df)
+# Count occurrences of "Yes" and "No"
+criteria_counts = df['Criteria_Met'].value_counts().reset_index()
+criteria_counts.columns = ['Criteria Met', 'Count']
 
-# Plotting the bar chart based on selected criterion
-st.subheader(f'Bar Chart for {criteria}')
+# Display filtered data
+st.write("Filtered Data:", df)
 
-plt.figure(figsize=(10, 6))
-sns.set_palette("tab10")  # Tab10 color palette
-sns.barplot(x='Category', y=criteria, data=filtered_df)
+# Bar chart visualization
+st.subheader('Criteria Met Bar Chart')
 
-# Customize plot appearance
-plt.title(f"{criteria} by Category", fontsize=16)
-plt.xlabel('Category', fontsize=12)
-plt.ylabel(criteria, fontsize=12)
-plt.xticks(rotation=45)
+plt.figure(figsize=(8, 5))
+sns.set_palette("tab10")  # Set color theme
+sns.barplot(x='Criteria Met', y='Count', data=criteria_counts)
 
-# Display the plot
+# Customize chart appearance
+plt.title("Count of Criteria Met ('Yes' vs. 'No')", fontsize=14)
+plt.xlabel("Criteria Met", fontsize=12)
+plt.ylabel("Count", fontsize=12)
+
+# Show plot in Streamlit
 st.pyplot(plt)
