@@ -87,8 +87,8 @@ uploaded_shx = st.file_uploader("Upload .shx file", type="shx")
 uploaded_dbf = st.file_uploader("Upload .dbf file", type="dbf")
 
 # Year and month selection
-year = st.multiselect("Select Year", range(1981, 2025))
-month = st.multiselect("Select Month", range(1, 13))
+year = st.selectbox("Select Year", range(1981, 2025))
+month = st.selectbox("Select Month", range(1, 13))
 
 # Colormap selection
 cmap = st.selectbox("Select Colormap", ['Blues', 'Greens', 'Reds', 'Purples', 'Oranges', 'YlGnBu', 'cividis', 'plasma', 'viridis'])
