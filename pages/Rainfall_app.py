@@ -98,7 +98,10 @@ if st.checkbox("Customize month selection", value=False):
 # Colormap selection
 cmap = st.selectbox("Select Colormap", ['Blues', 'Greens', 'Reds', 'Purples', 'Oranges', 'YlGnBu', 'cividis', 'plasma', 'viridis'])
 
-if uploaded_shp and uploaded_shx and uploaded_dbf and year and months:
+# Add a Generate button
+generate_button = st.button("Generate Analysis", type="primary")
+
+if uploaded_shp and uploaded_shx and uploaded_dbf and year and generate_button:
     # Load and process the shapefile
     with st.spinner("Loading and processing shapefile..."):
         gdf = load_shapefile(uploaded_shp, uploaded_shx, uploaded_dbf)
