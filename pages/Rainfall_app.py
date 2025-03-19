@@ -81,11 +81,19 @@ uploaded_dbf = st.file_uploader("Upload .dbf file", type="dbf")
 # Year selection (single)
 year = st.selectbox("Select Year", range(1981, 2025))
 
-# Month selection (multiple)
-months = st.multiselect("Select Months", 
-                      options=list(range(1, 13)),
-                      default=[1],
-                      format_func=lambda x: f"{x:02d} - {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][x-1]}")
+# Automatically select all months when a year is selected
+all_months = list(range(1, 13))
+months = all_months  # Default to all months
+
+# Display the selected months (read-only)
+st.write("Selected Months: All months (January to December)")
+
+# Optional: Allow user to deselect specific months if needed
+if st.checkbox("Customize month selection", value=False):
+    months = st.multiselect("Select specific months", 
+                          options=all_months,
+                          default=all_months,
+                          format_func=lambda x: f"{x:02d} - {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][x-1]}")
 
 # Colormap selection
 cmap = st.selectbox("Select Colormap", ['Blues', 'Greens', 'Reds', 'Purples', 'Oranges', 'YlGnBu', 'cividis', 'plasma', 'viridis'])
@@ -134,7 +142,58 @@ if uploaded_shp and uploaded_shx and uploaded_dbf and year and months:
     st.write(restructured_df)
     
     # Create tabs for different visualizations
-    tab1, tab2 = st.tabs(["Individual Maps", "Combined Data"])
+    tab1, tab2, tab3 = st.tabs(["Monthly Grid View", "Individual Maps", "Combined Data"])
+    
+    with tab1:
+        st.subheader(f"Rainfall Maps for All Months in {year}")
+        
+        # Create a 2x6 subplot grid for all 12 months
+        fig, axes = plt.subplots(2, 6, figsize=(20, 10))
+        axes = axes.flatten()  # Flatten the 2D array to make indexing easier
+        
+        # Plot each month in its respective subplot
+        for i, month in enumerate(range(1, 13)):  # Always plot all 12 months in the grid
+            ax = axes[i]
+            col_name = f'rain_{year}_{month:02d}'
+            
+            # Check if data for this month exists
+            if col_name in processed_gdf.columns:
+                processed_gdf.plot(column=col_name, ax=ax, legend=True, cmap=cmap, 
+                             edgecolor="black", legend_kwds={'shrink': 0.7})
+            else:
+                # If no data, just plot the geography without color
+                processed_gdf.plot(ax=ax, edgecolor="black", facecolor="lightgrey")
+                ax.text(0.5, 0.5, "No Data", horizontalalignment='center', 
+                        verticalalignment='center', transform=ax.transAxes)
+            
+            # Remove axis ticks and labels
+            ax.set_axis_off()
+            
+            # Add month name as title
+            month_name = ['January', 'February', 'March', 'April', 'May', 'June', 
+                        'July', 'August', 'September', 'October', 'November', 'December'][month-1]
+            ax.set_title(month_name, fontsize=12)
+        
+        # Add a main title for the entire figure
+        fig.suptitle(f"Monthly Rainfall in {year}", fontsize=16, y=0.98)
+        
+        # Adjust layout to prevent overlap
+        plt.tight_layout(rect=[0, 0, 1, 0.96])
+        
+        # Display the figure
+        st.pyplot(fig)
+        
+        # Download button for the grid view
+        grid_pdf_output = BytesIO()
+        plt.savefig(grid_pdf_output, format='pdf', bbox_inches='tight')
+        plt.close()
+        
+        st.download_button(
+            label="Download Grid View as PDF",
+            data=grid_pdf_output.getvalue(),
+            file_name=f"rainfall_grid_{year}.pdf",
+            mime="application/pdf"
+        )
     
     with tab1:
         # Plot individual maps for each month
@@ -181,50 +240,21 @@ if uploaded_shp and uploaded_shx and uploaded_dbf and year and months:
         
         st.pyplot(fig)
 
-    # Download button for the processed data as Excel
-    output_excel = BytesIO()
+    # Download button for the processed data as CSV instead of Excel
+    # (To avoid xlsxwriter dependency issues)
+    csv_data = restructured_df.to_csv(index=False).encode('utf-8')
     
-    # Write to Excel with formatting
-    with pd.ExcelWriter(output_excel, engine='xlsxwriter') as writer:
-        restructured_df.to_excel(writer, sheet_name=f'Rainfall_{year}', index=False)
-        
-        # Get the xlsxwriter workbook and worksheet objects
-        workbook = writer.book
-        worksheet = writer.sheets[f'Rainfall_{year}']
-        
-        # Add a header format
-        header_format = workbook.add_format({
-            'bold': True,
-            'text_wrap': True,
-            'valign': 'top',
-            'fg_color': '#D7E4BC',
-            'border': 1})
-        
-        # Write the column headers with the header format
-        for col_num, value in enumerate(restructured_df.columns.values):
-            worksheet.write(0, col_num, value, header_format)
-            
-        # Set the column width based on the longest string in each column
-        for i, col in enumerate(restructured_df.columns):
-            max_len = max(
-                restructured_df[col].astype(str).map(len).max(),
-                len(str(col))
-            ) + 2
-            worksheet.set_column(i, i, max_len)
-        
-        # Add a number format for the rainfall data column
-        num_format = workbook.add_format({'num_format': '0.00'})
-        for i, col in enumerate(restructured_df.columns):
-            if col == 'mean_rain':
-                worksheet.set_column(i, i, None, num_format)
-    
-    # Offer the Excel file for download
+    # Offer the CSV file for download
     st.download_button(
-        label="Download Data as Excel",
-        data=output_excel.getvalue(),
-        file_name=f"rainfall_data_{year}.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        label="Download Data as CSV",
+        data=csv_data,
+        file_name=f"rainfall_data_{year}.csv",
+        mime="text/csv"
     )
+    
+    # Add note about Excel conversion
+    st.info("Note: The data is provided as CSV which can be opened directly in Excel. " 
+            "If you prefer a formatted Excel file, you can install xlsxwriter in your environment.")
     
     # Download button for all maps as a single PDF
     if len(months) > 0:
