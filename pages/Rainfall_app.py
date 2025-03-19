@@ -109,10 +109,30 @@ if uploaded_shp and uploaded_shx and uploaded_dbf and year and months:
     # Get the rainfall columns
     rain_columns = [col for col in processed_gdf.columns if col.startswith('rain_')]
     
-    # Display the data without geometry column
-    display_df = processed_gdf.drop(columns=['geometry'])
-    st.write(display_df)
-
+    # Create a restructured DataFrame with Month, Year, and mean_rain columns
+    restructured_data = []
+    
+    for column in rain_columns:
+        # Extract year and month from column name
+        _, year_str, month_str = column.split('_')
+        year_val = int(year_str)
+        month_val = int(month_str)
+        
+        # For each region in the shapefile
+        for idx, row in processed_gdf.iterrows():
+            region_data = {col: row[col] for col in processed_gdf.columns if not col.startswith('rain_') and col != 'geometry'}
+            region_data['Year'] = year_val
+            region_data['Month'] = month_val
+            region_data['mean_rain'] = row[column]
+            restructured_data.append(region_data)
+    
+    # Create the restructured DataFrame
+    restructured_df = pd.DataFrame(restructured_data)
+    
+    # Display the restructured data
+    st.write("Restructured Data (Month, Year, mean_rain format):")
+    st.write(restructured_df)
+    
     # Create tabs for different visualizations
     tab1, tab2 = st.tabs(["Individual Maps", "Combined Data"])
     
@@ -142,22 +162,14 @@ if uploaded_shp and uploaded_shx and uploaded_dbf and year and months:
         # Create summary statistics
         st.subheader("Summary Statistics")
         
-        # Calculate statistics for each rainfall column
-        stats_df = pd.DataFrame()
-        for col in rain_columns:
-            stats_df[col] = [
-                processed_gdf[col].mean(),
-                processed_gdf[col].std(),
-                processed_gdf[col].min(),
-                processed_gdf[col].max()
-            ]
-        
-        stats_df.index = ['Mean', 'Std Dev', 'Min', 'Max']
-        st.write(stats_df)
+        # Calculate statistics for mean_rain grouped by month
+        month_stats = restructured_df.groupby('Month')['mean_rain'].agg(['mean', 'std', 'min', 'max']).reset_index()
+        month_stats['Month'] = month_stats['Month'].apply(lambda x: f"{x:02d} - {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][x-1]}")
+        st.write(month_stats)
         
         # Create a bar chart of average rainfall per month
-        avg_rain = [processed_gdf[col].mean() for col in rain_columns]
-        month_labels = [f"{month:02d}" for month in months]
+        avg_rain = month_stats['mean'].tolist()
+        month_labels = month_stats['Month'].tolist()
         
         fig, ax = plt.subplots(figsize=(10, 6))
         ax.bar(month_labels, avg_rain, color='skyblue')
@@ -165,18 +177,16 @@ if uploaded_shp and uploaded_shx and uploaded_dbf and year and months:
         ax.set_ylabel('Average Rainfall (mm)')
         ax.set_title(f'Average Rainfall by Month for {year}')
         ax.grid(axis='y', linestyle='--', alpha=0.7)
+        ax.tick_params(axis='x', rotation=45)
         
         st.pyplot(fig)
 
     # Download button for the processed data as Excel
     output_excel = BytesIO()
     
-    # Create a DataFrame without the geometry column for Excel export
-    export_df = processed_gdf.drop(columns=['geometry'])
-    
     # Write to Excel with formatting
     with pd.ExcelWriter(output_excel, engine='xlsxwriter') as writer:
-        export_df.to_excel(writer, sheet_name=f'Rainfall_{year}', index=False)
+        restructured_df.to_excel(writer, sheet_name=f'Rainfall_{year}', index=False)
         
         # Get the xlsxwriter workbook and worksheet objects
         workbook = writer.book
@@ -191,21 +201,21 @@ if uploaded_shp and uploaded_shx and uploaded_dbf and year and months:
             'border': 1})
         
         # Write the column headers with the header format
-        for col_num, value in enumerate(export_df.columns.values):
+        for col_num, value in enumerate(restructured_df.columns.values):
             worksheet.write(0, col_num, value, header_format)
             
         # Set the column width based on the longest string in each column
-        for i, col in enumerate(export_df.columns):
+        for i, col in enumerate(restructured_df.columns):
             max_len = max(
-                export_df[col].astype(str).map(len).max(),
+                restructured_df[col].astype(str).map(len).max(),
                 len(str(col))
             ) + 2
             worksheet.set_column(i, i, max_len)
         
-        # Add a number format for the rainfall data columns
+        # Add a number format for the rainfall data column
         num_format = workbook.add_format({'num_format': '0.00'})
-        for i, col in enumerate(export_df.columns):
-            if col.startswith('rain_'):
+        for i, col in enumerate(restructured_df.columns):
+            if col == 'mean_rain':
                 worksheet.set_column(i, i, None, num_format)
     
     # Offer the Excel file for download
