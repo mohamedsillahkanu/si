@@ -26,7 +26,7 @@ def load_shapefile(shp_file, shx_file, dbf_file):
 
     # Check if the CRS is set, if not, set it manually
     if gdf.crs is None:
-        gdf = gdf.set_crs("CRS:4326")  # Assuming WGS84; replace with correct CRS if different
+        gdf = gdf.set_crs("WGS84:4326")  # Assuming WGS84; replace with correct CRS if different
 
     return gdf
 
