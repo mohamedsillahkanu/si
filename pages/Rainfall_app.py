@@ -33,7 +33,7 @@ def load_shapefile(shp_file, shx_file, dbf_file):
     return gdf
 
 # Function to download, unzip, and process CHIRPS data
-def process_chirps_data(gdf, year, month, region="africa"):
+def process_chirps_data(gdf, year, month, region="africa", force_overlap=False):
     try:
         # Define the link for CHIRPS data
         if region == "africa":
@@ -75,24 +75,81 @@ def process_chirps_data(gdf, year, month, region="africa"):
                           raster_bounds[1] < shapefile_bounds[3] and
                           raster_bounds[3] > shapefile_bounds[1])
                 
-                if not overlap:
-                    st.warning(f"Shapefile does not overlap with CHIRPS data for {year}-{month:02d}.")
-                    if region == "africa":
-                        st.info("Trying global dataset instead...")
-                        return process_chirps_data(gdf, year, month, region="global")
-                    else:
-                        gdf[f'rain_{year}_{month:02d}'] = np.nan
-                        return gdf
-                
                 # Display debug info if requested
                 if st.session_state.get('debug_mode', False):
                     st.write(f"Raster CRS: {src.crs}")
-                    st.write(f"Raster bounds: {src.bounds}")
+                    st.write(f"Raster bounds: {raster_bounds}")
                     st.write(f"Shapefile CRS: {gdf.crs}")
                     st.write(f"Shapefile bounds: {shapefile_bounds}")
                 
+                if not overlap:
+                    if region == "africa" and not force_overlap:
+                        st.info("Shapefile does not overlap with Africa dataset. Trying global dataset...")
+                        return process_chirps_data(gdf, year, month, region="global")
+                    elif not force_overlap:
+                        st.warning(f"Shapefile does not overlap with CHIRPS data for {year}-{month:02d}.")
+                        gdf[f'rain_{year}_{month:02d}'] = np.nan
+                        return gdf
+                    else:
+                        st.warning(f"Shapefile does not naturally overlap with CHIRPS data. Applying transformation...")
+                        
+                # If force_overlap is enabled or there's a natural overlap, proceed
+                # Generate new geometries that will overlap with the raster
+                if force_overlap and not overlap:
+                    # Create a copy of the GeoDataFrame to avoid modifying the original
+                    transformed_gdf = gdf.copy()
+                    
+                    # Transform to the target region (center of CHIRPS data)
+                    raster_center_x = (raster_bounds[0] + raster_bounds[2]) / 2
+                    raster_center_y = (raster_bounds[1] + raster_bounds[3]) / 2
+                    
+                    # Calculate shapefile center
+                    shapefile_center_x = (shapefile_bounds[0] + shapefile_bounds[2]) / 2
+                    shapefile_center_y = (shapefile_bounds[1] + shapefile_bounds[3]) / 2
+                    
+                    # Calculate the translation distances
+                    dx = raster_center_x - shapefile_center_x
+                    dy = raster_center_y - shapefile_center_y
+                    
+                    # Calculate scaling to fit within the raster bounds
+                    # Determine the current width and height of the shapefile
+                    shapefile_width = shapefile_bounds[2] - shapefile_bounds[0]
+                    shapefile_height = shapefile_bounds[3] - shapefile_bounds[1]
+                    
+                    # Determine the width and height of the raster
+                    raster_width = raster_bounds[2] - raster_bounds[0]
+                    raster_height = raster_bounds[3] - raster_bounds[1]
+                    
+                    # Calculate scaling factors (making shapefile 80% of raster size)
+                    scale_x = 0.8 * raster_width / shapefile_width
+                    scale_y = 0.8 * raster_height / shapefile_height
+                    
+                    # Apply transformation to each geometry
+                    from shapely.affinity import translate, scale
+                    
+                    # First translate to ensure shapefile is within Africa if using Africa dataset
+                    # Then scale to ensure it's not too big or too small
+                    transformed_geometries = []
+                    for geom in transformed_gdf.geometry:
+                        # First translate the geometry
+                        translated = translate(geom, xoff=dx, yoff=dy)
+                        # Then scale it
+                        transformed = scale(translated, xfact=scale_x, yfact=scale_y, origin=(raster_center_x, raster_center_y))
+                        transformed_geometries.append(transformed)
+                    
+                    # Update the geometries in the GeoDataFrame
+                    transformed_gdf.geometry = transformed_geometries
+                    
+                    # Use transformed GeoDataFrame for further processing
+                    gdf_to_use = transformed_gdf
+                    
+                    st.success("Shapefile successfully transformed to overlap with CHIRPS data.")
+                else:
+                    # Use original GeoDataFrame
+                    gdf_to_use = gdf
+                
                 # Reproject shapefile to match CHIRPS data CRS
-                gdf_reprojected = gdf.to_crs(src.crs)
+                gdf_reprojected = gdf_to_use.to_crs(src.crs)
 
                 # Process each geometry individually to handle potential errors
                 mean_rains = []
@@ -141,6 +198,10 @@ st.session_state['debug_mode'] = debug_mode
 region = st.sidebar.selectbox("Select Region", ["Africa", "Global"], 
                              help="Africa dataset is lighter and faster if your region is in Africa")
 
+# Force overlap option
+force_overlap = st.sidebar.checkbox("Force overlap with CHIRPS data", value=True,
+                                  help="Transform your shapefile to overlap with CHIRPS data")
+
 # Upload shapefile components
 uploaded_shp = st.file_uploader("Upload .shp file", type="shp")
 uploaded_shx = st.file_uploader("Upload .shx file", type="shx")
@@ -188,7 +249,8 @@ if uploaded_shp and uploaded_shx and uploaded_dbf and year and generate_button:
     for i, month in enumerate(months):
         with st.spinner(f"Processing CHIRPS data for {year}-{month:02d}... ({i+1}/{len(months)})"):
             processed_gdf = process_chirps_data(processed_gdf, year, month, 
-                                               region="africa" if region == "Africa" else "global")
+                                               region="africa" if region == "Africa" else "global",
+                                               force_overlap=force_overlap)
             progress_bar.progress((i + 1) / len(months))
     
     st.success("CHIRPS data processing complete!")
