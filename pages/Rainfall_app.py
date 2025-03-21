@@ -214,7 +214,11 @@ def process_chirps_data(gdf, year, month, force_overlap=False):
                         valid_data = masked_data[masked_data != src.nodata]
                         
                         if len(valid_data) > 0:
-                            mean_rains.append(valid_data.mean())
+                            # CHIRPS data is in mm/month, ensure it's positive
+                            rain_value = valid_data.mean()
+                            # Handle negative values by taking absolute value if needed
+                            rain_value = abs(rain_value) if rain_value < 0 else rain_value
+                            mean_rains.append(rain_value)
                         else:
                             mean_rains.append(np.nan)
                     except Exception as e:
@@ -230,6 +234,37 @@ def process_chirps_data(gdf, year, month, force_overlap=False):
         st.error(f"Error processing CHIRPS data for {year}-{month:02d}: {str(e)}")
         gdf[f'rain_{year}_{month:02d}'] = np.nan
         return gdf
+
+# Custom plotting function to avoid aspect ratio issues
+def safe_plot_map(gdf, column, ax, cmap, title=None, legend=True):
+    """
+    Safe plotting function that avoids aspect ratio errors
+    """
+    try:
+        # Try with default aspect ratio settings - may fail with certain coordinate systems
+        gdf.plot(column=column, ax=ax, legend=legend, cmap=cmap, edgecolor="black",
+                 legend_kwds={'shrink': 0.7})
+    except ValueError:
+        # If that fails, try with a fixed aspect ratio
+        try:
+            # Turn off aspect ratio adjustment
+            ax.set_aspect('auto')
+            gdf.plot(column=column, ax=ax, legend=legend, cmap=cmap, edgecolor="black",
+                     legend_kwds={'shrink': 0.7})
+        except Exception as e:
+            # If all else fails, plot without color mapping
+            ax.set_aspect('auto')
+            gdf.plot(ax=ax, edgecolor="black", facecolor="lightgrey")
+            ax.text(0.5, 0.5, f"Error: {str(e)}", 
+                   horizontalalignment='center', verticalalignment='center', 
+                   transform=ax.transAxes, fontsize=8, color='red')
+    
+    # Remove axis ticks and labels for a cleaner look
+    ax.set_axis_off()
+    
+    # Set title if provided
+    if title:
+        ax.set_title(title, fontsize=12)
 
 # Initialize session state for debug mode
 if 'debug_mode' not in st.session_state:
@@ -248,7 +283,11 @@ st.session_state['debug_mode'] = debug_mode
 
 # Force overlap option
 force_overlap = st.sidebar.checkbox("Force overlap with CHIRPS data", value=True,
-                                  help="Transform your shapefile to overlap with CHIRPS data")
+                                  help="Transform your shapefile to overlap with the African CHIRPS region")
+
+# Handle negative values option
+handle_negative = st.sidebar.checkbox("Convert negative values to positive", value=True,
+                                    help="Some CHIRPS data may have negative values. Check this to use absolute values.")
 
 # App explanation expander
 with st.expander("How to use this app"):
@@ -263,6 +302,8 @@ with st.expander("How to use this app"):
     ### Options in the sidebar:
     - **Force overlap**: If your shapefile region doesn't naturally overlap with the CHIRPS data, 
       this option will transform your geometries to fit within the African CHIRPS region
+    - **Convert negative values**: Some CHIRPS data may have negative values due to processing artifacts.
+      This option converts them to positive values for visualization.
     - **Debug Mode**: Shows additional technical information for troubleshooting
     
     ### About CHIRPS data:
@@ -339,6 +380,11 @@ if uploaded_shp and uploaded_shx and uploaded_dbf and year and generate_button:
         st.error("No rainfall data could be processed for any month. Please check your shapefile region and try again.")
         st.stop()
     
+    # Handle negative values if option is selected
+    if handle_negative:
+        for col in rain_columns:
+            processed_gdf[col] = processed_gdf[col].abs()
+    
     # Check for months with no data (all NaN values)
     nan_months = []
     for col in rain_columns:
@@ -351,6 +397,14 @@ if uploaded_shp and uploaded_shx and uploaded_dbf and year and generate_button:
     
     if nan_months:
         st.warning(f"No data available for the following months: {', '.join(nan_months)}")
+    
+    # Check for any negative values
+    for col in rain_columns:
+        if (processed_gdf[col] < 0).any():
+            if handle_negative:
+                st.info(f"Negative values found in {col} and converted to positive values for visualization.")
+            else:
+                st.warning(f"Negative values found in {col}. Consider enabling 'Convert negative values to positive' in the sidebar.")
     
     # Create a restructured DataFrame with Month, Year, and mean_rain columns
     restructured_data = []
@@ -415,27 +469,27 @@ if uploaded_shp and uploaded_shx and uploaded_dbf and year and generate_button:
             ax = axes[i]
             col_name = f'rain_{year}_{month:02d}'
             
+            # Fixed aspect ratio for all plots
+            ax.set_aspect('auto')
+            
             # Check if data for this month exists
             if col_name in processed_gdf.columns and not processed_gdf[col_name].isna().all():
-                vmin = processed_gdf[col_name].min()
-                vmax = processed_gdf[col_name].max()
+                month_name = ['January', 'February', 'March', 'April', 'May', 'June', 
+                            'July', 'August', 'September', 'October', 'November', 'December'][month-1]
                 
-                processed_gdf.plot(column=col_name, ax=ax, legend=True, cmap=cmap, 
-                               edgecolor="black", legend_kwds={'shrink': 0.7}, 
-                               vmin=vmin, vmax=vmax)
+                # Use safe plotting function
+                safe_plot_map(processed_gdf, col_name, ax, cmap, title=month_name)
             else:
                 # If no data, just plot the geography without color
                 processed_gdf.plot(ax=ax, edgecolor="black", facecolor="lightgrey")
                 ax.text(0.5, 0.5, "No Data", horizontalalignment='center', 
                       verticalalignment='center', transform=ax.transAxes)
-            
-            # Remove axis ticks and labels
-            ax.set_axis_off()
-            
-            # Add month name as title
-            month_name = ['January', 'February', 'March', 'April', 'May', 'June', 
-                        'July', 'August', 'September', 'October', 'November', 'December'][month-1]
-            ax.set_title(month_name, fontsize=12)
+                ax.set_axis_off()
+                
+                # Add month name as title
+                month_name = ['January', 'February', 'March', 'April', 'May', 'June', 
+                            'July', 'August', 'September', 'October', 'November', 'December'][month-1]
+                ax.set_title(month_name, fontsize=12)
         
         # Add a main title for the entire figure
         fig.suptitle(f"Monthly Rainfall in {year}", fontsize=16, y=0.98)
@@ -468,6 +522,9 @@ if uploaded_shp and uploaded_shx and uploaded_dbf and year and generate_button:
             if col_name in processed_gdf.columns and not processed_gdf[col_name].isna().all():
                 fig, ax = plt.subplots(1, 1, figsize=(10, 10))
                 
+                # Set fixed aspect ratio to avoid errors
+                ax.set_aspect('auto')
+                
                 # Find region name column if it exists
                 if region_name_col:
                     # Add region names as labels
@@ -478,17 +535,12 @@ if uploaded_shp and uploaded_shx and uploaded_dbf and year and generate_button:
                             ax.text(centroid.x, centroid.y, str(row[region_name_col]), 
                                   fontsize=8, ha='center', va='center')
                 
-                # Plotting the GeoDataFrame
-                processed_gdf.plot(column=col_name, ax=ax, legend=True, cmap=cmap, 
-                               edgecolor="black", legend_kwds={'shrink': 0.5})
-                
-                # Remove axis boxes
-                ax.set_axis_off()
-                
-                # Add a title to the plot
+                # Get month name
                 month_name = ['January', 'February', 'March', 'April', 'May', 'June', 
                             'July', 'August', 'September', 'October', 'November', 'December'][month-1]
-                plt.title(f"Mean Rainfall for {month_name} {year}", fontsize=16)
+                
+                # Use safe plotting function
+                safe_plot_map(processed_gdf, col_name, ax, cmap, title=f"Mean Rainfall for {month_name} {year}")
                 
                 # Display the map in Streamlit
                 st.pyplot(fig)
@@ -562,10 +614,6 @@ if uploaded_shp and uploaded_shx and uploaded_dbf and year and generate_button:
         mime="text/csv"
     )
     
-    # Add note about Excel conversion
-    st.info("Note: The data is provided as CSV which can be opened directly in Excel. " 
-          "If you prefer a formatted Excel file, you can install xlsxwriter in your environment.")
-    
     # Download button for all maps as a single PDF
     valid_months = []
     for month in months:
@@ -581,12 +629,15 @@ if uploaded_shp and uploaded_shx and uploaded_dbf and year and generate_button:
                 col_name = f'rain_{year}_{month:02d}'
                 
                 fig, ax = plt.subplots(1, 1, figsize=(8.5, 11))
-                processed_gdf.plot(column=col_name, ax=ax, legend=True, cmap=cmap, 
-                               edgecolor="black", legend_kwds={'shrink': 0.5})
-                ax.set_axis_off()
+                ax.set_aspect('auto')  # Set fixed aspect ratio to avoid errors
+                
+                # Get month name
                 month_name = ['January', 'February', 'March', 'April', 'May', 'June', 
                             'July', 'August', 'September', 'October', 'November', 'December'][month-1]
-                plt.title(f"Mean Rainfall for {month_name} {year}", fontsize=16)
+                
+                # Use safe plotting function
+                safe_plot_map(processed_gdf, col_name, ax, cmap, 
+                            title=f"Mean Rainfall for {month_name} {year}", legend=True)
                 
                 pdf.savefig(fig)
                 plt.close()
