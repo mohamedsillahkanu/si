@@ -13,6 +13,8 @@ import pandas as pd
 from io import BytesIO
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
+from shapely.geometry import Polygon, MultiPolygon
+import re
 
 # Function to load and process the shapefile
 def load_shapefile(shp_file, shx_file, dbf_file):
@@ -25,21 +27,70 @@ def load_shapefile(shp_file, shx_file, dbf_file):
         # Load the shapefile using GeoPandas
         shapefile_path = os.path.join(tmpdir, "file.shp")
         gdf = gpd.read_file(shapefile_path)
+    
+    # Check if geometry column exists and is valid
+    if 'geometry' not in gdf.columns or gdf.geometry.isna().all():
+        st.warning("Standard geometry column not found or invalid. Checking for alternative geometry representations...")
+        
+        # Check for any column that might contain geometry information
+        geometry_columns = [col for col in gdf.columns if 'geom' in col.lower()]
+        
+        if not geometry_columns:
+            st.error("No geometry columns found in the shapefile.")
+            return None
+        
+        # Try to use the first geometry column found
+        geometry_col = geometry_columns[0]
+        st.info(f"Using {geometry_col} as the geometry column.")
+        
+        # Try to convert the geometry column to proper geometries
+        try:
+            # Check if it's already a proper geometry type
+            first_geom = gdf[geometry_col].iloc[0]
+            
+            if hasattr(first_geom, 'wkt') or hasattr(first_geom, 'wkb'):
+                # It's already a geometry object, set it as the geometry column
+                gdf = gdf.set_geometry(geometry_col)
+            else:
+                # It might be a WKT string or some other representation
+                if isinstance(first_geom, str):
+                    # Check if it's a WKT string (starts with POLYGON, MULTIPOLYGON, etc.)
+                    wkt_pattern = r'(POLYGON|MULTIPOLYGON|POINT|LINESTRING|MULTIPOINT|MULTILINESTRING|GEOMETRYCOLLECTION)'
+                    if re.match(wkt_pattern, first_geom.strip()):
+                        from shapely import wkt
+                        gdf['geometry'] = gdf[geometry_col].apply(lambda x: wkt.loads(x) if isinstance(x, str) else None)
+                        gdf = gdf.set_geometry('geometry')
+                    else:
+                        st.error(f"Unable to parse geometry from {geometry_col}. Not a valid WKT format.")
+                        return None
+                else:
+                    st.error(f"Unable to use {geometry_col} as geometry. Unsupported format.")
+                    return None
+        except Exception as e:
+            st.error(f"Error converting {geometry_col} to geometry: {str(e)}")
+            return None
 
     # Check if the CRS is set, if not, set it manually
     if gdf.crs is None:
+        st.warning("CRS not defined in shapefile. Setting to WGS84 (EPSG:4326).")
         gdf = gdf.set_crs("EPSG:4326")  # Assuming WGS84; replace with correct CRS if different
 
+    # Check for invalid geometries and try to fix them
+    if not all(gdf.geometry.is_valid):
+        st.warning("Found invalid geometries in shapefile. Attempting to fix...")
+        gdf.geometry = gdf.geometry.buffer(0)  # This can fix some common issues
+    
+    # Display a sample of the data
+    st.write("Sample of loaded shapefile data:")
+    st.write(gdf.head(3))
+    
     return gdf
 
 # Function to download, unzip, and process CHIRPS data
-def process_chirps_data(gdf, year, month, region="africa", force_overlap=False):
+def process_chirps_data(gdf, year, month, force_overlap=False):
     try:
-        # Define the link for CHIRPS data
-        if region == "africa":
-            link = f"https://data.chc.ucsb.edu/products/CHIRPS-2.0/africa_monthly/tifs/chirps-v2.0.{year}.{month:02d}.tif.gz"
-        else:
-            link = f"https://data.chc.ucsb.edu/products/CHIRPS-2.0/global_monthly/tifs/chirps-v2.0.{year}.{month:02d}.tif.gz"
+        # Define the link for CHIRPS data - using Africa dataset only
+        link = f"https://data.chc.ucsb.edu/products/CHIRPS-2.0/africa_monthly/tifs/chirps-v2.0.{year}.{month:02d}.tif.gz"
 
         # Download the .tif.gz file
         response = requests.get(link)
@@ -83,10 +134,7 @@ def process_chirps_data(gdf, year, month, region="africa", force_overlap=False):
                     st.write(f"Shapefile bounds: {shapefile_bounds}")
                 
                 if not overlap:
-                    if region == "africa" and not force_overlap:
-                        st.info("Shapefile does not overlap with Africa dataset. Trying global dataset...")
-                        return process_chirps_data(gdf, year, month, region="global")
-                    elif not force_overlap:
+                    if not force_overlap:
                         st.warning(f"Shapefile does not overlap with CHIRPS data for {year}-{month:02d}.")
                         gdf[f'rain_{year}_{month:02d}'] = np.nan
                         return gdf
@@ -188,26 +236,52 @@ if 'debug_mode' not in st.session_state:
     st.session_state['debug_mode'] = False
 
 # Streamlit app layout
-st.title("CHIRPS Data Analysis and Map Generation")
+st.title("CHIRPS Africa Rainfall Analysis App")
+st.markdown("""
+This app processes shapefile data for Africa and overlays it with CHIRPS rainfall data to create visualizations and analysis.
+Upload your shapefile components below and select the year and months you want to analyze.
+""")
 
 # Add debug mode toggle
 debug_mode = st.sidebar.checkbox("Debug Mode", value=st.session_state['debug_mode'])
 st.session_state['debug_mode'] = debug_mode
 
-# Region selection
-region = st.sidebar.selectbox("Select Region", ["Africa", "Global"], 
-                             help="Africa dataset is lighter and faster if your region is in Africa")
-
 # Force overlap option
 force_overlap = st.sidebar.checkbox("Force overlap with CHIRPS data", value=True,
                                   help="Transform your shapefile to overlap with CHIRPS data")
 
-# Upload shapefile components
-uploaded_shp = st.file_uploader("Upload .shp file", type="shp")
-uploaded_shx = st.file_uploader("Upload .shx file", type="shx")
-uploaded_dbf = st.file_uploader("Upload .dbf file", type="dbf")
+# App explanation expander
+with st.expander("How to use this app"):
+    st.markdown("""
+    ### Instructions:
+    1. **Upload your shapefile components** (.shp, .shx, .dbf files)
+    2. **Select the year** you want to analyze (1981-2024)
+    3. By default, all months will be analyzed. You can customize this selection.
+    4. **Choose a colormap** for visualization
+    5. Click the **Generate Analysis** button
+    
+    ### Options in the sidebar:
+    - **Force overlap**: If your shapefile region doesn't naturally overlap with the CHIRPS data, 
+      this option will transform your geometries to fit within the African CHIRPS region
+    - **Debug Mode**: Shows additional technical information for troubleshooting
+    
+    ### About CHIRPS data:
+    CHIRPS (Climate Hazards Group InfraRed Precipitation with Station data) is a rainfall dataset 
+    that spans from 1981 to near-present. It's commonly used for drought monitoring and analysis.
+    """)
 
-# Year selection (single)
+# Upload shapefile components
+st.header("Upload Shapefile Components")
+col1, col2, col3 = st.columns(3)
+with col1:
+    uploaded_shp = st.file_uploader("Upload .shp file", type="shp")
+with col2:
+    uploaded_shx = st.file_uploader("Upload .shx file", type="shx")
+with col3:
+    uploaded_dbf = st.file_uploader("Upload .dbf file", type="dbf")
+
+# Year and month selection
+st.header("Select Data Range")
 year = st.selectbox("Select Year", range(1981, 2025))
 
 # Automatically select all months when a year is selected
@@ -224,7 +298,8 @@ if st.checkbox("Customize month selection", value=False):
                           default=all_months,
                           format_func=lambda x: f"{x:02d} - {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][x-1]}")
 
-# Colormap selection
+# Visualization options
+st.header("Visualization Options")
 cmap = st.selectbox("Select Colormap", ['Blues', 'Greens', 'Reds', 'Purples', 'Oranges', 'YlGnBu', 'cividis', 'plasma', 'viridis'])
 
 # Add a Generate button
@@ -234,6 +309,10 @@ if uploaded_shp and uploaded_shx and uploaded_dbf and year and generate_button:
     # Load and process the shapefile
     with st.spinner("Loading and processing shapefile..."):
         gdf = load_shapefile(uploaded_shp, uploaded_shx, uploaded_dbf)
+    
+    if gdf is None:
+        st.error("Unable to process the shapefile. Please check your files and try again.")
+        st.stop()
 
     st.success("Shapefile loaded successfully!")
     
@@ -248,9 +327,7 @@ if uploaded_shp and uploaded_shx and uploaded_dbf and year and generate_button:
     progress_bar = st.progress(0)
     for i, month in enumerate(months):
         with st.spinner(f"Processing CHIRPS data for {year}-{month:02d}... ({i+1}/{len(months)})"):
-            processed_gdf = process_chirps_data(processed_gdf, year, month, 
-                                               region="africa" if region == "Africa" else "global",
-                                               force_overlap=force_overlap)
+            processed_gdf = process_chirps_data(processed_gdf, year, month, force_overlap=force_overlap)
             progress_bar.progress((i + 1) / len(months))
     
     st.success("CHIRPS data processing complete!")
@@ -278,6 +355,22 @@ if uploaded_shp and uploaded_shx and uploaded_dbf and year and generate_button:
     # Create a restructured DataFrame with Month, Year, and mean_rain columns
     restructured_data = []
     
+    # Identify region name column
+    region_name_candidates = ['Region', 'NAME', 'Name', 'REGION', 'shapeName', 'Nom_DS']
+    region_name_col = None
+    
+    for col in region_name_candidates:
+        if col in processed_gdf.columns:
+            region_name_col = col
+            break
+    
+    if region_name_col is None and len(processed_gdf.columns) > 0:
+        # Use the first non-geometry, non-rainfall column as region name
+        non_geom_cols = [col for col in processed_gdf.columns 
+                        if col != 'geometry' and not col.startswith('rain_')]
+        if non_geom_cols:
+            region_name_col = non_geom_cols[0]
+    
     for column in rain_columns:
         # Extract year and month from column name
         _, year_str, month_str = column.split('_')
@@ -286,17 +379,25 @@ if uploaded_shp and uploaded_shx and uploaded_dbf and year and generate_button:
         
         # For each region in the shapefile
         for idx, row in processed_gdf.iterrows():
-            region_data = {col: row[col] for col in processed_gdf.columns if not col.startswith('rain_') and col != 'geometry'}
+            region_data = {col: row[col] for col in processed_gdf.columns 
+                          if not col.startswith('rain_') and col != 'geometry'}
             region_data['Year'] = year_val
             region_data['Month'] = month_val
             region_data['mean_rain'] = row[column]
+            
+            # Add region name if available
+            if region_name_col:
+                region_data['Region'] = row[region_name_col]
+            else:
+                region_data['Region'] = f"Region {idx+1}"
+                
             restructured_data.append(region_data)
     
     # Create the restructured DataFrame
     restructured_df = pd.DataFrame(restructured_data)
     
     # Display the restructured data
-    st.write("Restructured Data (Month, Year, mean_rain format):")
+    st.subheader("Processed Rainfall Data")
     st.write(restructured_df)
     
     # Create tabs for different visualizations
@@ -367,6 +468,16 @@ if uploaded_shp and uploaded_shx and uploaded_dbf and year and generate_button:
             if col_name in processed_gdf.columns and not processed_gdf[col_name].isna().all():
                 fig, ax = plt.subplots(1, 1, figsize=(10, 10))
                 
+                # Find region name column if it exists
+                if region_name_col:
+                    # Add region names as labels
+                    for idx, row in processed_gdf.iterrows():
+                        if not pd.isna(row[col_name]):
+                            # Get centroid of geometry
+                            centroid = row.geometry.centroid
+                            ax.text(centroid.x, centroid.y, str(row[region_name_col]), 
+                                  fontsize=8, ha='center', va='center')
+                
                 # Plotting the GeoDataFrame
                 processed_gdf.plot(column=col_name, ax=ax, legend=True, cmap=cmap, 
                                edgecolor="black", legend_kwds={'shrink': 0.5})
@@ -411,6 +522,30 @@ if uploaded_shp and uploaded_shx and uploaded_dbf and year and generate_button:
                 
                 st.pyplot(fig)
                 plt.close()
+                
+                # If there are multiple regions, show comparison
+                if 'Region' in stats_df.columns and len(stats_df['Region'].unique()) > 1:
+                    st.subheader("Regional Comparison")
+                    
+                    # Create a regional comparison chart
+                    region_month_stats = stats_df.groupby(['Region', 'Month'])['mean_rain'].mean().reset_index()
+                    region_month_stats['Month'] = region_month_stats['Month'].apply(
+                        lambda x: f"{x:02d} - {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][x-1]}")
+                    
+                    # Create a pivot table for easier plotting
+                    pivot_df = region_month_stats.pivot(index='Month', columns='Region', values='mean_rain')
+                    
+                    # Plotting
+                    fig, ax = plt.subplots(figsize=(12, 8))
+                    pivot_df.plot(kind='bar', ax=ax)
+                    ax.set_xlabel('Month')
+                    ax.set_ylabel('Average Rainfall (mm)')
+                    ax.set_title(f'Regional Rainfall Comparison for {year}')
+                    ax.grid(axis='y', linestyle='--', alpha=0.7)
+                    ax.legend(title='Region')
+                    
+                    st.pyplot(fig)
+                    plt.close()
             else:
                 st.warning("No valid rainfall data available for statistics.")
         except Exception as e:
