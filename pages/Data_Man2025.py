@@ -170,52 +170,59 @@ elif data_management_option == "Data Cleaning":
         if st.session_state.df is not None:
             st.subheader("Filter Data")
             
-            filter_method = st.radio("Choose filter method:", ["Simple Filter", "Advanced Filter (Query)"])
+            # Initialize saved filters dictionary if it doesn't exist
+            if 'saved_filters' not in st.session_state:
+                st.session_state.saved_filters = {}
             
-            if filter_method == "Simple Filter":
-                # Select column to filter
-                filter_column = st.selectbox("Select column to filter:", st.session_state.df.columns)
+            filter_method = st.radio("Choose filter method:", ["Multiple Column Filter", "Advanced Filter (Query)"])
+            
+            if filter_method == "Multiple Column Filter":
+                # Allow selecting multiple columns to filter
+                filter_columns = st.multiselect("Select columns to filter by:", st.session_state.df.columns)
                 
-                # Display unique values for the column (limit to 20 for display purposes)
-                unique_values = st.session_state.df[filter_column].unique()
-                if len(unique_values) > 20:
-                    st.warning(f"Column has {len(unique_values)} unique values. Showing only first 20.")
-                    display_values = unique_values[:20]
-                else:
-                    display_values = unique_values
-                    
-                st.write("Sample of unique values:", display_values)
+                filtered_df = st.session_state.df.copy()
+                active_filters = {}
                 
-                # Handle different data types
-                col_type = st.session_state.df[filter_column].dtype
-                if np.issubdtype(col_type, np.number):
-                    # Numeric filter
-                    min_val = float(st.session_state.df[filter_column].min())
-                    max_val = float(st.session_state.df[filter_column].max())
+                for filter_column in filter_columns:
+                    st.subheader(f"Filter by {filter_column}")
                     
-                    filter_type = st.radio("Filter type:", ["Range", "Equal to", "Greater than", "Less than"])
+                    # Display unique values for the column
+                    unique_values = st.session_state.df[filter_column].unique()
                     
-                    if filter_type == "Range":
-                        range_min, range_max = st.slider("Select range:", min_val, max_val, (min_val, max_val))
-                        filtered_df = st.session_state.df[(st.session_state.df[filter_column] >= range_min) & 
-                                                         (st.session_state.df[filter_column] <= range_max)]
-                    elif filter_type == "Equal to":
-                        value = st.number_input("Enter value:", min_val, max_val)
-                        filtered_df = st.session_state.df[st.session_state.df[filter_column] == value]
-                    elif filter_type == "Greater than":
-                        value = st.number_input("Enter minimum value:", min_val, max_val)
-                        filtered_df = st.session_state.df[st.session_state.df[filter_column] > value]
-                    else:  # Less than
-                        value = st.number_input("Enter maximum value:", min_val, max_val)
-                        filtered_df = st.session_state.df[st.session_state.df[filter_column] < value]
-                else:
-                    # Categorical filter
-                    selected_values = st.multiselect("Select values to include:", unique_values)
-                    if selected_values:
-                        filtered_df = st.session_state.df[st.session_state.df[filter_column].isin(selected_values)]
+                    # Handle different data types
+                    col_type = st.session_state.df[filter_column].dtype
+                    if np.issubdtype(col_type, np.number):
+                        # Numeric filter
+                        min_val = float(st.session_state.df[filter_column].min())
+                        max_val = float(st.session_state.df[filter_column].max())
+                        
+                        filter_type = st.radio(f"Filter type for {filter_column}:", ["Range", "Equal to", "Greater than", "Less than"], key=f"filter_type_{filter_column}")
+                        
+                        if filter_type == "Range":
+                            range_min, range_max = st.slider(f"Select range for {filter_column}:", min_val, max_val, (min_val, max_val), key=f"range_{filter_column}")
+                            filtered_df = filtered_df[(filtered_df[filter_column] >= range_min) & (filtered_df[filter_column] <= range_max)]
+                            active_filters[filter_column] = f"Between {range_min} and {range_max}"
+                        elif filter_type == "Equal to":
+                            value = st.number_input(f"Enter value for {filter_column}:", min_val, max_val, key=f"equal_{filter_column}")
+                            filtered_df = filtered_df[filtered_df[filter_column] == value]
+                            active_filters[filter_column] = f"= {value}"
+                        elif filter_type == "Greater than":
+                            value = st.number_input(f"Enter minimum value for {filter_column}:", min_val, max_val, key=f"gt_{filter_column}")
+                            filtered_df = filtered_df[filtered_df[filter_column] > value]
+                            active_filters[filter_column] = f"> {value}"
+                        else:  # Less than
+                            value = st.number_input(f"Enter maximum value for {filter_column}:", min_val, max_val, key=f"lt_{filter_column}")
+                            filtered_df = filtered_df[filtered_df[filter_column] < value]
+                            active_filters[filter_column] = f"< {value}"
                     else:
-                        filtered_df = st.session_state.df.copy()
-                        st.warning("No filter applied. Select at least one value.")
+                        # Categorical filter with multiselect
+                        if len(unique_values) > 100:
+                            st.warning(f"Column has {len(unique_values)} unique values. Consider using a different filtering method.")
+                        
+                        selected_values = st.multiselect(f"Select values to include for {filter_column}:", unique_values, key=f"multiselect_{filter_column}")
+                        if selected_values:
+                            filtered_df = filtered_df[filtered_df[filter_column].isin(selected_values)]
+                            active_filters[filter_column] = f"is in {selected_values}"
             
             else:  # Advanced Filter (Query)
                 st.write("Available columns:", list(st.session_state.df.columns))
@@ -224,22 +231,89 @@ elif data_management_option == "Data Cleaning":
                 if query:
                     try:
                         filtered_df = st.session_state.df.query(query)
+                        active_filters = {"Query": query}
                     except Exception as e:
                         st.error(f"Error in query: {e}")
                         filtered_df = st.session_state.df.copy()
+                        active_filters = {}
                 else:
                     filtered_df = st.session_state.df.copy()
+                    active_filters = {}
                     st.warning("No filter applied. Enter a query to filter data.")
             
+            # Display summary of active filters
+            if active_filters:
+                st.subheader("Active Filters")
+                for col, filter_desc in active_filters.items():
+                    st.write(f"- {col}: {filter_desc}")
+            
             # Display filtered data
-            st.write(f"Filtered Data ({len(filtered_df)} rows):")
+            st.subheader(f"Filtered Data ({len(filtered_df)} rows out of {len(st.session_state.df)} total)")
             st.dataframe(filtered_df)
             
-            # Option to save filtered data
-            if st.button("Save Filtered Data as Current DataFrame"):
-                st.session_state.df = filtered_df.copy()
-                st.success("Filtered data saved as the current DataFrame.")
-                save_data()
+            # Option to save the filter with a name
+            filter_name = st.text_input("Enter a name for this filter (required to save):")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("Save Filter") and filter_name:
+                    # Save filter but preserve the original dataframe
+                    st.session_state.saved_filters[filter_name] = {
+                        "filtered_df": filtered_df.copy(),
+                        "active_filters": active_filters.copy()
+                    }
+                    st.success(f"Filter '{filter_name}' saved successfully. Original data preserved.")
+            
+            with col2:
+                if st.button("Apply Filter as Current DataFrame") and active_filters:
+                    st.session_state.df = filtered_df.copy()
+                    st.success("Filtered data applied as the current DataFrame.")
+                    save_data()
+            
+            # Option to download filtered data without changing original
+            if active_filters:
+                csv = filtered_df.to_csv(index=False).encode('utf-8')
+                st.download_button(
+                    label="Download Filtered Data",
+                    data=csv,
+                    file_name=f"filtered_data{'_' + filter_name if filter_name else ''}.csv",
+                    mime="text/csv"
+                )
+            
+            # Display saved filters
+            if st.session_state.saved_filters:
+                st.subheader("Saved Filters")
+                selected_filter = st.selectbox("Select a saved filter to view or apply:", 
+                                             list(st.session_state.saved_filters.keys()))
+                
+                if selected_filter:
+                    saved_filter = st.session_state.saved_filters[selected_filter]
+                    st.write("Filter criteria:")
+                    for col, filter_desc in saved_filter["active_filters"].items():
+                        st.write(f"- {col}: {filter_desc}")
+                    
+                    st.write(f"Filtered data ({len(saved_filter['filtered_df'])} rows):")
+                    st.dataframe(saved_filter["filtered_df"])
+                    
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        if st.button("Apply This Saved Filter"):
+                            filtered_df = saved_filter["filtered_df"].copy()
+                            active_filters = saved_filter["active_filters"].copy()
+                            st.experimental_rerun()
+                    
+                    with col2:
+                        if st.button("Set As Current DataFrame"):
+                            st.session_state.df = saved_filter["filtered_df"].copy()
+                            st.success(f"Filter '{selected_filter}' applied as current DataFrame.")
+                            save_data()
+                    
+                    with col3:
+                        if st.button("Delete This Filter"):
+                            del st.session_state.saved_filters[selected_filter]
+                            st.success(f"Filter '{selected_filter}' deleted.")
+                            if st.session_state.saved_filters:
+                                st.experimental_rerun()
 
     elif cleaning_option == "Compute or Create New Variable":
         st.header("Compute or Create New Variable")
