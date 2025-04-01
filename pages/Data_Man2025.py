@@ -86,7 +86,7 @@ elif data_management_option == "Merge Datasets":
 
 elif data_management_option == "Data Cleaning":
     st.header("Data Cleaning")
-    cleaning_option = st.selectbox("Choose a cleaning option:", ["EDA", "Recode Variables", "Change Data Type", "Compute or Create New Variable", "Delete Column", "Sort Columns", "GroupBy", "Filter Data"])
+    cleaning_option = st.selectbox("Choose a cleaning option:", ["EDA", "Recode Variables", "Change Data Type", "Compute or Create New Variable", "Delete Column", "Sort Columns", "GroupBy", "Filter Data", "Split Column"])
 
     if cleaning_option == "EDA":
         if st.session_state.df is not None:
@@ -421,6 +421,316 @@ elif data_management_option == "Data Cleaning":
                     save_data()
                 else:
                     st.error("Please select all columns to ensure the DataFrame structure is preserved.")
+        else:
+            st.warning("No dataset available. Please import and merge datasets first.")
+            
+    elif cleaning_option == "Split Column":
+        if st.session_state.df is not None:
+            st.subheader("Split Column")
+            
+            # Select column to split
+            column_to_split = st.selectbox("Select column to split:", st.session_state.df.columns)
+            
+            # Display sample values
+            sample_values = st.session_state.df[column_to_split].head(5).tolist()
+            st.write("Sample values from selected column:", sample_values)
+            
+            # Choose split method
+            split_method = st.radio("Choose split method:", [
+                "Split by position (e.g., '201501' → '2015' and '01')",
+                "Split by delimiter (e.g., 'first_last' → 'first' and 'last')",
+                "Split date format (e.g., 'January 2015' → month and year)"
+            ])
+            
+            if split_method == "Split by position (e.g., '201501' → '2015' and '01')":
+                # Position-based splitting
+                st.info("This will split the text based on character positions")
+                
+                # Get the length of the first non-null value to suggest positions
+                sample_len = len(str(st.session_state.df[column_to_split].dropna().iloc[0])) if not st.session_state.df[column_to_split].dropna().empty else 0
+                
+                # If we have a sample, show splitting preview
+                if sample_len > 0:
+                    # Collect split positions
+                    positions = []
+                    
+                    st.write(f"The selected column values have approximately {sample_len} characters")
+                    
+                    # Allow adding multiple split positions
+                    num_splits = st.number_input("How many parts do you want to split into?", min_value=2, max_value=5, value=2)
+                    
+                    # Define the split positions
+                    for i in range(1, num_splits):
+                        pos = st.number_input(f"Position to split at (part {i})", 
+                                             min_value=1, 
+                                             max_value=sample_len-1,
+                                             value=min(i * (sample_len // num_splits), sample_len-1))
+                        positions.append(pos)
+                    
+                    # Sort positions to ensure they're in ascending order
+                    positions.sort()
+                    
+                    # Show preview of split on first few rows
+                    st.subheader("Preview of split result")
+                    
+                    # Create a preview table
+                    preview_data = {"Original": []}
+                    for i in range(num_splits):
+                        preview_data[f"Part {i+1}"] = []
+                    
+                    # Get sample values for preview
+                    sample_rows = st.session_state.df[column_to_split].dropna().head(5)
+                    
+                    for val in sample_rows:
+                        str_val = str(val)
+                        preview_data["Original"].append(str_val)
+                        
+                        # Split by positions
+                        prev_pos = 0
+                        for i, pos in enumerate(positions):
+                            preview_data[f"Part {i+1}"].append(str_val[prev_pos:pos])
+                            prev_pos = pos
+                        
+                        # Add the last part
+                        preview_data[f"Part {num_splits}"].append(str_val[prev_pos:])
+                    
+                    # Display preview
+                    st.table(pd.DataFrame(preview_data))
+                    
+                    # Get new column names
+                    new_col_names = []
+                    for i in range(num_splits):
+                        new_name = st.text_input(f"Name for Part {i+1}:", value=f"{column_to_split}_{i+1}")
+                        new_col_names.append(new_name)
+                    
+                    # Apply the split
+                    if st.button("Apply Split"):
+                        try:
+                            # Convert to string to ensure consistent behavior
+                            str_series = st.session_state.df[column_to_split].astype(str)
+                            
+                            # Split by positions
+                            prev_pos = 0
+                            for i, pos in enumerate(positions):
+                                st.session_state.df[new_col_names[i]] = str_series.str.slice(prev_pos, pos)
+                                prev_pos = pos
+                            
+                            # Add the last part
+                            st.session_state.df[new_col_names[-1]] = str_series.str.slice(prev_pos)
+                            
+                            st.success("Column split successfully")
+                            st.dataframe(st.session_state.df)
+                            save_data()
+                        except Exception as e:
+                            st.error(f"Error splitting column: {e}")
+                else:
+                    st.error("Cannot determine the length of values in the selected column. Ensure it contains non-null values.")
+            
+            elif split_method == "Split by delimiter (e.g., 'first_last' → 'first' and 'last')":
+                # Delimiter-based splitting
+                delimiter = st.text_input("Enter delimiter (e.g., '_', '-', ',', etc.)", value="_")
+                
+                # Count expected parts after split
+                if delimiter:
+                    try:
+                        # Use a sample to estimate number of parts
+                        sample = st.session_state.df[column_to_split].dropna().iloc[0]
+                        num_parts = len(str(sample).split(delimiter))
+                        st.write(f"Splitting will create approximately {num_parts} parts")
+                        
+                        # Preview split
+                        st.subheader("Preview of split result")
+                        preview_data = {"Original": []}
+                        
+                        # Maximum reasonable number of parts to expect
+                        max_parts = 10
+                        for i in range(max_parts):
+                            preview_data[f"Part {i+1}"] = []
+                        
+                        # Get sample values for preview
+                        sample_rows = st.session_state.df[column_to_split].dropna().head(5)
+                        max_parts_found = 0
+                        
+                        for val in sample_rows:
+                            str_val = str(val)
+                            preview_data["Original"].append(str_val)
+                            parts = str_val.split(delimiter)
+                            max_parts_found = max(max_parts_found, len(parts))
+                            
+                            # Add parts to preview
+                            for i, part in enumerate(parts):
+                                if i < max_parts:
+                                    preview_data[f"Part {i+1}"].append(part)
+                            
+                            # Fill in empty values for missing parts
+                            for i in range(len(parts), max_parts):
+                                preview_data[f"Part {i+1}"].append("")
+                        
+                        # Trim preview to only show relevant parts
+                        for i in range(max_parts_found, max_parts):
+                            del preview_data[f"Part {i+1}"]
+                        
+                        # Display preview
+                        st.table(pd.DataFrame(preview_data))
+                        
+                        # Get new column names
+                        new_col_names = []
+                        for i in range(max_parts_found):
+                            new_name = st.text_input(f"Name for Part {i+1}:", value=f"{column_to_split}_{i+1}")
+                            new_col_names.append(new_name)
+                        
+                        # Apply the split
+                        if st.button("Apply Split"):
+                            try:
+                                # Convert all values to string
+                                str_series = st.session_state.df[column_to_split].astype(str)
+                                
+                                # Create new columns for each part
+                                for i in range(max_parts_found):
+                                    st.session_state.df[new_col_names[i]] = str_series.str.split(delimiter).str[i]
+                                
+                                st.success("Column split successfully")
+                                st.dataframe(st.session_state.df)
+                                save_data()
+                            except Exception as e:
+                                st.error(f"Error splitting column: {e}")
+                    except Exception as e:
+                        st.error(f"Cannot preview split: {e}")
+                else:
+                    st.error("Please enter a delimiter")
+            
+            elif split_method == "Split date format (e.g., 'January 2015' → month and year)":
+                # Date format splitting
+                st.info("This will attempt to parse dates and extract components")
+                
+                # Determine the format of the date
+                date_format = st.selectbox("Select date format in your column:", [
+                    "Auto-detect",
+                    "Month Year (e.g., 'January 2015')",
+                    "Year-Month (e.g., '2015-01')",
+                    "Day-Month-Year (e.g., '15-Jan-2020')",
+                    "Custom format"
+                ])
+                
+                custom_format = ""
+                if date_format == "Custom format":
+                    custom_format = st.text_input("Enter custom date format (e.g., '%Y%m' for '202001'):")
+                    st.write("Common format codes: %Y=year, %m=month, %d=day, %b=abbreviated month name")
+                
+                # Choose which components to extract
+                components = st.multiselect("Select date components to extract:", 
+                                          ["Year", "Month (numeric)", "Month (name)", "Day", "Quarter", "Week of year"])
+                
+                # Preview conversion
+                if components:
+                    try:
+                        # Get sample data
+                        sample_rows = st.session_state.df[column_to_split].dropna().head(5)
+                        
+                        preview_data = {"Original": sample_rows.tolist()}
+                        component_cols = {}
+                        
+                        # Initialize component columns
+                        for comp in components:
+                            component_cols[comp] = []
+                        
+                        # Process each sample
+                        for val in sample_rows:
+                            # Try to parse the date
+                            try:
+                                if date_format == "Auto-detect":
+                                    # Try common formats
+                                    try:
+                                        # For 'January 2015' type formats
+                                        date_val = pd.to_datetime(val)
+                                    except:
+                                        try:
+                                            # For '201501' type formats
+                                            date_val = pd.to_datetime(val, format='%Y%m')
+                                        except:
+                                            # Last resort
+                                            date_val = pd.to_datetime(val, errors='coerce')
+                                
+                                elif date_format == "Month Year (e.g., 'January 2015')":
+                                    date_val = pd.to_datetime(val)
+                                
+                                elif date_format == "Year-Month (e.g., '2015-01')":
+                                    date_val = pd.to_datetime(val)
+                                
+                                elif date_format == "Day-Month-Year (e.g., '15-Jan-2020')":
+                                    date_val = pd.to_datetime(val)
+                                
+                                elif date_format == "Custom format" and custom_format:
+                                    date_val = pd.to_datetime(val, format=custom_format)
+                                
+                                # Extract components
+                                for comp in components:
+                                    if comp == "Year":
+                                        component_cols[comp].append(date_val.year)
+                                    elif comp == "Month (numeric)":
+                                        component_cols[comp].append(date_val.month)
+                                    elif comp == "Month (name)":
+                                        component_cols[comp].append(date_val.strftime("%B"))
+                                    elif comp == "Day":
+                                        component_cols[comp].append(date_val.day)
+                                    elif comp == "Quarter":
+                                        component_cols[comp].append(date_val.quarter)
+                                    elif comp == "Week of year":
+                                        component_cols[comp].append(date_val.isocalendar()[1])
+                            
+                            except Exception as e:
+                                # If parsing fails, add placeholders
+                                for comp in components:
+                                    component_cols[comp].append(f"Error: {str(e)[:20]}...")
+                        
+                        # Create preview dataframe
+                        for comp, values in component_cols.items():
+                            preview_data[comp] = values
+                        
+                        # Display preview
+                        st.subheader("Preview of date components")
+                        st.table(pd.DataFrame(preview_data))
+                        
+                        # Get column names for the new components
+                        new_col_names = {}
+                        for comp in components:
+                            default_name = f"{column_to_split}_{comp.lower().replace(' ', '_')}"
+                            new_col_names[comp] = st.text_input(f"Name for {comp} column:", value=default_name)
+                        
+                        # Apply the extraction
+                        if st.button("Apply Date Extraction"):
+                            try:
+                                # Try to parse all dates
+                                if date_format == "Auto-detect":
+                                    date_series = pd.to_datetime(st.session_state.df[column_to_split], errors='coerce')
+                                elif date_format == "Custom format" and custom_format:
+                                    date_series = pd.to_datetime(st.session_state.df[column_to_split], format=custom_format, errors='coerce')
+                                else:
+                                    date_series = pd.to_datetime(st.session_state.df[column_to_split], errors='coerce')
+                                
+                                # Extract and add each component
+                                for comp, new_name in new_col_names.items():
+                                    if comp == "Year":
+                                        st.session_state.df[new_name] = date_series.dt.year
+                                    elif comp == "Month (numeric)":
+                                        st.session_state.df[new_name] = date_series.dt.month
+                                    elif comp == "Month (name)":
+                                        st.session_state.df[new_name] = date_series.dt.strftime("%B")
+                                    elif comp == "Day":
+                                        st.session_state.df[new_name] = date_series.dt.day
+                                    elif comp == "Quarter":
+                                        st.session_state.df[new_name] = date_series.dt.quarter
+                                    elif comp == "Week of year":
+                                        st.session_state.df[new_name] = date_series.dt.isocalendar().week
+                                
+                                st.success("Date components extracted successfully")
+                                st.dataframe(st.session_state.df)
+                                save_data()
+                            except Exception as e:
+                                st.error(f"Error extracting date components: {e}")
+                    
+                    except Exception as e:
+                        st.error(f"Error previewing date extraction: {e}")
         else:
             st.warning("No dataset available. Please import and merge datasets first.")
 
