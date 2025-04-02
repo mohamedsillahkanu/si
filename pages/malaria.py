@@ -272,21 +272,21 @@ def main():
     if use_bednets:
         bednet_coverage = st.sidebar.slider(
             "Bed Net Coverage", 
-            min_value=0.0, 
-            max_value=1.0, 
-            value=0.5, 
-            step=0.05,
+            min_value=0, 
+            max_value=100, 
+            value=50, 
+            step=5,
             format="%d%%"
-        )
+        ) / 100.0  # Convert percentage to decimal
         
         bednet_efficacy = st.sidebar.slider(
             "Bed Net Efficacy", 
-            min_value=0.0, 
-            max_value=1.0, 
-            value=0.7, 
-            step=0.05,
+            min_value=0, 
+            max_value=100, 
+            value=70, 
+            step=5,
             format="%d%%"
-        )
+        ) / 100.0  # Convert percentage to decimal
     
     # Collect parameters
     params = {
