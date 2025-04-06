@@ -77,3 +77,4 @@ transformers==4.27.0
 torch==1.13.0
 pyttsx3
 torch
+opencv-python
