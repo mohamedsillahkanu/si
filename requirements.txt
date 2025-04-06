@@ -73,9 +73,7 @@ cryptography>=40.0.0
 pillow>=9.5.0
 requests
 xlsxwriter
-
-streamlit==1.21.0
 transformers==4.27.0
 torch==1.13.0
-matplotlib==3.6.2
+
 
