@@ -78,3 +78,5 @@ torch==1.13.0
 pyttsx3
 torch
 opencv-python
+opencv-python-headless
+moviepy
