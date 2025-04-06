@@ -1,8 +1,12 @@
 import streamlit as st
+import pyttsx3
 from transformers import pipeline
 
 # Initialize the conversational model
 generator = pipeline('text-generation', model='gpt2')
+
+# Initialize the TTS engine
+engine = pyttsx3.init()
 
 # Function to generate AI responses based on the user input
 def generate_response(user_input):
@@ -29,7 +33,7 @@ plt.ylabel('Values')
 plt.show()
 """
 
-# Function to explain the code
+# Function to explain the code (using text-to-speech)
 def explain_code():
     explanation = """
     This code demonstrates how to create a simple bar chart using the 'matplotlib' library in Python. 
@@ -54,6 +58,11 @@ def explain_code():
 
     This code generates a basic bar chart that shows the values for each category, and it adds titles and labels to make the chart more informative.
     """
+    
+    # Use text-to-speech to explain the code
+    engine.say(explanation)
+    engine.runAndWait()
+
     return explanation
 
 # Streamlit user interface for the teaching agent
@@ -78,10 +87,15 @@ def main():
             ai_response = generate_response(user_input)
             st.write("AI says: ", ai_response)
 
+    # Button for the user to click to explain the code with voice
+    if st.button("Explain Code"):
+        explain_code()
+        st.write("### Explanation is being spoken now...")
+
     st.markdown("### How It Works:")
     st.markdown("""
     This AI uses a GPT-2 language model to generate explanations based on your questions about the code.
-    When you ask for an explanation, it breaks down the code and describes each part of the process.
+    When you click 'Explain Code', the code is explained verbally using text-to-speech technology.
     """)
 
 if __name__ == "__main__":
