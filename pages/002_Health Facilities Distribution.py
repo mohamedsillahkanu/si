@@ -122,15 +122,12 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
 
         facility_gdf.plot(ax=ax, color=point_color, markersize=point_size, alpha=point_alpha)
 
-        # Title and stat box
+        # Only title, no stat box
         plt.title(map_title, fontsize=20, pad=20)
         plt.axis('off')
-        stats_text = (
-            f"Total Facilities: {len(facility_data)}\n"
-            f"Longitude: {facility_data[longitude_col].min():.2f}° to {facility_data[longitude_col].max():.2f}°\n"
-            f"Latitude: {facility_data[latitude_col].min():.2f}° to {facility_data[latitude_col].max():.2f}°"
-        )
-        plt.figtext(0.02, 0.02, stats_text, fontsize=9, bbox=dict(facecolor='white', alpha=0.7))
+        
+        # Center the map
+        plt.tight_layout()
 
         # ────────── Display Map ──────────
         st.pyplot(fig)
