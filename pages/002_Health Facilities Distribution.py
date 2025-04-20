@@ -49,23 +49,32 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
         st.header("🎨 Map Customization Options")
         col3, col4, col5 = st.columns(3)
 
-        # Try to detect lat/long columns automatically
+        # Detect lat/long columns automatically
         lat_cols = [col for col in facility_data.columns if any(s in col.lower() for s in ['lat', 'latitude', 'y_coord'])]
         long_cols = [col for col in facility_data.columns if any(s in col.lower() for s in ['lon', 'long', 'longitude', 'x_coord'])]
-
+        
+        # If no columns match our patterns, show all columns as fallback
+        if not lat_cols:
+            lat_cols = facility_data.columns.tolist()
+        if not long_cols:
+            long_cols = facility_data.columns.tolist()
+            
         with col3:
-            # Use detected column if available, otherwise default to first column
+            # For longitude dropdown, only show columns that could be longitude
             default_long_index = 0
-            if long_cols and long_cols[0] in facility_data.columns:
-                default_long_index = facility_data.columns.get_loc(long_cols[0])
+            longitude_col = st.selectbox(
+                "Select Longitude Column", 
+                long_cols,
+                index=min(default_long_index, len(long_cols)-1)
+            )
             
-            longitude_col = st.selectbox("Select Longitude Column", facility_data.columns, index=default_long_index)
-            
+            # For latitude dropdown, only show columns that could be latitude
             default_lat_index = 0
-            if lat_cols and lat_cols[0] in facility_data.columns:
-                default_lat_index = facility_data.columns.get_loc(lat_cols[0])
-                
-            latitude_col = st.selectbox("Select Latitude Column", facility_data.columns, index=default_lat_index)
+            latitude_col = st.selectbox(
+                "Select Latitude Column", 
+                lat_cols, 
+                index=min(default_lat_index, len(lat_cols)-1)
+            )
 
         with col4:
             map_title = st.text_input("Map Title", "Health Facility Distribution")
