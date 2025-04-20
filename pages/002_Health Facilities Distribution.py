@@ -133,11 +133,20 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
         st.pyplot(fig)
 
         # ────────── Download Buttons ──────────
-        output_path_png = "health_facility_map.png"
-        plt.savefig(output_path_png, dpi=300, bbox_inches='tight', pad_inches=0.1)
+        col6, col7 = st.columns(2)
         
-        with open(output_path_png, "rb") as file:
-            st.download_button("📥 Download Map (PNG)", file, file_name="health_facility_map.png", mime="image/png")
+        with col6:
+            output_path_png = "health_facility_map.png"
+            plt.savefig(output_path_png, dpi=300, bbox_inches='tight', pad_inches=0.1)
+            with open(output_path_png, "rb") as file:
+                st.download_button("📥 Download Map (PNG)", file, file_name="health_facility_map.png", mime="image/png")
+                
+        with col7:
+            # Save as GIF
+            output_path_gif = "health_facility_map.gif"
+            plt.savefig(output_path_gif, dpi=300, bbox_inches='tight', pad_inches=0.1, format='gif')
+            with open(output_path_gif, "rb") as file:
+                st.download_button("📥 Download Map (GIF)", file, file_name="health_facility_map.gif", mime="image/gif")
 
     except Exception as e:
         st.error(f"❗ An error occurred: {str(e)}")
