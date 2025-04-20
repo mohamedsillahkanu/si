@@ -23,6 +23,7 @@ st.markdown("""
     #MainMenu {visibility: hidden;}
     header {visibility: hidden;}
     footer {visibility: hidden;}
+    [data-testid="stSidebar"] {display: none;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -289,65 +290,6 @@ st.markdown("""
             margin-top: 5px;
         }
         
-        /* Progress steps */
-        .progress-steps {
-            display: flex;
-            justify-content: space-between;
-            padding: 0 10%;
-            margin: 30px 0;
-            position: relative;
-            z-index: 2;
-        }
-        
-        .progress-steps::before {
-            content: "";
-            position: absolute;
-            top: 15px;
-            left: 10%;
-            right: 10%;
-            height: 3px;
-            background-color: #333;
-            z-index: -1;
-        }
-        
-        .step {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        
-        .step-circle {
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            background-color: #333;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 10px;
-            color: white;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-        }
-        
-        .step-circle.active {
-            background-color: #47B5FF;
-            box-shadow: 0 0 10px rgba(71, 181, 255, 0.5);
-        }
-        
-        .step-label {
-            font-size: 0.85rem;
-            color: #999;
-            transition: all 0.3s ease;
-        }
-        
-        .step-label.active {
-            color: #47B5FF;
-            font-weight: 500;
-            text-shadow: 0 0 5px rgba(71, 181, 255, 0.3);
-        }
-        
         /* Main title styling */
         .main-title {
             color: white;
@@ -367,41 +309,6 @@ st.markdown("""
             margin-bottom: 2rem;
             position: relative;
             z-index: 2;
-        }
-        
-        /* Navigation menu */
-        .nav-menu {
-            display: flex;
-            justify-content: center;
-            margin: 2rem 0;
-            gap: 1rem;
-            position: relative;
-            z-index: 2;
-        }
-        
-        .nav-button {
-            background-color: rgba(30, 30, 30, 0.7);
-            color: #E0E0E0;
-            border: 1px solid #333;
-            border-radius: 30px;
-            padding: 0.5rem 1.2rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(5px);
-        }
-        
-        .nav-button:hover {
-            background-color: rgba(46, 46, 46, 0.7);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-        
-        .nav-button.active {
-            background: linear-gradient(90deg, rgba(71, 181, 255, 0.5), rgba(30, 136, 229, 0.5));
-            color: white;
-            border: none;
-            box-shadow: 0 0 10px rgba(71, 181, 255, 0.3);
         }
         
         /* File upload container */
@@ -505,7 +412,7 @@ st.markdown("""
         /* Footer styling */
         .footer {
             text-align: center;
-            padding: 1.5rem;
+            padding: 1rem;
             color: #6c757d;
             font-size: 0.8rem;
             margin-top: 2rem;
@@ -527,73 +434,10 @@ st.markdown("""
 # Welcome animation (only on first load)
 if 'first_load' not in st.session_state:
     st.session_state.first_load = True
-    st.session_state.page = "Map Generator"
 
 if st.session_state.first_load:
     st.balloons()
     st.session_state.first_load = False
-
-# Create custom horizontal navigation menu instead of sidebar
-st.markdown("""
-<div class="nav-menu">
-    <div class="nav-button {}" onclick="
-        this.classList.add('active');
-        Array.from(document.getElementsByClassName('nav-button')).forEach(el => {{
-            if(el != this) el.classList.remove('active');
-        }});
-        document.querySelectorAll('.page-content').forEach(el => {{
-            el.style.display = 'none';
-        }});
-        document.getElementById('map-generator').style.display = 'block';
-    ">Map Generator</div>
-    <div class="nav-button" onclick="
-        this.classList.add('active');
-        Array.from(document.getElementsByClassName('nav-button')).forEach(el => {{
-            if(el != this) el.classList.remove('active');
-        }});
-        document.querySelectorAll('.page-content').forEach(el => {{
-            el.style.display = 'none';
-        }});
-        document.getElementById('help-instructions').style.display = 'block';
-    ">Help & Instructions</div>
-    <div class="nav-button" onclick="
-        this.classList.add('active');
-        Array.from(document.getElementsByClassName('nav-button')).forEach(el => {{
-            if(el != this) el.classList.remove('active');
-        }});
-        document.querySelectorAll('.page-content').forEach(el => {{
-            el.style.display = 'none';
-        }});
-        document.getElementById('about').style.display = 'block';
-    ">About</div>
-</div>
-""".replace('{}', 'active'), unsafe_allow_html=True)
-
-# Create progress steps for map generator page
-current_step = 1  # Set this based on user progress
-st.markdown(f"""
-    <div class="progress-steps">
-        <div class="step">
-            <div class="step-circle {'active' if current_step >= 1 else ''}">1</div>
-            <div class="step-label {'active' if current_step >= 1 else ''}">Upload Files</div>
-        </div>
-        <div class="step">
-            <div class="step-circle {'active' if current_step >= 2 else ''}">2</div>
-            <div class="step-label {'active' if current_step >= 2 else ''}">Configure Map</div>
-        </div>
-        <div class="step">
-            <div class="step-circle {'active' if current_step >= 3 else ''}">3</div>
-            <div class="step-label {'active' if current_step >= 3 else ''}">Generate & Export</div>
-        </div>
-    </div>
-""", unsafe_allow_html=True)
-
-# Create content containers for each page
-st.markdown("""
-<div id="map-generator" class="page-content" style="display:block;">
-""", unsafe_allow_html=True)
-
-# Map Generator Content
 
 # File Upload Card
 st.markdown("""
@@ -1015,143 +859,9 @@ if all([shp_file, shx_file, dbf_file, facility_file]) and ('generate_button' in 
     
     st.markdown("""</div>""", unsafe_allow_html=True)
 
-# Help & Instructions page
-st.markdown("""
-<div id="help-instructions" class="page-content" style="display:none;">
-    <div class="section-card">
-        <div class="section-header">📘 How to Use This Tool</div>
-        <p>The Health Facility Map Generator allows you to create beautiful, interactive maps showing the geographic distribution of health facilities. Follow these steps to generate your map:</p>
-        
-        <h3 style="color: #47B5FF; margin-top: 1.5rem;">Step 1: Prepare Your Files</h3>
-        <p>You'll need two types of files:</p>
-        <ul>
-            <li><strong>Shapefile Components</strong>: These define the geographic boundaries. You need three files with the same name but different extensions: .shp, .shx, and .dbf.</li>
-            <li><strong>Health Facility Data</strong>: An Excel (.xlsx) file containing your facility information with columns for longitude and latitude.</li>
-        </ul>
-        
-        <h3 style="color: #47B5FF; margin-top: 1.5rem;">Step 2: Upload Your Files</h3>
-        <p>Upload all required files in the Map Generator section. Make sure all shapefile components are from the same set.</p>
-        
-        <h3 style="color: #47B5FF; margin-top: 1.5rem;">Step 3: Configure Your Map</h3>
-        <p>After uploading your files, you can customize your map:</p>
-        <ul>
-            <li><strong>Coordinate Columns</strong>: Select which columns in your Excel file contain longitude and latitude data.</li>
-            <li><strong>Map Style</strong>: Choose colors and add a title for your map.</li>
-            <li><strong>Visual Settings</strong>: Adjust point size and transparency to best display your data.</li>
-        </ul>
-        
-        <h3 style="color: #47B5FF; margin-top: 1.5rem;">Step 4: Generate & Download</h3>
-        <p>Click the "Generate Map" button to create your visualization. You can then download:</p>
-        <ul>
-            <li>The map as a high-resolution PNG image</li>
-            <li>Your processed coordinate data as a CSV file</li>
-        </ul>
-    </div>
-    
-    <div class="section-card">
-        <div class="section-header">💡 Tips for Better Maps</div>
-        
-        <h3 style="color: #47B5FF; margin-top: 1rem;">Data Preparation</h3>
-        <ul>
-            <li>Clean your data before uploading, removing or fixing invalid coordinates</li>
-            <li>Include a category column (e.g., facility type) for color-coded visualization</li>
-            <li>Ensure coordinates are in decimal degrees format (e.g., 9.0479, 7.4951)</li>
-            <li>Check that your coordinates match the geographic region in your shapefile</li>
-        </ul>
-        
-        <h3 style="color: #47B5FF; margin-top: 1rem;">Troubleshooting Common Issues</h3>
-        <ul>
-            <li><strong>Map doesn't display</strong>: Confirm your coordinate columns are correctly selected</li>
-            <li><strong>Points appear in wrong locations</strong>: Check for coordinate system mismatches</li>
-            <li><strong>Upload errors</strong>: Ensure all shapefile components (.shp, .shx, .dbf) are from the same set</li>
-            <li><strong>No data showing</strong>: Verify your Excel file has the expected column names and data formats</li>
-        </ul>
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
-# About page
-st.markdown("""
-<div id="about" class="page-content" style="display:none;">
-    <div class="section-card">
-        <div class="section-header">ℹ️ About This Tool</div>
-        <p>The Health Facility Map Generator is designed to help healthcare professionals, researchers, and planners visualize the geographic distribution of health facilities. This tool simplifies the process of creating professional-quality maps without requiring GIS expertise.</p>
-        
-        <h3 style="color: #47B5FF; margin-top: 1.5rem;">Features</h3>
-        <ul>
-            <li>Fast processing of geospatial data</li>
-            <li>Support for categorized visualization (e.g., by facility type)</li>
-            <li>Customizable map styling and appearance</li>
-            <li>Statistical analysis of facility distribution</li>
-            <li>High-resolution export options</li>
-            <li>User-friendly interface with minimal learning curve</li>
-        </ul>
-        
-        <h3 style="color: #47B5FF; margin-top: 1.5rem;">Use Cases</h3>
-        <ul>
-            <li><strong>Public Health Planning</strong>: Analyze healthcare coverage and identify gaps in service</li>
-            <li><strong>Resource Allocation</strong>: Make data-driven decisions about where to invest in new facilities</li>
-            <li><strong>Program Monitoring</strong>: Track the expansion of health services over time</li>
-            <li><strong>Reporting</strong>: Create professional visualizations for presentations and publications</li>
-            <li><strong>Emergency Response</strong>: Quickly assess available health resources in affected areas</li>
-        </ul>
-    </div>
-    
-    <div class="section-card">
-        <div class="section-header">🔄 Version History</div>
-        <p>Current Version: 2.0</p>
-        
-        <h3 style="color: #47B5FF; margin-top: 1rem;">What's New</h3>
-        <ul>
-            <li>Dark mode interface with interactive particle background</li>
-            <li>Enhanced data visualization options</li>
-            <li>Improved statistical summaries</li>
-            <li>Faster processing of large datasets</li>
-            <li>Multiple theme options</li>
-        </ul>
-        
-        <div style="margin-top: 2rem; text-align: center; color: #B0B0B0;">
-            <p>Developed for health facility mapping and analysis</p>
-            <p style="font-size: 0.8rem;">© 2025 Health GIS Tools</p>
-        </div>
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
 # Add footer
 st.markdown("""
     <div class="footer">
         <p>Health Facility Map Generator • Built with Streamlit</p>
-        <p>For support and feedback: support@healthfacilitymapper.org</p>
     </div>
 """, unsafe_allow_html=True)
-
-# Add JavaScript to make the navigation menu work
-components.html("""
-<script>
-    // Add click event listeners to navigation buttons after the DOM is loaded
-    document.addEventListener('DOMContentLoaded', function() {
-        const navButtons = document.querySelectorAll('.nav-button');
-        const pages = document.querySelectorAll('.page-content');
-        
-        navButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                // Remove active class from all buttons
-                navButtons.forEach(btn => btn.classList.remove('active'));
-                
-                // Add active class to clicked button
-                this.classList.add('active');
-                
-                // Hide all pages
-                pages.forEach(page => {
-                    page.style.display = 'none';
-                });
-                
-                // Show the corresponding page
-                const pageId = this.textContent.trim().toLowerCase().replace(/\s+/g, '-');
-                document.getElementById(pageId).style.display = 'block';
-            });
-        });
-    });
-</script>
-""", height=0)
