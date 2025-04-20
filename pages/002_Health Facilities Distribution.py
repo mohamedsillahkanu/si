@@ -107,7 +107,7 @@ if all([shp_file, shx_file, dbf_file, facility_file]):
         shapefile = shapefile.to_crs(epsg=4326) if shapefile.crs else shapefile.set_crs(epsg=4326)
 
         # ────────── Plotting ──────────
-        fig, ax = plt.subplots(figsize=(15, 10))
+        fig, ax = plt.subplots(figsize=(8, 8))
         shapefile.plot(ax=ax, color=background_color, edgecolor='black', linewidth=0.5)
 
         # Adjust aspect ratio based on midpoint latitude
