@@ -80,3 +80,5 @@ torch
 opencv-python
 opencv-python-headless
 moviepy
+python-docx==1.0.0
+reportlab==4.0.7
