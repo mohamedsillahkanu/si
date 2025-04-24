@@ -119,7 +119,7 @@ This ensures your file paths are consistent no matter where or how the script is
 
 ## Downloading and Setting Up the Example Data
 
-1. Download the Sierra Leone example data from [here](https://github.com/ahadi-analytics/snt-data-files/raw/99c7f670f38e46d6e872c941e45e11dd68844d4b/Routine%20data.zip)
+1. For each section, a link will be provided to download example data.
 
 2. Extract the contents of the zipped folder
 
@@ -145,10 +145,8 @@ This ensures your file paths are consistent no matter where or how the script is
 ## Best Practices
 
 1. **Use the here package**: Ensure file paths are consistent across environments
-2. **Document your work**: Add notes explaining your adaptations of the library code
-3. **Create reproducible analyses**: Use `set.seed()` for random processes
-4. **Version control**: Consider using Git to track your adaptations
-5. **Modularize your code**: Break complex operations into functions
+2. **Version control**: Consider using Git to track your adaptations
+3. **Modularize your code**: Break complex operations into functions
 
 ## Troubleshooting Common Issues
 
